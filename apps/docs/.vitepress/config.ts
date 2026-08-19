@@ -8,7 +8,7 @@ export default defineConfig({
       ["meta", { name: "robots", content: "index, follow" }],
       ["meta", { property: "og:site_name", content: "PanelJS" }],
       ["meta", { property: "og:type", content: "website" }],
-      ["meta", { property: "og:image", content: "https://paneljs.com/images/product-overview.png" }],
+      ["meta", { property: "og:image", content: "https://www.paneljs.com/images/product-overview.png" }],
       ["meta", { name: "twitter:card", content: "summary_large_image" }],
    ],
    outDir: "./.vitepress/dist",
