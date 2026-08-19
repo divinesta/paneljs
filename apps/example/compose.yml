@@ -1,0 +1,41 @@
+name: paneljs-example
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: paneljs-example-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: paneljs_example
+    ports:
+      - "5435:5432"
+    volumes:
+      - paneljs_example_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paneljs_example"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ../..
+      dockerfile: apps/example/Dockerfile
+    container_name: paneljs-example-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/paneljs_example
+      PANELJS_ADMIN_EMAIL: ${PANELJS_ADMIN_EMAIL:-admin@example.test}
+      PANELJS_ADMIN_PASSWORD: ${PANELJS_ADMIN_PASSWORD:-changeme-now}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  paneljs_example_postgres_data:

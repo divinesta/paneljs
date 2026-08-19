@@ -1,0 +1,34 @@
+{
+  "name": "@paneljs/example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "start": "tsx index.ts",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx seed.ts",
+    "admin:createsuperuser": "tsx ../../packages/prisma/src/cli.ts createsuperuser --config ./paneljs.config.ts",
+    "lint": "echo \"example: no lint yet\""
+  },
+  "dependencies": {
+    "@paneljs/express": "workspace:*",
+    "@paneljs/prisma": "workspace:*",
+    "@prisma/adapter-pg": "~7.5.0",
+    "@prisma/client": "~7.5.0",
+    "express": "^5.0.0",
+    "paneljs": "workspace:*",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.15.3",
+    "@types/pg": "^8.15.4",
+    "prisma": "~7.5.0",
+    "tsx": "^4.20.3",
+    "typescript": "5.9.2"
+  }
+}
