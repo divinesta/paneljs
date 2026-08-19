@@ -1,6 +1,6 @@
 {
   "name": "@paneljs/express",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Express adapter for PanelJS. Mounts the admin UI and API on an Express app.",
   "license": "MIT",
   "type": "module",
@@ -13,7 +13,7 @@
   "bugs": {
     "url": "https://github.com/divinesta/paneljs/issues"
   },
-  "homepage": "https://github.com/divinesta/paneljs",
+  "homepage": "https:paneljs.com",
   "keywords": [
     "paneljs",
     "express",

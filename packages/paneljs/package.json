@@ -1,5 +1,5 @@
 {
-  "name": "paneljs",
+  "name": "@paneljs/paneljs",
   "version": "0.1.0",
   "description": "Schema-driven admin panel core. Register models, serve a guarded operations UI.",
   "license": "MIT",
