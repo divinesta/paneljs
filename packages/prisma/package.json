@@ -1,27 +1,57 @@
 {
   "name": "@paneljs/prisma",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Prisma adapter for PanelJS. Introspects schema.prisma and runs scalar CRUD.",
+  "license": "MIT",
   "type": "module",
+  "author": "Divinesta",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/divinesta/paneljs.git",
+    "directory": "packages/prisma"
+  },
+  "bugs": {
+    "url": "https://github.com/divinesta/paneljs/issues"
+  },
+  "homepage": "https://github.com/divinesta/paneljs",
+  "keywords": [
+    "paneljs",
+    "prisma",
+    "admin",
+    "dmmf"
+  ],
   "bin": {
-    "paneljs": "./src/cli.ts"
+    "paneljs": "./dist/cli.js"
   },
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^20.19 || ^22.12 || >=24.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "echo \"@paneljs/prisma: library is TypeScript source\"",
+    "build": "tsc -p tsconfig.build.json",
     "lint": "echo \"@paneljs/prisma: no lint yet\"",
     "check-types": "tsc --noEmit -p tsconfig.json",
-    "test": "echo \"@paneljs/prisma: no tests yet\""
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
     "@prisma/dmmf": "~7.5.0",
     "@prisma/internals": "~7.5.0",
-    "paneljs": "workspace:*"
+    "paneljs": "workspace:^"
   },
   "peerDependencies": {
     "@prisma/client": "~7.5.0",

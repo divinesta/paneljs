@@ -98,7 +98,7 @@ importers:
   packages/express:
     dependencies:
       paneljs:
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../paneljs
     devDependencies:
       '@types/express':
@@ -163,7 +163,7 @@ importers:
         specifier: ~7.5.0
         version: 7.5.0(typescript@5.9.2)
       paneljs:
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../paneljs
     devDependencies:
       '@prisma/client':

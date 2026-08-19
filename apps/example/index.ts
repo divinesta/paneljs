@@ -17,7 +17,7 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: data
 const app = express();
 const schemaPath = fileURLToPath(new URL("./prisma/schema.prisma", import.meta.url));
 
-const admin = createAdmin({
+const admin = createAdmin({   
    adapter: prismaAdapter({ prisma, schemaPath }),
    databaseProvider: "postgresql",
    siteName: "PanelJS",
