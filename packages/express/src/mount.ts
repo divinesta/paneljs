@@ -2,99 +2,155 @@ import { json, Router, static as expressStatic } from "express";
 import type { Application } from "express";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { getAdminUiDist, isBuiltInAuth, type Admin } from "paneljs";
+import { getAdminUiDist, isBuiltInAuth, type Admin } from "@paneljs/paneljs";
 import { createActionRouter } from "./actionRouter.js";
-import { createBuiltInAuthenticationMiddleware, createBuiltInAuthRouter, enforceBuiltInAdminPage } from "./builtIn.js";
+import {
+  createBuiltInAuthenticationMiddleware,
+  createBuiltInAuthRouter,
+  enforceBuiltInAdminPage,
+} from "./builtIn.js";
 import { createCrudRouter } from "./crudRouter.js";
 import { createApiErrorHandler } from "./httpErrors.js";
 import { createAuthenticationMiddleware } from "./middleware.js";
 import { createSchemaEndpoint } from "./schemaEndpoint.js";
 
 function normalizeBasePath(basePath = "/admin"): string {
-   if (!basePath.startsWith("/")) throw new Error("[paneljs] basePath must start with '/'.");
-   return basePath.length > 1 ? basePath.replace(/\/+$/, "") : basePath;
+  if (!basePath.startsWith("/"))
+    throw new Error("[paneljs] basePath must start with '/'.");
+  return basePath.length > 1 ? basePath.replace(/\/+$/, "") : basePath;
 }
 
 function isSameOriginMutation(req: import("express").Request): boolean {
-   const origin = req.get("origin");
-   if (!origin) return true;
-   try {
-      return new URL(origin).host === req.get("host");
-   } catch {
-      return false;
-   }
+  const origin = req.get("origin");
+  if (!origin) return true;
+  try {
+    return new URL(origin).host === req.get("host");
+  } catch {
+    return false;
+  }
 }
 
 /** Mount a PanelJS admin onto an Express application. */
 export async function mount(app: Application, admin: Admin): Promise<void> {
-   await admin.initialize();
+  await admin.initialize();
 
-   const config = admin.config;
-   const basePath = normalizeBasePath(config.basePath);
-   const client = config.adapter.client;
+  const config = admin.config;
+  const basePath = normalizeBasePath(config.basePath);
+  const client = config.adapter.client;
 
-   if (isBuiltInAuth(config.auth)) {
-      if (process.env.NODE_ENV === "production" && config.auth.secureCookies === false) {
-         throw new Error("[paneljs] Built-in auth refuses secureCookies: false in production.");
-      }
-      const protectedModels = new Set([config.auth.userModel ?? "ExpressAdminUser", config.auth.sessionModel ?? "ExpressAdminSession"]);
-      const exposedModel = admin.registry.getAll().find((model) => protectedModels.has(model.meta.name));
-      if (exposedModel) throw new Error(`[paneljs] Built-in auth model "${exposedModel.meta.name}" cannot be registered in the admin panel.`);
-   }
+  if (isBuiltInAuth(config.auth)) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      config.auth.secureCookies === false
+    ) {
+      throw new Error(
+        "[paneljs] Built-in auth refuses secureCookies: false in production.",
+      );
+    }
+    const protectedModels = new Set([
+      config.auth.userModel ?? "ExpressAdminUser",
+      config.auth.sessionModel ?? "ExpressAdminSession",
+    ]);
+    const exposedModel = admin.registry
+      .getAll()
+      .find((model) => protectedModels.has(model.meta.name));
+    if (exposedModel)
+      throw new Error(
+        `[paneljs] Built-in auth model "${exposedModel.meta.name}" cannot be registered in the admin panel.`,
+      );
+  }
 
-   const router = Router();
+  const router = Router();
 
-   router.use((_req, res, next) => {
-      res.setHeader("X-Frame-Options", "DENY");
-      res.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
-      next();
-   });
+  router.use((_req, res, next) => {
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
+    next();
+  });
 
-   router.use(json());
+  router.use(json());
 
-   if (isBuiltInAuth(config.auth)) {
-      router.use("/api/auth", createBuiltInAuthRouter(client as object, config.auth, basePath));
-   }
+  if (isBuiltInAuth(config.auth)) {
+    router.use(
+      "/api/auth",
+      createBuiltInAuthRouter(client as object, config.auth, basePath),
+    );
+  }
 
-   router.use("/api", isBuiltInAuth(config.auth) ? createBuiltInAuthenticationMiddleware(client as object, config.auth) : createAuthenticationMiddleware(config.auth));
-   router.use("/api", (req, res, next) => {
-      if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && !isSameOriginMutation(req)) {
-         res.status(403).json({ error: "Cross-origin requests are not allowed.", code: "ORIGIN_FORBIDDEN" });
-         return;
-      }
-      next();
-   });
-   router.use("/api", (_req, res, next) => {
-      res.setHeader("Cache-Control", "private, no-store");
-      next();
-   });
+  router.use(
+    "/api",
+    isBuiltInAuth(config.auth)
+      ? createBuiltInAuthenticationMiddleware(client as object, config.auth)
+      : createAuthenticationMiddleware(config.auth),
+  );
+  router.use("/api", (req, res, next) => {
+    if (
+      ["POST", "PUT", "PATCH", "DELETE"].includes(req.method) &&
+      !isSameOriginMutation(req)
+    ) {
+      res
+        .status(403)
+        .json({
+          error: "Cross-origin requests are not allowed.",
+          code: "ORIGIN_FORBIDDEN",
+        });
+      return;
+    }
+    next();
+  });
+  router.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "private, no-store");
+    next();
+  });
 
-   router.get("/api/schema", createSchemaEndpoint(admin));
+  router.get("/api/schema", createSchemaEndpoint(admin));
 
-   const modelsByPluralName = new Map(admin.registry.getAll().map((model) => [model.meta.pluralName, model]));
-   router.use("/api", createActionRouter(modelsByPluralName, config.adapter, config.audit));
-   router.use("/api", createCrudRouter(modelsByPluralName, config.adapter, config.databaseProvider, config.audit));
-   router.use("/api", createApiErrorHandler());
+  const modelsByPluralName = new Map(
+    admin.registry.getAll().map((model) => [model.meta.pluralName, model]),
+  );
+  router.use(
+    "/api",
+    createActionRouter(modelsByPluralName, config.adapter, config.audit),
+  );
+  router.use(
+    "/api",
+    createCrudRouter(
+      modelsByPluralName,
+      config.adapter,
+      config.databaseProvider,
+      config.audit,
+    ),
+  );
+  router.use("/api", createApiErrorHandler());
 
-   const uiDist = getAdminUiDist();
-   if (isBuiltInAuth(config.auth)) router.use(enforceBuiltInAdminPage(client as object, config.auth, basePath));
-   router.use(expressStatic(uiDist, { index: false }));
-   router.get(/^(?!\/api(?:\/|$)).*/, async (_req, res, next) => {
-      try {
-         const indexHtml = await readFile(resolve(uiDist, "index.html"), "utf8");
-         const safeBasePath = JSON.stringify(basePath).replace(/</g, "\\u003c");
-         const assetBasePath = basePath === "/" ? "" : basePath;
-         const renderedIndex = indexHtml
-            .replaceAll("/__PANELJS_BASE_PATH__", assetBasePath)
-            .replace("</head>", `<script>window.__PANELJS_BASE_PATH__=${safeBasePath};</script></head>`);
-         res.type("html").send(renderedIndex);
-      } catch (error) {
-         next(error);
-      }
-   });
+  const uiDist = getAdminUiDist();
+  if (isBuiltInAuth(config.auth))
+    router.use(
+      enforceBuiltInAdminPage(client as object, config.auth, basePath),
+    );
+  router.use(expressStatic(uiDist, { index: false }));
+  router.get(/^(?!\/api(?:\/|$)).*/, async (_req, res, next) => {
+    try {
+      const indexHtml = await readFile(resolve(uiDist, "index.html"), "utf8");
+      const safeBasePath = JSON.stringify(basePath).replace(/</g, "\\u003c");
+      const assetBasePath = basePath === "/" ? "" : basePath;
+      const renderedIndex = indexHtml
+        .replaceAll("/__PANELJS_BASE_PATH__", assetBasePath)
+        .replace(
+          "</head>",
+          `<script>window.__PANELJS_BASE_PATH__=${safeBasePath};</script></head>`,
+        );
+      res.type("html").send(renderedIndex);
+    } catch (error) {
+      next(error);
+    }
+  });
 
-   app.use(basePath, router);
+  app.use(basePath, router);
 
-   const modelCount = admin.registry.size;
-   console.log(`[paneljs] Mounted at ${basePath}. ` + `${modelCount} model${modelCount !== 1 ? "s" : ""} registered.`);
+  const modelCount = admin.registry.size;
+  console.log(
+    `[paneljs] Mounted at ${basePath}. ` +
+      `${modelCount} model${modelCount !== 1 ? "s" : ""} registered.`,
+  );
 }

@@ -20,7 +20,7 @@
     "@prisma/adapter-pg": "~7.5.0",
     "@prisma/client": "~7.5.0",
     "express": "^5.0.0",
-    "paneljs": "workspace:*",
+    "@paneljs/paneljs": "workspace:*",
     "pg": "^8.16.0"
   },
   "devDependencies": {

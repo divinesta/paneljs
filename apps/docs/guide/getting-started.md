@@ -1,6 +1,6 @@
 # Getting started
 
-Install `paneljs`, `@paneljs/express`, and `@paneljs/prisma` into **your** Express + Prisma app and open `/admin`.
+Install `@paneljs/paneljs`, `@paneljs/express`, and `@paneljs/prisma` into **your** Express + Prisma app and open `/admin`.
 
 You already have an Express server and a generated Prisma Client. This package mounts on top of them. It does not create a new project.
 
@@ -11,35 +11,35 @@ You already have an Express server and a generated Prisma Client. This package m
 - `prisma` and `@prisma/client` **7.5.x**
 - Your `schema.prisma` on disk at runtime (default `prisma/schema.prisma`)
 
-Keep `prisma`, `@prisma/client`, and `paneljs` on the same 7.5 line. See [Prisma versions](/limits/prisma).
+Keep `prisma`, `@prisma/client`, and `@paneljs/paneljs` on the same 7.5 line. See [Prisma versions](/limits/prisma).
 
 ## Install
 
 ::: code-group
 
 ```sh [npm]
-$ npm install paneljs @paneljs/express @paneljs/prisma
+$ npm install @paneljs/paneljs @paneljs/express @paneljs/prisma
 ```
 
 ```sh [pnpm]
-$ pnpm add paneljs @paneljs/express @paneljs/prisma
+$ pnpm add @paneljs/paneljs @paneljs/express @paneljs/prisma
 ```
 
 ```sh [yarn]
-$ yarn add paneljs @paneljs/express @paneljs/prisma
+$ yarn add @paneljs/paneljs @paneljs/express @paneljs/prisma
 ```
 
 ```sh [bun]
-$ bun add paneljs @paneljs/express @paneljs/prisma
+$ bun add @paneljs/paneljs @paneljs/express @paneljs/prisma
 ```
 
 ```sh [deno]
-$ deno add npm:paneljs npm:@paneljs/express npm:@paneljs/prisma
+$ deno add npm:@paneljs/paneljs npm:@paneljs/express npm:@paneljs/prisma
 ```
 
 :::
 
-That is the published package name: [`paneljs`](https://www.npmjs.com/package/paneljs).
+That is the published package name: [`@paneljs/paneljs`](https://www.npmjs.com/package/@paneljs/paneljs).
 
 It expects Express and Prisma as **peers**. If this app does not have them yet:
 
@@ -106,7 +106,7 @@ In the same file where you create the Express app (or a module it imports):
 
 ```ts
 import express from "express";
-import { createAdmin } from "paneljs";
+import { createAdmin } from "@paneljs/paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
 import { mount } from "@paneljs/express";
 import { prisma } from "./prisma.js";

@@ -1,7 +1,7 @@
 # `createAdmin()`
 
 ```ts
-import { createAdmin } from "paneljs";
+import { createAdmin } from "@paneljs/paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
 import { mount } from "@paneljs/express";
 
@@ -17,14 +17,14 @@ await mount(app, admin);
 
 ## `AdminConfig`
 
-| Option | Type | Default | Role |
-| --- | --- | --- | --- |
-| `adapter` | `DataAdapter` | required | From `prismaAdapter({ prisma, schemaPath })`. |
-| `auth` | built-in or external auth config | required | Built-in admin credentials/sessions, or an external identity adapter. |
-| `basePath` | `string` | `/admin` | Where UI and API are mounted. |
-| `siteName` | `string` | `PanelJS` | Header label in the UI. |
-| `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset | Enables PostgreSQL case-insensitive search when set to `"postgresql"`. |
-| `audit.write` | `(event) => Promise<void>` | unset | Called after successful mutations. |
+| Option             | Type                                                              | Default   | Role                                                                   |
+| ------------------ | ----------------------------------------------------------------- | --------- | ---------------------------------------------------------------------- |
+| `adapter`          | `DataAdapter`                                                     | required  | From `prismaAdapter({ prisma, schemaPath })`.                          |
+| `auth`             | built-in or external auth config                                  | required  | Built-in admin credentials/sessions, or an external identity adapter.  |
+| `basePath`         | `string`                                                          | `/admin`  | Where UI and API are mounted.                                          |
+| `siteName`         | `string`                                                          | `PanelJS` | Header label in the UI.                                                |
+| `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset     | Enables PostgreSQL case-insensitive search when set to `"postgresql"`. |
+| `audit.write`      | `(event) => Promise<void>`                                        | unset     | Called after successful mutations.                                     |
 
 `schemaPath` is passed to `prismaAdapter()`, not to `createAdmin()`.
 
@@ -49,5 +49,5 @@ import type {
   AdminAuditEvent,
   ModelConfig,
   DataAdapter,
-} from "paneljs";
+} from "@paneljs/paneljs";
 ```

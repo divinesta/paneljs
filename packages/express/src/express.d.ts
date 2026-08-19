@@ -1,11 +1,11 @@
-import type { AdminUser } from "paneljs";
+import type { AdminUser } from "@paneljs/paneljs";
 
 declare global {
-   namespace Express {
-      interface Request {
-         adminUser?: AdminUser;
-      }
-   }
+  namespace Express {
+    interface Request {
+      adminUser?: AdminUser;
+    }
+  }
 }
 
 export {};

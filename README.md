@@ -2,11 +2,11 @@
 
 A Django-style admin panel. One git repo, three packages:
 
-| Package | npm name | Role |
-| --- | --- | --- |
-| `packages/paneljs` | `paneljs` | Core: registry, schema JSON, admin UI |
-| `packages/express` | `@paneljs/express` | `mount(app, admin)` |
-| `packages/prisma` | `@paneljs/prisma` | `prismaAdapter()`, DMMF introspector |
+| Package            | npm name           | Role                                  |
+| ------------------ | ------------------ | ------------------------------------- |
+| `packages/paneljs` | `@paneljs/paneljs` | Core: registry, schema JSON, admin UI |
+| `packages/express` | `@paneljs/express` | `mount(app, admin)`                   |
+| `packages/prisma`  | `@paneljs/prisma`  | `prismaAdapter()`, DMMF introspector  |
 
 Apps:
 
@@ -16,7 +16,7 @@ Apps:
 `EXPRESS-ADMIN` remains the published `prisma-express-admin` library until this repo is cut over.
 
 ```ts
-import { createAdmin } from "paneljs";
+import { createAdmin } from "@paneljs/paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
 import { mount } from "@paneljs/express";
 

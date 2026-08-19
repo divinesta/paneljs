@@ -2,7 +2,7 @@
 
 This is the implementation path: one module in **your** codebase, the same shape as [`examples/basic/index.ts`](https://github.com/divinesta/EXPRESS-ADMIN/blob/main/examples/basic/index.ts).
 
-You already [installed](/guide/getting-started) `paneljs` and can mount with `register("User")`. This page is what you add next so the panel matches how you operate.
+You already [installed](/guide/getting-started) `@paneljs/paneljs` and can mount with `register("User")`. This page is what you add next so the panel matches how you operate.
 
 ## 1. One place to configure the admin
 
@@ -10,15 +10,21 @@ Keep `createAdmin`, every `register`, and `mount` together — `admin.ts` next t
 
 ```ts
 import express from "express";
-import { createAdmin } from "paneljs";
+import { createAdmin } from "@paneljs/paneljs";
 import { prisma } from "./prisma.js";
 
 const app = express();
 
-const admin = createAdmin({ /* ... */ });
+const admin = createAdmin({
+  /* ... */
+});
 
-admin.register("User", { /* ... */ });
-admin.register("Post", { /* ... */ });
+admin.register("User", {
+  /* ... */
+});
+admin.register("Post", {
+  /* ... */
+});
 
 await admin.mount(app);
 ```
@@ -67,14 +73,14 @@ const admin = createAdmin({
 });
 ```
 
-| Option | Why you set it |
-| --- | --- |
-| `prisma` | Your generated client. Required. |
-| `databaseProvider` | `"postgresql"` turns on case-insensitive search. Set your real provider. |
-| `siteName` | Header label in the UI. |
-| `schemaPath` | Only if `schema.prisma` is not at `prisma/schema.prisma`. |
-| `auth.getCurrentUser` | Required. Your session/JWT → [`AdminUser`](/reference/admin-user). |
-| `audit.write` | Optional. Called after successful writes. You own the table. |
+| Option                | Why you set it                                                           |
+| --------------------- | ------------------------------------------------------------------------ |
+| `prisma`              | Your generated client. Required.                                         |
+| `databaseProvider`    | `"postgresql"` turns on case-insensitive search. Set your real provider. |
+| `siteName`            | Header label in the UI.                                                  |
+| `schemaPath`          | Only if `schema.prisma` is not at `prisma/schema.prisma`.                |
+| `auth.getCurrentUser` | Required. Your session/JWT → [`AdminUser`](/reference/admin-user).       |
+| `audit.write`         | Optional. Called after successful writes. You own the table.             |
 
 The example uses built-in admin-only authentication. In external mode, read your own cookie or `Authorization` header in `getCurrentUser`. See [Authentication](/guide/auth).
 
@@ -92,10 +98,15 @@ admin.register("User", {
   listFilter: ["role", "isActive"],
   searchFields: ["email", "fullName"],
   scope: async (adminUser) =>
-    adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
+    adminUser.isSuperAdmin
+      ? {}
+      : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
   permissions: {
-    list: ["SUPER_ADMIN", "ADMIN"], view: ["SUPER_ADMIN", "ADMIN"],
-    create: ["SUPER_ADMIN", "ADMIN"], update: ["SUPER_ADMIN", "ADMIN"], delete: ["SUPER_ADMIN"],
+    list: ["SUPER_ADMIN", "ADMIN"],
+    view: ["SUPER_ADMIN", "ADMIN"],
+    create: ["SUPER_ADMIN", "ADMIN"],
+    update: ["SUPER_ADMIN", "ADMIN"],
+    delete: ["SUPER_ADMIN"],
   },
 });
 ```
@@ -108,7 +119,9 @@ admin.register("Post", {
   listFilter: ["published", "createdAt"],
   searchFields: ["title", "content"],
   scope: async (adminUser) =>
-    adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
+    adminUser.isSuperAdmin
+      ? {}
+      : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
   actions: [
     {
       name: "publish_selected",
@@ -157,8 +170,8 @@ The list search box runs `contains` across these **string** fields only. `mount`
 ### `listFilter` — filter controls
 
 ```ts
-listFilter: ["role", "isActive"];        // User
-listFilter: ["published", "createdAt"];  // Post
+listFilter: ["role", "isActive"]; // User
+listFilter: ["published", "createdAt"]; // Post
 ```
 
 Filters are **opt-in**. If you omit `listFilter`, the UI has no filter sidebar and the API accepts no filter query params.
@@ -274,14 +287,14 @@ await admin.mount(app);
 
 Then listen. Open `/admin`. You should see:
 
-| You set | You see |
-| --- | --- |
-| `listDisplay` on User | Those columns, in that order |
-| `searchFields` | Search box matching email / name |
-| `listFilter: ["role", "isActive"]` | Role and active filters |
-| `listDisplay: [..., "author"]` on Post | Author email, not `authorId` |
-| `scope` | Ada’s tenant only (if you copied the example identities) |
-| `actions` | A bulk control on the Post list |
+| You set                                | You see                                                  |
+| -------------------------------------- | -------------------------------------------------------- |
+| `listDisplay` on User                  | Those columns, in that order                             |
+| `searchFields`                         | Search box matching email / name                         |
+| `listFilter: ["role", "isActive"]`     | Role and active filters                                  |
+| `listDisplay: [..., "author"]` on Post | Author email, not `authorId`                             |
+| `scope`                                | Ada’s tenant only (if you copied the example identities) |
+| `actions`                              | A bulk control on the Post list                          |
 
 If `mount` throws, read the message — it names the bad model or field.
 

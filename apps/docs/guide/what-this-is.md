@@ -12,26 +12,26 @@ You do not describe your tables twice. The Prisma schema is the source of truth.
 ## The whole public API
 
 ```ts
-const admin = createAdmin({ prisma, auth: { getCurrentUser } })
+const admin = createAdmin({ prisma, auth: { getCurrentUser } });
 
 admin
   .register("User")
-  .register("Post", { listDisplay: ["title", "author", "published"] })
+  .register("Post", { listDisplay: ["title", "author", "published"] });
 
-await admin.mount(app)
+await admin.mount(app);
 ```
 
 Three calls. Everything else is optional configuration on those calls.
 
 ## What you bring
 
-| You own | The library owns |
-| --- | --- |
-| Express app | Admin routes under `basePath` |
-| Generated Prisma Client | Introspection of `schema.prisma` |
-| Built-in admin credentials, or external authentication | Creating an `AdminUser` request context |
-| Tenancy rules, via `scope()` | Applying that scope on every record operation |
-| Optional audit destination | Emitting safe, append-only events |
+| You own                                                | The library owns                              |
+| ------------------------------------------------------ | --------------------------------------------- |
+| Express app                                            | Admin routes under `basePath`                 |
+| Generated Prisma Client                                | Introspection of `schema.prisma`              |
+| Built-in admin credentials, or external authentication | Creating an `AdminUser` request context       |
+| Tenancy rules, via `scope()`                           | Applying that scope on every record operation |
+| Optional audit destination                             | Emitting safe, append-only events             |
 
 Built-in mode provides an admin-only login screen, `ExpressAdminUser` table, and
 session store. External mode still lets you map an existing identity onto an
@@ -50,15 +50,15 @@ Current writes are **scalar** plus a single `belongsTo` foreign key. Nested crea
 
 The [basic example](/example/basic) seeds two companies and three operators. The Trust and Extend guides reuse them so the rules stay concrete.
 
-| Person | Role | Tenant | What they see |
-| --- | --- | --- | --- |
-| Ada Lovelace | `ADMIN` | Northwind | Northwind users and posts |
-| Grace Hopper | `ADMIN` | Contoso | Contoso users and posts |
+| Person         | Role          | Tenant    | What they see                      |
+| -------------- | ------------- | --------- | ---------------------------------- |
+| Ada Lovelace   | `ADMIN`       | Northwind | Northwind users and posts          |
+| Grace Hopper   | `ADMIN`       | Contoso   | Contoso users and posts            |
 | Linus Torvalds | `SUPER_ADMIN` | Northwind | Both, because `scope` returns `{}` |
 
 Same role does not mean same rows. That distinction — **permissions vs scope** — is the point of this library.
 
 ## Next
 
-1. [Getting started](/guide/getting-started) — install `paneljs` and mount
+1. [Getting started](/guide/getting-started) — install `@paneljs/paneljs` and mount
 2. [Wire it into your app](/guide/in-your-app) — `listDisplay`, `searchFields`, `listFilter`, `scope`

@@ -1,7 +1,7 @@
 import express from "express";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { fileURLToPath } from "node:url";
-import { createAdmin } from "paneljs";
+import { createAdmin } from "@paneljs/paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
 import { mount } from "@paneljs/express";
 import { PrismaClient } from "./generated/prisma/client";
@@ -13,11 +13,13 @@ if (!databaseUrl) {
    throw new Error("DATABASE_URL is required to start the example host.");
 }
 
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
+const prisma = new PrismaClient({
+   adapter: new PrismaPg({ connectionString: databaseUrl }),
+});
 const app = express();
 const schemaPath = fileURLToPath(new URL("./prisma/schema.prisma", import.meta.url));
 
-const admin = createAdmin({   
+const admin = createAdmin({
    adapter: prismaAdapter({ prisma, schemaPath }),
    databaseProvider: "postgresql",
    siteName: "PanelJS",
@@ -72,7 +74,10 @@ admin.register("Post", {
       create: ["SUPER_ADMIN", "ADMIN"],
       update: ["SUPER_ADMIN", "ADMIN"],
       delete: ["SUPER_ADMIN"],
-      actions: { publish_selected: ["SUPER_ADMIN", "ADMIN"], unpublish_selected: ["SUPER_ADMIN", "ADMIN"] },
+      actions: {
+         publish_selected: ["SUPER_ADMIN", "ADMIN"],
+         unpublish_selected: ["SUPER_ADMIN", "ADMIN"],
+      },
    },
    scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
    actions: [
@@ -85,7 +90,9 @@ admin.register("Post", {
                where,
                data: { published: true },
             });
-            return { message: `Published ${result.count} ${result.count === 1 ? "post" : "posts"}.` };
+            return {
+               message: `Published ${result.count} ${result.count === 1 ? "post" : "posts"}.`,
+            };
          },
       },
       {
@@ -97,7 +104,9 @@ admin.register("Post", {
                where,
                data: { published: false },
             });
-            return { message: `Moved ${result.count} ${result.count === 1 ? "post" : "posts"} to draft.` };
+            return {
+               message: `Moved ${result.count} ${result.count === 1 ? "post" : "posts"} to draft.`,
+            };
          },
       },
    ],

@@ -51,7 +51,7 @@
   "dependencies": {
     "@prisma/dmmf": "~7.5.0",
     "@prisma/internals": "~7.5.0",
-    "paneljs": "workspace:^"
+    "@paneljs/paneljs": "workspace:^"
   },
   "peerDependencies": {
     "@prisma/client": "~7.5.0",

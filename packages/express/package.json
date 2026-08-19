@@ -46,7 +46,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "paneljs": "workspace:^"
+    "@paneljs/paneljs": "workspace:^"
   },
   "peerDependencies": {
     "express": "^4.18.0 || ^5.0.0"
