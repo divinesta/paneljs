@@ -1,0 +1,21 @@
+{
+  "name": "@paneljs/prisma",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "echo \"@paneljs/prisma: no build yet\"",
+    "lint": "echo \"@paneljs/prisma: no lint yet\"",
+    "test": "echo \"@paneljs/prisma: no tests yet\""
+  },
+  "dependencies": {
+    "paneljs": "workspace:*"
+  },
+  "peerDependencies": {
+    "@prisma/client": "~7.5.0",
+    "prisma": "~7.5.0"
+  }
+}

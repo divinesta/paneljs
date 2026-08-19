@@ -1,0 +1,14 @@
+{
+  "name": "paneljs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "echo \"paneljs: no build yet\"",
+    "lint": "echo \"paneljs: no lint yet\"",
+    "test": "echo \"paneljs: no tests yet\""
+  }
+}
