@@ -3,19 +3,34 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "bin": {
+    "paneljs": "./src/cli.ts"
+  },
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
   },
   "scripts": {
-    "build": "echo \"@paneljs/prisma: no build yet\"",
+    "build": "echo \"@paneljs/prisma: library is TypeScript source\"",
     "lint": "echo \"@paneljs/prisma: no lint yet\"",
+    "check-types": "tsc --noEmit -p tsconfig.json",
     "test": "echo \"@paneljs/prisma: no tests yet\""
   },
   "dependencies": {
+    "@prisma/dmmf": "~7.5.0",
+    "@prisma/internals": "~7.5.0",
     "paneljs": "workspace:*"
   },
   "peerDependencies": {
     "@prisma/client": "~7.5.0",
     "prisma": "~7.5.0"
+  },
+  "devDependencies": {
+    "@prisma/client": "~7.5.0",
+    "@types/node": "^22.15.3",
+    "prisma": "~7.5.0",
+    "typescript": "5.9.2"
   }
 }

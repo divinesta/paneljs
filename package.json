@@ -1,14 +1,15 @@
 {
-  "name": "paneljs",
+  "name": "paneljs-monorepo",
   "private": true,
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,md,css}\"",
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@types/node": "^22.15.3",
     "prettier": "^3.7.4",
     "turbo": "^2.10.10",
     "typescript": "5.9.2"

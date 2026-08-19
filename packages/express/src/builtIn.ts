@@ -1,0 +1,208 @@
+import { createHash, randomBytes } from "node:crypto";
+import type { Request, RequestHandler, Response } from "express";
+import type { AdminUser, BuiltInAuthConfig } from "paneljs";
+import { hashAdminPassword, isBuiltInAuth as isBuiltInAuthMode, verifyAdminPassword, verifyLoginPassword } from "paneljs";
+import { createLoginRateLimiter } from "./loginRateLimit.js";
+
+export { hashAdminPassword, verifyAdminPassword };
+const sessionCookieName = "paneljs_session";
+const defaultSessionTtlSeconds = 60 * 60 * 24 * 7;
+
+type Delegate = {
+   findUnique(args: unknown): Promise<unknown>;
+   findFirst(args: unknown): Promise<unknown>;
+   create(args: unknown): Promise<unknown>;
+   deleteMany(args: unknown): Promise<unknown>;
+};
+
+type BuiltInRecord = {
+   id: string;
+   email?: string;
+   username?: string;
+   passwordHash: string;
+   role: string;
+   isActive: boolean;
+   tenantId?: string;
+};
+
+const modelKey = (modelName: string) => modelName.charAt(0).toLowerCase() + modelName.slice(1);
+
+type ClientLike = object;
+
+const delegateFor = (prisma: ClientLike, modelName: string): Delegate => {
+   const delegate = (prisma as Record<string, unknown>)[modelKey(modelName)];
+   if (!delegate || typeof delegate !== "object") {
+      throw new Error(`[paneljs] Built-in auth requires a client delegate for model "${modelName}".`);
+   }
+   return delegate as Delegate;
+};
+
+const readCookie = (req: Request, name: string): string | null => {
+   const header = req.headers.cookie;
+   if (!header) return null;
+   for (const part of header.split(";")) {
+      const [key, ...value] = part.trim().split("=");
+      if (key === name) {
+         try { return decodeURIComponent(value.join("=")); }
+         catch { return null; }
+      }
+   }
+   return null;
+};
+
+const sessionHash = (token: string) => createHash("sha256").update(token).digest("hex");
+const pathAtBase = (basePath: string, path: string): string => `${basePath === "/" ? "" : basePath}${path}`;
+
+const serializeSessionCookie = (token: string, config: BuiltInAuthConfig, basePath: string, expires: Date): string => {
+   const secure = config.secureCookies ?? process.env.NODE_ENV === "production";
+   return [
+      `${sessionCookieName}=${encodeURIComponent(token)}`,
+      `Path=${basePath}`,
+      "HttpOnly",
+      "SameSite=Lax",
+      `Max-Age=${Math.max(0, Math.floor((expires.getTime() - Date.now()) / 1000))}`,
+      `Expires=${expires.toUTCString()}`,
+      secure ? "Secure" : "",
+   ].filter(Boolean).join("; ");
+};
+
+const clearSessionCookie = (config: BuiltInAuthConfig, basePath: string): string => {
+   const secure = config.secureCookies ?? process.env.NODE_ENV === "production";
+   return [`${sessionCookieName}=`, `Path=${basePath}`, "HttpOnly", "SameSite=Lax", "Max-Age=0", "Expires=Thu, 01 Jan 1970 00:00:00 GMT", secure ? "Secure" : ""].filter(Boolean).join("; ");
+};
+
+const toAdminUser = (user: BuiltInRecord): AdminUser | null => {
+   if (!user.isActive || !["ADMIN", "SUPER_ADMIN"].includes(user.role)) return null;
+   return {
+      id: user.id,
+      email: user.email ?? user.username ?? user.id,
+      ...(user.username ? { username: user.username } : {}),
+      ...(user.tenantId ? { tenantId: user.tenantId } : {}),
+      role: user.role,
+      isSuperAdmin: user.role === "SUPER_ADMIN",
+   };
+};
+
+export const isBuiltInAuth = isBuiltInAuthMode;
+
+export const getBuiltInAdminUser = async (req: Request, prisma: ClientLike, config: BuiltInAuthConfig): Promise<AdminUser | null> => {
+   const token = readCookie(req, sessionCookieName);
+   if (!token) return null;
+   const sessions = delegateFor(prisma, config.sessionModel ?? "ExpressAdminSession");
+   const session = await sessions.findFirst({
+      where: { tokenHash: sessionHash(token), expiresAt: { gt: new Date() } },
+      include: { user: true },
+   }) as { user?: BuiltInRecord } | null;
+   return session?.user ? toAdminUser(session.user) : null;
+};
+
+export const createBuiltInAuthRouter = (prisma: ClientLike, config: BuiltInAuthConfig, basePath = "/admin"): RequestHandler => {
+   const users = delegateFor(prisma, config.userModel ?? "ExpressAdminUser");
+   const sessions = delegateFor(prisma, config.sessionModel ?? "ExpressAdminSession");
+   const ttlSeconds = config.sessionTtlSeconds ?? defaultSessionTtlSeconds;
+   const consumeLoginAttempt = createLoginRateLimiter(config);
+
+   return async (req, res, next) => {
+      if (req.method === "GET" && req.path === "/config") {
+         res.json({ identifier: config.identifier });
+         return;
+      }
+
+      if (req.method === "POST" && req.path === "/login") {
+         try {
+            if (!hasSameOrigin(req)) {
+               res.status(403).json({ error: "Cross-origin authentication requests are not allowed.", code: "ORIGIN_FORBIDDEN" });
+               return;
+            }
+            const body = req.body as { identifier?: unknown; password?: unknown };
+            const identifier = typeof body?.identifier === "string" ? body.identifier.trim() : "";
+            const password = typeof body?.password === "string" ? body.password : "";
+            if (!identifier || !password || identifier.length > 254 || password.length > 1_024) {
+               res.status(401).json({ error: "Invalid credentials.", code: "INVALID_CREDENTIALS" });
+               return;
+            }
+
+            const retryAfter = consumeLoginAttempt(req, identifier);
+            if (retryAfter !== null) {
+               res.setHeader("Retry-After", String(retryAfter));
+               res.status(429).json({ error: "Too many sign-in attempts. Please try again later.", code: "LOGIN_RATE_LIMITED" });
+               return;
+            }
+
+            const user = await users.findUnique({ where: { [config.identifier]: identifier } }) as BuiltInRecord | null;
+            const passwordMatches = await verifyLoginPassword(password, user?.passwordHash);
+            const adminUser = user && passwordMatches ? toAdminUser(user) : null;
+            if (!user || !adminUser) {
+               res.status(401).json({ error: "Invalid credentials.", code: "INVALID_CREDENTIALS" });
+               return;
+            }
+
+            const token = randomBytes(32).toString("base64url");
+            const expiresAt = new Date(Date.now() + ttlSeconds * 1_000);
+            await sessions.create({ data: { tokenHash: sessionHash(token), userId: user.id, expiresAt } });
+            res.setHeader("Set-Cookie", serializeSessionCookie(token, config, basePath, expiresAt));
+            res.status(200).json({ ok: true });
+            return;
+         } catch (error) {
+            next(error);
+            return;
+         }
+      }
+
+      if (req.method === "POST" && req.path === "/logout") {
+         try {
+            if (!hasSameOrigin(req)) {
+               res.status(403).json({ error: "Cross-origin authentication requests are not allowed.", code: "ORIGIN_FORBIDDEN" });
+               return;
+            }
+            const token = readCookie(req, sessionCookieName);
+            if (token) await sessions.deleteMany({ where: { tokenHash: sessionHash(token) } });
+            res.setHeader("Set-Cookie", clearSessionCookie(config, basePath));
+            res.status(204).end();
+            return;
+         } catch (error) {
+            next(error);
+            return;
+         }
+      }
+
+      next();
+   };
+};
+
+/** Browser credential mutations must originate from the mounted application. */
+function hasSameOrigin(req: Request): boolean {
+   const origin = req.get("origin");
+   if (!origin) return true; // permits non-browser clients; SameSite remains the baseline.
+   try { return new URL(origin).host === req.get("host"); }
+   catch { return false; }
+}
+
+export const createBuiltInAuthenticationMiddleware = (prisma: ClientLike, config: BuiltInAuthConfig): RequestHandler => async (req, res, next) => {
+   try {
+      const adminUser = await getBuiltInAdminUser(req, prisma, config);
+      if (!adminUser) {
+         res.status(401).json({ error: "Authentication required", code: "AUTHENTICATION_REQUIRED" });
+         return;
+      }
+      req.adminUser = adminUser;
+      next();
+   } catch {
+      res.status(401).json({ error: "Authentication required", code: "AUTHENTICATION_REQUIRED" });
+   }
+};
+
+export const enforceBuiltInAdminPage = (prisma: ClientLike, config: BuiltInAuthConfig, basePath: string): RequestHandler => async (req, res, next) => {
+   // The SPA's JavaScript and CSS must load before React can render /login.
+   // Guard pages and APIs, not the static bundle that powers them.
+   if (req.path === "/login" || req.path.startsWith("/api/") || req.path.startsWith("/assets/")) {
+      next();
+      return;
+   }
+   const adminUser = await getBuiltInAdminUser(req, prisma, config);
+   if (!adminUser) {
+      res.redirect(pathAtBase(basePath, "/login"));
+      return;
+   }
+   next();
+};

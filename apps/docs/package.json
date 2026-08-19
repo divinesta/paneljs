@@ -1,0 +1,15 @@
+{
+  "name": "@paneljs/docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev .",
+    "build": "vitepress build .",
+    "lint": "echo \"docs: no lint yet\"",
+    "check-types": "echo \"docs: skip\""
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3"
+  }
+}
