@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 40" fill="none">
+  <title>PanelJS</title>
+  <rect width="40" height="40" rx="8" fill="#DBF27C"/>
+  <path d="M10 12.5H30M10 20H25M10 27.5H20" stroke="#0A0A0B" stroke-width="3" stroke-linecap="round"/>
+  <text x="52" y="29" fill="#0A0A0B" font-family="DM Sans, Arial, sans-serif" font-size="25" font-weight="700" letter-spacing="-1">PanelJS</text>
+</svg>

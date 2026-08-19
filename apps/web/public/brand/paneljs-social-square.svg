@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" fill="none">
+  <title>PanelJS social square template</title>
+  <rect width="1200" height="1200" fill="#0A0A0B"/>
+  <path d="M0 160H1200M0 320H1200M0 480H1200M0 640H1200M0 800H1200M0 960H1200M160 0V1200M320 0V1200M480 0V1200M640 0V1200M800 0V1200M960 0V1200M1120 0V1200" stroke="#FFFFFF" stroke-opacity=".06"/>
+  <rect x="80" y="80" width="1040" height="1040" rx="40" stroke="#DBF27C" stroke-opacity=".28" stroke-width="2"/>
+  <rect x="120" y="120" width="72" height="72" rx="14" fill="#DBF27C"/>
+  <path d="M142 143H170M142 156H163M142 169H156" stroke="#0A0A0B" stroke-width="5" stroke-linecap="round"/>
+  <text x="216" y="169" fill="#FFFFFF" font-family="DM Sans, Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="-1.5">PanelJS</text>
+  <text x="120" y="740" fill="#FFFFFF" font-family="DM Sans, Arial, sans-serif" font-size="112" font-weight="700" letter-spacing="-5">YOUR</text>
+  <text x="120" y="858" fill="#DBF27C" font-family="DM Sans, Arial, sans-serif" font-size="112" font-weight="700" letter-spacing="-5">UPDATE.</text>
+  <text x="120" y="1018" fill="#A6A6B0" font-family="DM Sans, Arial, sans-serif" font-size="32" font-weight="500">paneljs.com</text>
+  <circle cx="1038" cy="952" r="122" fill="#DBF27C"/>
+  <path d="M960 905H1116M960 952H1077M960 999H1038" stroke="#0A0A0B" stroke-width="20" stroke-linecap="round"/>
+</svg>
