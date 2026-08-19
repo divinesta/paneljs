@@ -75,6 +75,9 @@ importers:
       '@paneljs/docs':
         specifier: workspace:*
         version: link:../docs
+      lucide-react:
+        specifier: ^1.27.0
+        version: 1.33.0(react@19.2.0)
       react:
         specifier: ^19.2.0
         version: 19.2.0
