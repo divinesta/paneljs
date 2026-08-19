@@ -2,8 +2,15 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
    title: "PanelJS",
-   description: "A Django-style admin panel for Express and Prisma. Register your models. The schema is the source of truth.",
+   description: "PanelJS is a Django-style Prisma admin panel for Express. Register your models and get a guarded, schema-driven admin UI for your Node.js app.",
    base: "/docs/",
+   head: [
+      ["meta", { name: "robots", content: "index, follow" }],
+      ["meta", { property: "og:site_name", content: "PanelJS" }],
+      ["meta", { property: "og:type", content: "website" }],
+      ["meta", { property: "og:image", content: "https://paneljs.com/images/product-overview.png" }],
+      ["meta", { name: "twitter:card", content: "summary_large_image" }],
+   ],
    outDir: "./.vitepress/dist",
    appearance: "dark",
    srcExclude: ["MULTI_ORM_NOTES.md"],

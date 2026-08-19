@@ -72,6 +72,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@paneljs/docs':
+        specifier: workspace:*
+        version: link:../docs
       react:
         specifier: ^19.2.0
         version: 19.2.0

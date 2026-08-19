@@ -1,7 +1,7 @@
 {
   "name": "@paneljs/prisma",
   "version": "0.1.0",
-  "description": "Prisma adapter for PanelJS. Introspects schema.prisma and runs scalar CRUD.",
+  "description": "Prisma adapter for PanelJS, a Django-style admin panel for Express and Node.js applications.",
   "license": "MIT",
   "type": "module",
   "author": "Divinesta",
@@ -17,7 +17,11 @@
   "keywords": [
     "paneljs",
     "prisma",
-    "admin",
+    "prisma-admin",
+    "prisma-admin-panel",
+    "prisma-express-admin",
+    "express-admin",
+    "django-admin-alternative",
     "dmmf"
   ],
   "bin": {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://paneljs.com/</loc></url>
+  <url><loc>https://paneljs.com/docs/</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/what-this-is</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/getting-started</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/in-your-app</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/how-it-works</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/register</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/lists</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/forms</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/relations</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/auth</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/permissions</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/quickstart</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/scope</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/sensitive-fields</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/hooks</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/actions</loc></url>
+  <url><loc>https://paneljs.com/docs/guide/audit</loc></url>
+  <url><loc>https://paneljs.com/docs/example/basic</loc></url>
+  <url><loc>https://paneljs.com/docs/reference/create-admin</loc></url>
+  <url><loc>https://paneljs.com/docs/reference/register</loc></url>
+  <url><loc>https://paneljs.com/docs/reference/admin-user</loc></url>
+  <url><loc>https://paneljs.com/docs/reference/http-api</loc></url>
+  <url><loc>https://paneljs.com/docs/reference/errors</loc></url>
+  <url><loc>https://paneljs.com/docs/limits/not-included</loc></url>
+  <url><loc>https://paneljs.com/docs/limits/prisma</loc></url>
+</urlset>

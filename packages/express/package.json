@@ -1,7 +1,7 @@
 {
   "name": "@paneljs/express",
   "version": "0.1.1",
-  "description": "Express adapter for PanelJS. Mounts the admin UI and API on an Express app.",
+  "description": "Express adapter for PanelJS, a Django-style Prisma admin panel for Node.js applications.",
   "license": "MIT",
   "type": "module",
   "author": "Divinesta",
@@ -13,12 +13,16 @@
   "bugs": {
     "url": "https://github.com/divinesta/paneljs/issues"
   },
-  "homepage": "https:paneljs.com",
+  "homepage": "https://paneljs.com",
   "keywords": [
     "paneljs",
     "express",
-    "admin",
-    "admin-panel"
+    "express-admin",
+    "prisma",
+    "prisma-admin",
+    "prisma-express-admin",
+    "admin-panel",
+    "nodejs-admin"
   ],
   "exports": {
     ".": {

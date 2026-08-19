@@ -38,3 +38,4 @@ yarn-error.log*
 *.pem
 .vitepress/cache
 .vitepress/dist
+apps/docs/.vitepress/.temp

@@ -1,10 +1,12 @@
 ---
 layout: home
+title: PanelJS — Prisma Admin Panel for Express
+description: A Django-style Prisma admin panel for Express. Turn your schema.prisma models into a guarded Node.js operations UI.
 
 hero:
   name: PanelJS
-  text: Register your models. The schema is the source of truth.
-  tagline: A Django-style admin panel for Express and Prisma. You already wrote the data model — this library turns it into a guarded operations UI.
+  text: The Prisma admin panel for Express.
+  tagline: A Django-style admin for Node.js. You already wrote the data model — PanelJS turns Prisma models into a guarded operations UI.
   actions:
     - theme: brand
       text: Getting started
