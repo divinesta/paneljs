@@ -940,6 +940,18 @@ html[data-theme="light"] .stack-token img {
   }
 }
 
+@media (max-width: 767px) {
+  .hero {
+    min-height: auto;
+    padding-bottom: 3rem;
+  }
+
+  .product-showcase {
+    margin-top: 0;
+    padding-bottom: 3.5rem;
+  }
+}
+
 @media (min-width: 640px) {
   .btn-label {
     display: inline;

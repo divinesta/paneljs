@@ -1,6 +1,6 @@
 ---
 layout: home
-title: PanelJS — The Admin Panel for JavaScript ORMs
+title: PanelJS - The Admin Panel for JavaScript ORMs
 description: A Django-style Prisma admin panel for Express. Turn your schema.prisma models into a guarded Node.js operations UI.
 
 hero:
