@@ -88,3 +88,17 @@ export { buildRecordSelect, buildListRecordSelect, assertSelectedRelationsAreVis
 export { applyCreateScope, assertScopeFieldsUnchanged, buildScopedRecordWhere, collectScopeFieldNames, resolveScope } from "./scope.js";
 export { getAdminUiDist } from "./uiPath.js";
 export { isBuiltInAuth } from "./authMode.js";
+export type { AdminAuthStore, AuthStoreOptions, BuiltInSessionRecord, BuiltInUserRecord } from "./authStore.js";
+export { DEFAULT_AUTH_SESSION_MODEL, DEFAULT_AUTH_USER_MODEL } from "./authStore.js";
+export {
+   SESSION_COOKIE_NAME,
+   authenticateBuiltInRequest,
+   authenticateSession,
+   clearedSessionCookie,
+   loginWithPassword,
+   logoutBuiltIn,
+   readSessionToken,
+   resolveAuthStore,
+   sessionCookie,
+} from "./builtInAuth.js";
+export type { BuiltInLoginResult, BuiltInLogoutResult, SessionCookie } from "./builtInAuth.js";

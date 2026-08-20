@@ -12,6 +12,7 @@ import {
   prismaResource,
   type PrismaDelegate,
 } from "./resource.js";
+import { prismaAuthStore } from "./authStore.js";
 
 export type PrismaClientLike = object;
 
@@ -44,6 +45,7 @@ export function prismaAdapter(options: PrismaAdapterOptions): DataAdapter {
           getSchemaProvider(schemaPath),
         ),
       }),
+    createAuthStore: (auth) => prismaAuthStore(prisma, auth),
   };
 }
 
@@ -57,3 +59,4 @@ export type { IntrospectOptions } from "./introspector.js";
 export { getDelegate };
 export { prismaActionWhere, prismaResource } from "./resource.js";
 export type { PrismaDelegate } from "./resource.js";
+export { prismaAuthStore } from "./authStore.js";

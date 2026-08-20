@@ -1,3 +1,4 @@
+import type { AdminAuthStore, AuthStoreOptions } from "./authStore.js";
 import type { AdminModelMeta } from "./types.js";
 import type {
    CountQuery,
@@ -27,4 +28,6 @@ export interface DataAdapter {
    readonly client: unknown;
    introspect(): Promise<Map<string, AdminModelMeta>>;
    resource(meta: AdminModelMeta): ModelResource;
+   /** Optional. Built-in login uses this when `auth.store` is not set. */
+   createAuthStore?(options: AuthStoreOptions): AdminAuthStore;
 }

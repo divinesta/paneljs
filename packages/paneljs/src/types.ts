@@ -1,5 +1,6 @@
 import type { DataAdapter } from "./adapter.js";
 import type { ActionWhere } from "./query.js";
+import type { AdminAuthStore } from "./authStore.js";
 
 export type AdminFieldType = "string" | "number" | "boolean" | "datetime" | "json" | "enum" | "relation" | "bytes";
 
@@ -119,6 +120,8 @@ export interface BuiltInAuthConfig {
    sessionTtlSeconds?: number;
    secureCookies?: boolean;
    loginRateLimit?: false | { windowMs?: number; maxAttempts?: number };
+   /** Optional override. Prisma adapters supply a store via `createAuthStore`. */
+   store?: AdminAuthStore;
 }
 
 export type AuthConfig = ExternalAuthConfig | BuiltInAuthConfig;

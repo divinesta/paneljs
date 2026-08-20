@@ -2,7 +2,15 @@ import { json, Router, static as expressStatic } from "express";
 import type { Application } from "express";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { getAdminUiDist, isBuiltInAuth, type Admin } from "@paneljs/paneljs";
+import {
+  DEFAULT_AUTH_SESSION_MODEL,
+  DEFAULT_AUTH_USER_MODEL,
+  getAdminUiDist,
+  isBuiltInAuth,
+  resolveAuthStore,
+  type Admin,
+  type AdminAuthStore,
+} from "@paneljs/paneljs";
 import { createActionRouter } from "./actionRouter.js";
 import {
   createBuiltInAuthenticationMiddleware,
@@ -36,7 +44,7 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
 
   const config = admin.config;
   const basePath = normalizeBasePath(config.basePath);
-  const client = config.adapter.client;
+  let authStore: AdminAuthStore | undefined;
 
   if (isBuiltInAuth(config.auth)) {
     if (
@@ -47,9 +55,10 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
         "[paneljs] Built-in auth refuses secureCookies: false in production.",
       );
     }
+    authStore = resolveAuthStore(config.adapter, config.auth);
     const protectedModels = new Set([
-      config.auth.userModel ?? "ExpressAdminUser",
-      config.auth.sessionModel ?? "ExpressAdminSession",
+      config.auth.userModel ?? DEFAULT_AUTH_USER_MODEL,
+      config.auth.sessionModel ?? DEFAULT_AUTH_SESSION_MODEL,
     ]);
     const exposedModel = admin.registry
       .getAll()
@@ -70,17 +79,17 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
 
   router.use(json());
 
-  if (isBuiltInAuth(config.auth)) {
+  if (isBuiltInAuth(config.auth) && authStore) {
     router.use(
       "/api/auth",
-      createBuiltInAuthRouter(client as object, config.auth, basePath),
+      createBuiltInAuthRouter(authStore, config.auth, basePath),
     );
   }
 
   router.use(
     "/api",
-    isBuiltInAuth(config.auth)
-      ? createBuiltInAuthenticationMiddleware(client as object, config.auth)
+    isBuiltInAuth(config.auth) && authStore
+      ? createBuiltInAuthenticationMiddleware(authStore)
       : createAuthenticationMiddleware(config.auth),
   );
   router.use("/api", (req, res, next) => {
@@ -123,10 +132,8 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
   router.use("/api", createApiErrorHandler());
 
   const uiDist = getAdminUiDist();
-  if (isBuiltInAuth(config.auth))
-    router.use(
-      enforceBuiltInAdminPage(client as object, config.auth, basePath),
-    );
+  if (isBuiltInAuth(config.auth) && authStore)
+    router.use(enforceBuiltInAdminPage(authStore, basePath));
   router.use(expressStatic(uiDist, { index: false }));
   router.get(/^(?!\/api(?:\/|$)).*/, async (_req, res, next) => {
     try {

@@ -29,7 +29,7 @@ Configure the admin with the same choice:
 
 ```ts
 const admin = createAdmin({
-  prisma,
+  adapter: prismaAdapter({ prisma }),
   auth: {
     mode: "built-in",
     identifier: "email",
@@ -38,6 +38,8 @@ const admin = createAdmin({
 ```
 
 The user model is `ExpressAdminUser` and the session model is `ExpressAdminSession` by default. You may rename either with `userModel` or `sessionModel` if your Prisma schema uses a different name.
+
+`prismaAdapter` supplies the auth store (how those tables are read). Express only handles the login HTTP and cookie. You can pass `auth.store` to override that.
 
 ## Create the first superuser
 

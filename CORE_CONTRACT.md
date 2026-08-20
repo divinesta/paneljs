@@ -2,7 +2,7 @@
 
 Make PanelJS ORM-agnostic in **core** and **Express** before any second ORM.
 
-**Status:** Slices 1–2 done (CRUD language + Prisma-owned search). Built-in auth is still Prisma-shaped (slice 3). Do not start TypeORM, Drizzle, or another HTTP framework until this contract is implemented and that path is stable.
+**Status:** Slices 1–3 done (CRUD language, Prisma-owned search, auth store). Stabilize Prisma + Express before TypeORM. Do not start TypeORM, Drizzle, or another HTTP framework until this path is stable.
 
 **Related:** `MULTI_ORM.md`, `packages/paneljs/src/adapter.ts`, `packages/paneljs/src/listQuery.ts`, `packages/express/src/crudRouter.ts`, `packages/express/src/builtIn.ts`, `packages/prisma/src/index.ts`
 
@@ -345,7 +345,7 @@ Prisma after this plan:
 | **0** | This document. No TypeORM. | You are here. |
 | **1** | Spec 1 types in `packages/paneljs`. Express CRUD + actions use them. Prisma adapter translates. HTTP JSON unchanged. | In progress in this repo. Example app lists, searches, creates, edits, deletes, runs delete-selected. |
 | **2** | Move `databaseProvider` search behavior into the Prisma adapter. | Done. Listing is case-insensitive on Postgres from `schema.prisma`. |
-| **3** | Spec 2: `AdminAuthStore` + core login/session helpers. Express `builtIn.ts` becomes HTTP-only. Prisma implements the store. | Built-in login, cookie, logout, createsuperuser still work. |
+| **3** | Spec 2: `AdminAuthStore` + core login/session helpers. Express `builtIn.ts` becomes HTTP-only. Prisma implements the store. | Done. Built-in login, cookie, logout, createsuperuser still work. |
 | **4** | Stabilize. Docs: adapter contract, auth store, “Express does not speak Prisma.” | Prisma + Express on this contract is the shipped path. |
 | **5** | Only then: TypeORM (`MULTI_ORM.md` checklist). Same Spec 1 resource. Optional TypeORM auth store. Example app. | Second ORM is a new package, not an Express branch. |
 
