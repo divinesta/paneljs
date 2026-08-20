@@ -19,8 +19,6 @@ const prisma = new PrismaClient({
 const app = express();
 const schemaPath = fileURLToPath(new URL("./prisma/schema.prisma", import.meta.url));
 
-const adapter = prismaAdapter({ prisma, schemaPath });
-console.log("Adapter returned by prismaAdapter:", adapter);
 
 const admin = createAdmin({
    adapter: prismaAdapter({ prisma, schemaPath }),

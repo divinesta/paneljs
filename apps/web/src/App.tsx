@@ -43,6 +43,7 @@ const slides = [
 ];
 
 function readTheme(): "dark" | "light" {
+   if (typeof window === "undefined") return "dark";
    try {
       const query = new URLSearchParams(window.location.search).get("theme");
       if (query === "light" || query === "dark") return query;
@@ -57,7 +58,7 @@ function readTheme(): "dark" | "light" {
 export default function App() {
    const [theme, setTheme] = useState<"dark" | "light">(readTheme);
    const [index, setIndex] = useState(0);
-   const [playing, setPlaying] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+   const [playing, setPlaying] = useState(() => typeof window === "undefined" || !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
    const [copied, setCopied] = useState(false);
    const [scrolled, setScrolled] = useState(false);
 
@@ -293,6 +294,9 @@ export default function App() {
                      <h2>Built from the schema. Guarded by your auth.</h2>
                      <p>
                         You register models. At mount, PanelJS introspects <code>schema.prisma</code> and serves a React admin at <code>/admin</code> plus a JSON API at <code>/admin/api/*</code>.
+                     </p>
+                     <p>
+                        Learn how to <a href="/docs/guide/getting-started">get started</a>, <a href="/docs/guide/register">register models</a>, and configure <a href="/docs/guide/auth">authentication</a>.
                      </p>
                   </div>
                   <ul className="feature-list">
