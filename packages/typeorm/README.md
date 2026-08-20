@@ -20,4 +20,6 @@ await mount(app, admin);
 
 Peer dependency: `typeorm` ^0.3.20.
 
-The `DataSource` must already be initialized. Introspection reads live entity metadata. CRUD `resource()` lands in the next slice.
+The `DataSource` must already be initialized. Introspection reads live entity metadata. CRUD is implemented through PanelJS query types (`findMany`, `findFirst`, `create`, `updateMany`, `deleteMany`).
+
+Built-in `/admin/login` is not in this adapter yet. Use `auth: { getCurrentUser }` for now.

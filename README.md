@@ -7,7 +7,7 @@ A Django-style admin panel. One git repo, four packages:
 | `packages/paneljs`  | `@paneljs/paneljs`  | Core: registry, schema JSON, admin UI          |
 | `packages/express`  | `@paneljs/express`  | `mount(app, admin)`                            |
 | `packages/prisma`   | `@paneljs/prisma`   | `prismaAdapter()`, DMMF introspector           |
-| `packages/typeorm`  | `@paneljs/typeorm`  | `typeormAdapter()` (introspect/CRUD next)      |
+| `packages/typeorm`  | `@paneljs/typeorm`  | `typeormAdapter()`                             |
 
 Apps:
 

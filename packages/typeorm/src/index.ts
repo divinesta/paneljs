@@ -1,6 +1,7 @@
 import type { DataAdapter } from "@paneljs/paneljs";
 import type { DataSource } from "typeorm";
 import { introspect } from "./introspector.js";
+import { typeormResource } from "./resource.js";
 
 export interface TypeormAdapterOptions {
   dataSource: DataSource;
@@ -23,10 +24,11 @@ export function typeormAdapter(options: TypeormAdapterOptions): DataAdapter {
     async introspect() {
       return introspect(dataSource);
     },
-    resource() {
-      throw new Error("[paneljs] TypeORM resource is not implemented yet.");
+    resource(meta) {
+      return typeormResource(dataSource, meta);
     },
   };
 }
 
 export { introspect };
+export { typeormActionWhere, typeormResource } from "./resource.js";

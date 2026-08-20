@@ -10,4 +10,6 @@
 - `introspect(dataSource)` maps TypeORM `entityMetadatas` to `AdminModelMeta`.
 - Skips junction tables and composite / missing primary keys.
 - Same display / searchable / filterable guesses as the Prisma adapter.
-- `resource()` is not implemented yet.
+- `typeormResource` implements list/get/create/update/delete from PanelJS queries.
+- Search uses `ILike` on Postgres (and Cockroach), `Like` otherwise.
+- `typeormActionWhere` builds TypeORM criteria from custom-action `{ scope, ids }`.
