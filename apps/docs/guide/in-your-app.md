@@ -37,10 +37,8 @@ These belong on `createAdmin`, not on each model.
 
 ```ts
 const admin = createAdmin({
-  prisma,
-  databaseProvider: "postgresql",
+  adapter: prismaAdapter({ prisma, schemaPath: "prisma/schema.prisma" }),
   siteName: "Express Admin",
-  schemaPath: "prisma/schema.prisma", // omit if that is already the path
   auth: {
     getCurrentUser: async (req) => {
       const user = await getOperatorFromYourAuth(req);
@@ -76,7 +74,6 @@ const admin = createAdmin({
 | Option                | Why you set it                                                           |
 | --------------------- | ------------------------------------------------------------------------ |
 | `prisma`              | Your generated client. Required.                                         |
-| `databaseProvider`    | `"postgresql"` turns on case-insensitive search. Set your real provider. |
 | `siteName`            | Header label in the UI.                                                  |
 | `schemaPath`          | Only if `schema.prisma` is not at `prisma/schema.prisma`.                |
 | `auth.getCurrentUser` | Required. Your session/JWT → [`AdminUser`](/reference/admin-user).       |
@@ -165,7 +162,7 @@ searchFields: ["email", "fullName"];
 The list search box runs `contains` across these **string** fields only. `mount` rejects a non-string here.
 
 - Omit it and every non-id string scalar is searched.
-- On PostgreSQL, set `databaseProvider: "postgresql"` on `createAdmin` or search is case-sensitive in the Prisma sense.
+- On PostgreSQL (`provider = "postgresql"` in `schema.prisma`), list search is case-insensitive. Other Prisma providers use `contains` as that engine defines it.
 
 ### `listFilter` — filter controls
 

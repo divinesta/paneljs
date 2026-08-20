@@ -23,7 +23,7 @@ await mount(app, admin);
 | `auth`             | built-in or external auth config                                  | required  | Built-in admin credentials/sessions, or an external identity adapter.  |
 | `basePath`         | `string`                                                          | `/admin`  | Where UI and API are mounted.                                          |
 | `siteName`         | `string`                                                          | `PanelJS` | Header label in the UI.                                                |
-| `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset     | Enables PostgreSQL case-insensitive search when set to `"postgresql"`. |
+| `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset     | **Deprecated, ignored.** PostgreSQL case-insensitive search is read from the Prisma schema `datasource` provider. |
 | `audit.write`      | `(event) => Promise<void>`                                        | unset     | Called after successful mutations.                                     |
 
 `schemaPath` is passed to `prismaAdapter()`, not to `createAdmin()`.

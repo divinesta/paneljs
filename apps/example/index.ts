@@ -24,7 +24,6 @@ console.log("Adapter returned by prismaAdapter:", adapter);
 
 const admin = createAdmin({
    adapter: prismaAdapter({ prisma, schemaPath }),
-   databaseProvider: "postgresql",
    siteName: "PanelJS",
    auth: {
       mode: "built-in",

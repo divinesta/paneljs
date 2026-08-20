@@ -2,7 +2,7 @@
 
 Make PanelJS ORM-agnostic in **core** and **Express** before any second ORM.
 
-**Status:** Slice 1 in progress (common CRUD language). Built-in auth is still Prisma-shaped. Do not start TypeORM, Drizzle, or another HTTP framework until this contract is implemented and that path is stable.
+**Status:** Slices 1–2 done (CRUD language + Prisma-owned search). Built-in auth is still Prisma-shaped (slice 3). Do not start TypeORM, Drizzle, or another HTTP framework until this contract is implemented and that path is stable.
 
 **Related:** `MULTI_ORM.md`, `packages/paneljs/src/adapter.ts`, `packages/paneljs/src/listQuery.ts`, `packages/express/src/crudRouter.ts`, `packages/express/src/builtIn.ts`, `packages/prisma/src/index.ts`
 
@@ -58,7 +58,7 @@ Express almost never *imports* Prisma. It still *speaks* Prisma when it asks for
 | `scope.ts` | Comment and `AND` wrapper assume a Prisma `where` |
 | `recordSelection.ts` | Prisma `select` / nested `{ author: { select: { name: true } } }` |
 | `crudRouter.ts` / `actionRouter.ts` | Pass those objects into `resource().findMany` etc. |
-| `AdminConfig.databaseProvider` | Express uses it to add Prisma’s `mode: "insensitive"` |
+| `AdminConfig.databaseProvider` | Deprecated / ignored. Prisma adapter reads the schema datasource. |
 | `builtIn.ts` | `adapter.client` treated as Prisma: `findUnique`, `include: { user: true }`, camelCase delegates |
 | Prisma adapter | Not a translator. `resource()` returns `prisma.user` unchanged |
 | Custom actions | Receive `client` (the real ORM object) and a Prisma-like `where` |
@@ -344,7 +344,7 @@ Prisma after this plan:
 | --- | --- | --- |
 | **0** | This document. No TypeORM. | You are here. |
 | **1** | Spec 1 types in `packages/paneljs`. Express CRUD + actions use them. Prisma adapter translates. HTTP JSON unchanged. | In progress in this repo. Example app lists, searches, creates, edits, deletes, runs delete-selected. |
-| **2** | Move `databaseProvider` search behavior into the Prisma adapter. | Listing still case-insensitive on Postgres without Express knowing why. |
+| **2** | Move `databaseProvider` search behavior into the Prisma adapter. | Done. Listing is case-insensitive on Postgres from `schema.prisma`. |
 | **3** | Spec 2: `AdminAuthStore` + core login/session helpers. Express `builtIn.ts` becomes HTTP-only. Prisma implements the store. | Built-in login, cookie, logout, createsuperuser still work. |
 | **4** | Stabilize. Docs: adapter contract, auth store, “Express does not speak Prisma.” | Prisma + Express on this contract is the shipped path. |
 | **5** | Only then: TypeORM (`MULTI_ORM.md` checklist). Same Spec 1 resource. Optional TypeORM auth store. Example app. | Second ORM is a new package, not an Express branch. |

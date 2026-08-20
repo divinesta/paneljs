@@ -48,7 +48,7 @@ function parseFilterValue(field: AdminFieldMeta, value: string): string | number
    }
 }
 
-export function parseListQuery(query: QueryMap, meta: AdminModelMeta, model: FullRegisteredModel, databaseProvider?: string): ParsedListQuery {
+export function parseListQuery(query: QueryMap, meta: AdminModelMeta, model: FullRegisteredModel): ParsedListQuery {
    const pageValue = Number(getQueryValue(query, "page") ?? 1);
    if (!Number.isInteger(pageValue) || pageValue < 1) throw new RequestValidationError("Query parameter \"page\" must be a positive integer.");
    if (pageValue > 10_000) throw new RequestValidationError("Query parameter \"page\" must be 10,000 or fewer.");
@@ -99,11 +99,7 @@ export function parseListQuery(query: QueryMap, meta: AdminModelMeta, model: Ful
    if (searchValue && searchFields.length === 0) throw new RequestValidationError(`Model "${meta.name}" has no searchable fields.`);
 
    const search: SearchQuery | undefined = searchValue
-      ? {
-           text: searchValue,
-           fields: searchFields,
-           caseInsensitive: databaseProvider === "postgresql",
-        }
+      ? { text: searchValue, fields: searchFields }
       : undefined;
 
    return { page: pageValue, sort, dir, filters, search };

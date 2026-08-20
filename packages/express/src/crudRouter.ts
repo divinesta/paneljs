@@ -32,7 +32,6 @@ import {
 export function createCrudRouter(
   models: Map<string, FullRegisteredModel>,
   adapter: DataAdapter,
-  databaseProvider?: string,
   audit?: AuditConfig,
 ): Router {
   const router = Router();
@@ -49,7 +48,6 @@ export function createCrudRouter(
         req.query as Record<string, string | string[] | undefined>,
         model.meta,
         model,
-        databaseProvider,
       );
       const scope = await resolveScope(model.raw, adminUser);
       const delegate = adapter.resource(model.meta);

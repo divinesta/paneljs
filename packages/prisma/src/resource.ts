@@ -51,13 +51,16 @@ function toPrismaFilters(filters: FieldFilters): Record<string, unknown> {
   return result;
 }
 
-function toPrismaSearch(search: SearchQuery | undefined): Record<string, unknown> | undefined {
+function toPrismaSearch(
+  search: SearchQuery | undefined,
+  caseInsensitive: boolean,
+): Record<string, unknown> | undefined {
   if (!search || search.fields.length === 0) return undefined;
   return {
     OR: search.fields.map((field) => ({
       [field]: {
         contains: search.text,
-        ...(search.caseInsensitive ? { mode: "insensitive" } : {}),
+        ...(caseInsensitive ? { mode: "insensitive" } : {}),
       },
     })),
   };
@@ -84,11 +87,12 @@ function toPrismaWhere(
     ids?: Array<string | number>;
     id?: string | number;
   },
+  caseInsensitive: boolean,
 ): Record<string, unknown> {
   return combineAnd([
     query.scope,
     query.filters ? toPrismaFilters(query.filters) : undefined,
-    toPrismaSearch(query.search),
+    toPrismaSearch(query.search, caseInsensitive),
     query.ids !== undefined ? { [meta.idField]: { in: query.ids } } : undefined,
     query.id !== undefined ? { [meta.idField]: query.id } : undefined,
   ]);
@@ -108,11 +112,13 @@ export function prismaActionWhere(
 export function prismaResource(
   delegate: PrismaDelegate,
   meta: AdminModelMeta,
+  options: { caseInsensitiveSearch?: boolean } = {},
 ): ModelResource {
+  const caseInsensitive = options.caseInsensitiveSearch === true;
   return {
     findMany(query: FindManyQuery) {
       const args: Record<string, unknown> = {
-        where: toPrismaWhere(meta, query),
+        where: toPrismaWhere(meta, query, caseInsensitive),
         select: toPrismaSelect(query.select),
       };
       if (query.sort) args.orderBy = { [query.sort.field]: query.sort.direction };
@@ -122,12 +128,14 @@ export function prismaResource(
     },
     findFirst(query: FindFirstQuery) {
       return delegate.findFirst({
-        where: toPrismaWhere(meta, query),
+        where: toPrismaWhere(meta, query, caseInsensitive),
         select: toPrismaSelect(query.select),
       });
     },
     count(query: CountQuery) {
-      return delegate.count({ where: toPrismaWhere(meta, query) });
+      return delegate.count({
+        where: toPrismaWhere(meta, query, caseInsensitive),
+      });
     },
     create(query: CreateQuery) {
       return delegate.create({
@@ -137,13 +145,13 @@ export function prismaResource(
     },
     updateMany(query: UpdateManyQuery) {
       return delegate.updateMany({
-        where: toPrismaWhere(meta, query),
+        where: toPrismaWhere(meta, query, caseInsensitive),
         data: query.data,
       });
     },
     deleteMany(query: DeleteManyQuery) {
       return delegate.deleteMany({
-        where: toPrismaWhere(meta, query),
+        where: toPrismaWhere(meta, query, caseInsensitive),
       });
     },
   };

@@ -50,7 +50,7 @@ WHERE email CONTAINS ? OR fullName CONTAINS ?
 | --- | --- |
 | Omit `searchFields` | All non-id string scalars |
 | Pass a non-string (`"isActive"`) | `mount` throws |
-| Use PostgreSQL | Set `databaseProvider: "postgresql"` on `createAdmin` for case-insensitive match |
+| Use PostgreSQL | Search is case-insensitive when `schema.prisma` has `provider = "postgresql"` |
 | Type more than 200 characters | `400 VALIDATION_ERROR` |
 
 ## `listFilter` — filters

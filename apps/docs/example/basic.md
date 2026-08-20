@@ -35,8 +35,7 @@ created.
 
 ```ts
 const admin = createAdmin({
-  prisma,
-  databaseProvider: "postgresql",
+  adapter: prismaAdapter({ prisma }),
   siteName: "Express Admins",
   auth: {
     mode: "built-in",

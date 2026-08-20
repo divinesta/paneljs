@@ -142,6 +142,7 @@ export interface AdminConfig {
    audit?: AuditConfig;
    basePath?: string;
    siteName?: string;
+   /** @deprecated Ignored. The Prisma adapter reads the datasource provider from `schema.prisma`. */
    databaseProvider?: "postgresql" | "mysql" | "sqlite" | "sqlserver" | "mongodb";
 }
 

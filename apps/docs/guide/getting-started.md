@@ -115,7 +115,6 @@ const app = express();
 
 const admin = createAdmin({
   adapter: prismaAdapter({ prisma }),
-  databaseProvider: "postgresql", // set this to your provider
   siteName: "Admin",
   auth: {
     getCurrentUser: async (req) => {

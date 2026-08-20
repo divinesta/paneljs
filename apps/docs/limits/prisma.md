@@ -23,7 +23,7 @@ Mount reads `schema.prisma` through `getDMMF()`. That is why the file must exist
 
 ## Database providers
 
-Introspection works for any Prisma provider the schema declares. Search’s `mode: "insensitive"` is only added when you set `databaseProvider: "postgresql"`. Other providers still search; they just use `contains` as Prisma defines it for that engine.
+Introspection works for any Prisma provider the schema declares. Search uses Prisma’s `mode: "insensitive"` when that datasource `provider` is `"postgresql"`. Other providers still search; they just use `contains` as Prisma defines it for that engine. You do not set this on `createAdmin`.
 
 ## Client generator
 

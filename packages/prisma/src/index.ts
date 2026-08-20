@@ -2,7 +2,12 @@ import type {
   AdminModelMeta,
   DataAdapter,
 } from "@paneljs/paneljs";
-import { introspect, type IntrospectOptions } from "./introspector.js";
+import {
+  getSchemaProvider,
+  introspect,
+  usesInsensitiveSearch,
+  type IntrospectOptions,
+} from "./introspector.js";
 import {
   prismaResource,
   type PrismaDelegate,
@@ -33,11 +38,21 @@ export function prismaAdapter(options: PrismaAdapterOptions): DataAdapter {
   return {
     client: prisma,
     introspect: () => introspect({ schemaPath }),
-    resource: (meta) => prismaResource(getDelegate(prisma, meta), meta),
+    resource: (meta) =>
+      prismaResource(getDelegate(prisma, meta), meta, {
+        caseInsensitiveSearch: usesInsensitiveSearch(
+          getSchemaProvider(schemaPath),
+        ),
+      }),
   };
 }
 
-export { introspect, clearIntrospectionCache } from "./introspector.js";
+export {
+  introspect,
+  clearIntrospectionCache,
+  getSchemaProvider,
+  usesInsensitiveSearch,
+} from "./introspector.js";
 export type { IntrospectOptions } from "./introspector.js";
 export { getDelegate };
 export { prismaActionWhere, prismaResource } from "./resource.js";

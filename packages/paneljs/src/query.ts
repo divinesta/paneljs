@@ -12,8 +12,6 @@ export type FieldFilters = Record<string, FieldFilter>;
 export type SearchQuery = {
    text: string;
    fields: string[];
-   /** Temporary until search folding lives in the Prisma adapter. */
-   caseInsensitive?: boolean;
 };
 
 export type RelationSelect = {

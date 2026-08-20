@@ -445,14 +445,35 @@ export interface IntrospectOptions {
  */
 
 const cache = new Map<string, Map<string, AdminModelMeta>>();
+const providerCache = new Map<string, string | undefined>();
+
+function resolveSchemaPath(schemaPath?: string): string {
+  return resolve(process.cwd(), schemaPath ?? "prisma/schema.prisma");
+}
+
+/** First `datasource { provider = "..." }` in the schema, if any. */
+function parseDatasourceProvider(schema: string): string | undefined {
+  const block = /datasource\s+[A-Za-z_][A-Za-z0-9_]*\s*\{([^}]*)\}/.exec(
+    schema,
+  );
+  if (!block?.[1]) return undefined;
+  const provider = /provider\s*=\s*"([^"]+)"/.exec(block[1]);
+  return provider?.[1];
+}
+
+export function usesInsensitiveSearch(provider: string | undefined): boolean {
+  return provider === "postgresql";
+}
+
+/** Provider string from the last introspect of this schema path. */
+export function getSchemaProvider(schemaPath?: string): string | undefined {
+  return providerCache.get(resolveSchemaPath(schemaPath));
+}
 
 export async function introspect(
   options: IntrospectOptions = {},
 ): Promise<Map<string, AdminModelMeta>> {
-  const schemaPath = resolve(
-    process.cwd(),
-    options.schemaPath ?? "prisma/schema.prisma",
-  );
+  const schemaPath = resolveSchemaPath(options.schemaPath);
 
   // Return cached result if already introspected for this schema path
   if (cache.has(schemaPath)) {
@@ -509,6 +530,7 @@ export async function introspect(
 
   // ── Cache and return ──────────────────────────────────────
   cache.set(schemaPath, result);
+  providerCache.set(schemaPath, parseDatasourceProvider(schemaContent));
   return result;
 }
 
@@ -518,4 +540,5 @@ export async function introspect(
  */
 export function clearIntrospectionCache(): void {
   cache.clear();
+  providerCache.clear();
 }

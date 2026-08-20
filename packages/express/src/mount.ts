@@ -117,7 +117,6 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
     createCrudRouter(
       modelsByPluralName,
       config.adapter,
-      config.databaseProvider,
       config.audit,
     ),
   );
