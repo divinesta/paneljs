@@ -184,7 +184,7 @@ export default function App() {
                   <p className="hero-sub">Register models, keep your auth, and give operators a guarded UI and API from the schema your app already trusts.</p>
                   <div className="hero-ctas">
                      <a href={docsStart} className="btn btn-primary btn-lg">
-                        Get started
+                        See Docs
                      </a>
                      <a href={github} className="btn btn-secondary btn-lg">
                         View source
