@@ -46,6 +46,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Fira Sans";
+  src: url("/fonts/fira-sans-700.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #101012;
   --bg-deep: #09090b;
@@ -59,7 +67,7 @@
   --accent-ink: #14150a;
   --accent-hover: #e6f89a;
   --accent-strong: #dbf27c;
-  --grid-line: rgba(255, 255, 255, 0.027);
+  --grid-line: rgba(255, 255, 255, 0.055);
   --header-bg: rgba(12, 12, 14, 0.82);
   --header-solid: #111113;
   --token-bg: linear-gradient(145deg, rgba(34, 34, 38, 0.94), rgba(16, 16, 18, 0.9));
@@ -99,7 +107,7 @@ html[data-theme="light"] {
   --accent-ink: #14170a;
   --accent-hover: #d6f56f;
   --accent-strong: #557313;
-  --grid-line: rgba(22, 31, 39, 0.055);
+  --grid-line: rgba(22, 31, 39, 0.085);
   --header-bg: rgba(247, 249, 252, 0.84);
   --header-solid: #f7f9fc;
   --token-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(236, 241, 246, 0.96));
@@ -386,9 +394,10 @@ html[data-theme="light"] .theme-icon-moon {
 }
 
 .hero h1 {
-  font-size: clamp(2.7rem, 6.6vw, 5.15rem);
+  font-family: "Fira Sans", "DM Sans", system-ui, sans-serif;
+  font-size: clamp(3rem, 7.4vw, 6rem);
   font-weight: 700;
-  letter-spacing: -0.065em;
+  letter-spacing: 0.01em;
   line-height: 0.98;
 }
 
