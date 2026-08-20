@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch index.ts",
-    "start": "tsx index.ts",
+    "dev": "node --env-file=.env --import tsx --watch index.ts",
+    "start": "node --env-file=.env --import tsx index.ts",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx seed.ts",
-    "admin:createsuperuser": "tsx ../../packages/prisma/src/cli.ts createsuperuser --config ./paneljs.config.ts",
+    "db:seed": "node --env-file=.env --import tsx seed.ts",
+    "admin:createsuperuser": "node --env-file=.env --import tsx ../../packages/prisma/src/cli.ts createsuperuser --config ./paneljs.config.ts",
     "lint": "echo \"example: no lint yet\""
   },
   "dependencies": {
@@ -20,7 +20,7 @@
     "@prisma/adapter-pg": "~7.5.0",
     "@prisma/client": "~7.5.0",
     "express": "^5.0.0",
-    "@paneljs/paneljs": "workspace:*",
+    "paneljs": "workspace:*",
     "pg": "^8.16.0"
   },
   "devDependencies": {

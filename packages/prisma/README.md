@@ -1,6 +1,6 @@
 # @paneljs/prisma
 
-Prisma adapter for [PanelJS](https://www.npmjs.com/package/@paneljs/paneljs). Reads `schema.prisma` via DMMF and runs scalar CRUD.
+Prisma adapter for [PanelJS](https://www.npmjs.com/package/paneljs). Reads `schema.prisma` via DMMF and runs scalar CRUD.
 
 ```ts
 import { prismaAdapter } from "@paneljs/prisma";

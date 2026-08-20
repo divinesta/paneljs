@@ -2,7 +2,7 @@
 
 This is the implementation path: one module in **your** codebase, the same shape as [`examples/basic/index.ts`](https://github.com/divinesta/EXPRESS-ADMIN/blob/main/examples/basic/index.ts).
 
-You already [installed](/guide/getting-started) `@paneljs/paneljs` and can mount with `register("User")`. This page is what you add next so the panel matches how you operate.
+You already [installed](/guide/getting-started) `paneljs` and can mount with `register("User")`. This page is what you add next so the panel matches how you operate.
 
 ## 1. One place to configure the admin
 
@@ -10,7 +10,7 @@ Keep `createAdmin`, every `register`, and `mount` together — `admin.ts` next t
 
 ```ts
 import express from "express";
-import { createAdmin } from "@paneljs/paneljs";
+import { createAdmin } from "paneljs";
 import { prisma } from "./prisma.js";
 
 const app = express();

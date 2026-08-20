@@ -7,7 +7,7 @@ import type {
   AdminFieldType,
   AdminModelMeta,
   RelationKind,
-} from "@paneljs/paneljs";
+} from "paneljs";
 
 const { getDMMF } = createRequire(import.meta.url)(
   "@prisma/internals",

@@ -1,4 +1,4 @@
-import type { DataAdapter } from "@paneljs/paneljs";
+import type { DataAdapter } from "paneljs";
 import type { DataSource } from "typeorm";
 import { typeormAuthStore } from "./authStore.js";
 import { introspect } from "./introspector.js";

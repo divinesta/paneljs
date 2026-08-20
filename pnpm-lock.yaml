@@ -32,9 +32,6 @@ importers:
       '@paneljs/express':
         specifier: workspace:*
         version: link:../../../packages/express
-      '@paneljs/paneljs':
-        specifier: workspace:*
-        version: link:../../../packages/paneljs
       '@paneljs/prisma':
         specifier: workspace:*
         version: link:../../../packages/prisma
@@ -47,6 +44,9 @@ importers:
       express:
         specifier: ^5.0.0
         version: 5.2.1
+      paneljs:
+        specifier: workspace:*
+        version: link:../../../packages/paneljs
       pg:
         specifier: ^8.16.0
         version: 8.23.0
@@ -75,15 +75,15 @@ importers:
       '@paneljs/express':
         specifier: workspace:*
         version: link:../../../packages/express
-      '@paneljs/paneljs':
-        specifier: workspace:*
-        version: link:../../../packages/paneljs
       '@paneljs/typeorm':
         specifier: workspace:*
         version: link:../../../packages/typeorm
       express:
         specifier: ^5.0.0
         version: 5.2.1
+      paneljs:
+        specifier: workspace:*
+        version: link:../../../packages/paneljs
       pg:
         specifier: ^8.16.0
         version: 8.23.0
@@ -140,7 +140,7 @@ importers:
 
   packages/express:
     dependencies:
-      '@paneljs/paneljs':
+      paneljs:
         specifier: workspace:^
         version: link:../paneljs
     devDependencies:
@@ -199,15 +199,15 @@ importers:
 
   packages/prisma:
     dependencies:
-      '@paneljs/paneljs':
-        specifier: workspace:^
-        version: link:../paneljs
       '@prisma/dmmf':
         specifier: ~7.5.0
         version: 7.5.0
       '@prisma/internals':
         specifier: ~7.5.0
         version: 7.5.0(typescript@5.9.2)
+      paneljs:
+        specifier: workspace:^
+        version: link:../paneljs
     devDependencies:
       '@prisma/client':
         specifier: ~7.5.0
@@ -224,7 +224,7 @@ importers:
 
   packages/typeorm:
     dependencies:
-      '@paneljs/paneljs':
+      paneljs:
         specifier: workspace:^
         version: link:../paneljs
     devDependencies:

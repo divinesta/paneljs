@@ -3,11 +3,11 @@ import type {
   AuthStoreOptions,
   BuiltInSessionRecord,
   BuiltInUserRecord,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import {
   DEFAULT_AUTH_SESSION_MODEL,
   DEFAULT_AUTH_USER_MODEL,
-} from "@paneljs/paneljs";
+} from "paneljs";
 type PrismaClientLike = object;
 
 type UserDelegate = {

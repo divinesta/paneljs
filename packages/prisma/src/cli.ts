@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
-import { hashAdminPassword, type BuiltInAuthConfig } from "@paneljs/paneljs";
+import { hashAdminPassword, type BuiltInAuthConfig } from "paneljs";
 
 export interface PaneljsCliConfig {
   prisma: object;

@@ -10,7 +10,7 @@ import {
   resolveAuthStore,
   type Admin,
   type AdminAuthStore,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import { createActionRouter } from "./actionRouter.js";
 import {
   createBuiltInAuthenticationMiddleware,

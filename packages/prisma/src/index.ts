@@ -1,7 +1,7 @@
 import type {
   AdminModelMeta,
   DataAdapter,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import {
   getSchemaProvider,
   introspect,

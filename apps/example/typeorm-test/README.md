@@ -8,7 +8,7 @@ From the repository root:
 
 ```bash
 pnpm install
-pnpm --filter @paneljs/paneljs build
+pnpm --filter paneljs build
 pnpm --filter @paneljs/express build
 pnpm --filter @paneljs/typeorm build
 

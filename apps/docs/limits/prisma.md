@@ -13,7 +13,7 @@ The first releases support **Prisma 7.5.x only**.
 
 ## Policy
 
-- Upgrade `prisma`, `@prisma/client`, and `@paneljs/paneljs` together
+- Upgrade `prisma`, `@prisma/client`, and `paneljs` together
 - The changelog lists every tested Prisma version
 - CI runs the claimed minor. We do not advertise a version the matrix has not passed
 

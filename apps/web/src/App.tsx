@@ -5,7 +5,7 @@ const docsStart = "/docs/guide/getting-started";
 const github = "https://github.com/divinesta/paneljs";
 const sponsor = "https://github.com/sponsors/divinesta";
 const installSource = `import express from "express";
-import { createAdmin } from "@paneljs/paneljs";
+import { createAdmin } from "paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
 import { mount } from "@paneljs/express";
 import { prisma } from "./prisma.js";
@@ -295,7 +295,8 @@ export default function App() {
                         You register models. At mount, PanelJS introspects <code>schema.prisma</code> and serves a React admin at <code>/admin</code> plus a JSON API at <code>/admin/api/*</code>.
                      </p>
                      <p>
-                        Learn how to <a href="/docs/guide/getting-started">get started</a>, <a href="/docs/guide/register">register models</a>, and configure <a href="/docs/guide/auth">authentication</a>.
+                        Learn how to <a href="/docs/guide/getting-started">get started</a>, <a href="/docs/guide/register">register models</a>, and configure{" "}
+                        <a href="/docs/guide/auth">authentication</a>.
                      </p>
                   </div>
                   <ul className="feature-list">
@@ -375,7 +376,7 @@ export default function App() {
                         <code>
                            <span className="tok-k">import</span> express <span className="tok-k">from</span> <span className="tok-s">"express"</span>
                            {"\n"}
-                           <span className="tok-k">import</span> {"{ createAdmin }"} <span className="tok-k">from</span> <span className="tok-s">"@paneljs/paneljs"</span>
+                           <span className="tok-k">import</span> {"{ createAdmin }"} <span className="tok-k">from</span> <span className="tok-s">"paneljs"</span>
                            {"\n"}
                            <span className="tok-k">import</span> {"{ prismaAdapter }"} <span className="tok-k">from</span> <span className="tok-s">"@paneljs/prisma"</span>
                            {"\n"}

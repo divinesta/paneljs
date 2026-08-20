@@ -1,6 +1,6 @@
 {
   "name": "@paneljs/express",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Express adapter for PanelJS, a Django-style Prisma admin panel for Node.js applications.",
   "license": "MIT",
   "type": "module",
@@ -51,7 +51,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@paneljs/paneljs": "workspace:^"
+    "paneljs": "workspace:^"
   },
   "peerDependencies": {
     "express": "^4.18.0 || ^5.0.0"

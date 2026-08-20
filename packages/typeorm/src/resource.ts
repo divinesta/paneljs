@@ -14,7 +14,7 @@ import {
   type ModelResource,
   type SearchQuery,
   type UpdateManyQuery,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import {
   And,
   ILike,

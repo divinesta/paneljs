@@ -4,7 +4,7 @@ import {
   buildSchemaResponse,
   isBuiltInAuth,
   type Admin,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import { sendApiError } from "./httpErrors.js";
 
 export function createSchemaEndpoint(admin: Admin): RequestHandler {

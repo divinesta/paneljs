@@ -60,5 +60,5 @@ Same role does not mean same rows. That distinction — **permissions vs scope**
 
 ## Next
 
-1. [Getting started](/guide/getting-started) — install `@paneljs/paneljs` and mount
+1. [Getting started](/guide/getting-started) — install `paneljs` and mount
 2. [Wire it into your app](/guide/in-your-app) — `listDisplay`, `searchFields`, `listFilter`, `scope`

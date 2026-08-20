@@ -3,7 +3,7 @@ import type {
   DataAdapter,
   FullRegisteredModel,
   AuditConfig,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import {
   writeAuditEvent,
   RecordNotFoundError,
@@ -20,7 +20,7 @@ import {
   RequestValidationError,
   validateHookPayload,
   validateWritePayload,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import { assertNoRestrictedRelations } from "./deleteRelations.js";
 import { sendApiError } from "./httpErrors.js";
 import {

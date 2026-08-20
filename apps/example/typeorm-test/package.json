@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@paneljs/express": "workspace:*",
-    "@paneljs/paneljs": "workspace:*",
+    "paneljs": "workspace:*",
     "@paneljs/typeorm": "workspace:*",
     "express": "^5.0.0",
     "pg": "^8.16.0",

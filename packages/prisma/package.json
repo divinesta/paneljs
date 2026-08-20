@@ -1,6 +1,6 @@
 {
   "name": "@paneljs/prisma",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Prisma adapter for PanelJS, a Django-style admin panel for Express and Node.js applications.",
   "license": "MIT",
   "type": "module",
@@ -56,7 +56,7 @@
   "dependencies": {
     "@prisma/dmmf": "~7.5.0",
     "@prisma/internals": "~7.5.0",
-    "@paneljs/paneljs": "workspace:^"
+    "paneljs": "workspace:^"
   },
   "peerDependencies": {
     "@prisma/client": "~7.5.0",

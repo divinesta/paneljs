@@ -4,7 +4,7 @@ import type {
   AdminUser,
   BuiltInAuthConfig,
   SessionCookie,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import {
   authenticateBuiltInRequest,
   hashAdminPassword,
@@ -12,7 +12,7 @@ import {
   loginWithPassword,
   logoutBuiltIn,
   verifyAdminPassword,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import { createLoginRateLimiter } from "./loginRateLimit.js";
 
 export { hashAdminPassword, verifyAdminPassword };

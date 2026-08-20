@@ -1,7 +1,7 @@
 import express from "express";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { fileURLToPath } from "node:url";
-import { createAdmin } from "@paneljs/paneljs";
+import { createAdmin } from "paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
 import { mount } from "@paneljs/express";
 import { PrismaClient } from "./generated/prisma/client";

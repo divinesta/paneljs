@@ -14,7 +14,7 @@ import {
   type AuditConfig,
   type DataAdapter,
   type FullRegisteredModel,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import {
   assertNoRestrictedRelations,
   loadDeletePreviewRelations,
@@ -253,7 +253,7 @@ async function runPostCommit(
 
 async function writeAuditSafely(
   audit: AuditConfig | undefined,
-  actor: import("@paneljs/paneljs").AdminUser,
+  actor: import("paneljs").AdminUser,
   event: Parameters<typeof writeAuditEvent>[2],
 ): Promise<void> {
   await runPostCommit("audit.write", () =>

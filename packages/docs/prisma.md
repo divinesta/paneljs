@@ -23,7 +23,7 @@ Think of three rooms:
 
 | Room | Package | Job |
 | --- | --- | --- |
-| Core | `@paneljs/paneljs` | Remembers which models you registered. Stores field info. Checks permissions. Builds list/search objects. Does **not** talk to Prisma. |
+| Core | `paneljs` | Remembers which models you registered. Stores field info. Checks permissions. Builds list/search objects. Does **not** talk to Prisma. |
 | HTTP | `@paneljs/express` | Puts the admin on your Express app at `/admin`. Serves the UI and the API. |
 | Prisma room | `@paneljs/prisma` | Reads `schema.prisma`. Translates PanelJS queries into Prisma `find` / `create` / `update` / `delete`. |
 

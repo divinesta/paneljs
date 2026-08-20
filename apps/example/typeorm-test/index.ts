@@ -1,5 +1,5 @@
 import express from "express";
-import { createAdmin } from "@paneljs/paneljs";
+import { createAdmin } from "paneljs";
 import { mount } from "@paneljs/express";
 import { typeormActionWhere, typeormAdapter } from "@paneljs/typeorm";
 import type { DataSource } from "typeorm";

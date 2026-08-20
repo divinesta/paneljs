@@ -11,7 +11,7 @@ import {
   type AdminUser,
   type FullRegisteredModel,
   type AdminModelMeta,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import { sendApiError } from "./httpErrors.js";
 
 export function route(

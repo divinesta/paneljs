@@ -7,7 +7,7 @@ import {
   type AdminUser,
   type DataAdapter,
   type FullRegisteredModel,
-} from "@paneljs/paneljs";
+} from "paneljs";
 
 export type DeleteReferentialAction = "Cascade" | "SetNull" | "Restrict";
 

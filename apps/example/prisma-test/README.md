@@ -9,9 +9,11 @@ From the repository root:
 ```bash
 pnpm install
 pnpm --filter paneljs build
+pnpm --filter @paneljs/express build
+pnpm --filter @paneljs/prisma build
 pnpm --filter @paneljs/example db:up
 
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5435/paneljs_example
+cp apps/example/prisma-test/.env.example apps/example/prisma-test/.env
 
 pnpm --filter @paneljs/example db:generate
 pnpm --filter @paneljs/example db:push
@@ -19,6 +21,10 @@ pnpm --filter @paneljs/example db:seed
 pnpm --filter @paneljs/example admin:createsuperuser
 pnpm --filter @paneljs/example dev
 ```
+
+Set `DATABASE_URL` once in `apps/example/prisma-test/.env`. The app, seed, and
+superuser commands load that file automatically. `db:generate` and `db:push`
+also use it through Prisma's configuration.
 
 Open `http://localhost:3000/admin/login`.
 

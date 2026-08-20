@@ -1,5 +1,5 @@
 import type { Request } from "express";
-import type { BuiltInAuthConfig } from "@paneljs/paneljs";
+import type { BuiltInAuthConfig } from "paneljs";
 
 type Attempt = { count: number; resetAt: number };
 type Settings = { windowMs: number; maxAttempts: number };

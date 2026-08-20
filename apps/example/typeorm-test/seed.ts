@@ -1,4 +1,4 @@
-import { hashAdminPassword } from "@paneljs/paneljs";
+import { hashAdminPassword } from "paneljs";
 import { dataSource } from "./data-source.js";
 
 const tenants = [

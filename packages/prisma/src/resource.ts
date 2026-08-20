@@ -13,7 +13,7 @@ import {
   type ModelResource,
   type SearchQuery,
   type UpdateManyQuery,
-} from "@paneljs/paneljs";
+} from "paneljs";
 
 function isForeignKeyViolation(error: unknown): boolean {
   if (typeof error !== "object" || error === null || !("code" in error)) {

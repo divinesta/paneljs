@@ -1,4 +1,4 @@
-import type { AdminUser } from "@paneljs/paneljs";
+import type { AdminUser } from "paneljs";
 
 declare global {
   namespace Express {

@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler, Response } from "express";
-import { AdminApiError } from "@paneljs/paneljs";
+import { AdminApiError } from "paneljs";
 
 export function sendApiError(res: Response, error: AdminApiError): void {
   res.status(error.status).json({ error: error.message, code: error.code });

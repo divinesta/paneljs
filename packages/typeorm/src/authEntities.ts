@@ -2,7 +2,7 @@ import { EntitySchema } from "typeorm";
 import {
   DEFAULT_AUTH_SESSION_MODEL,
   DEFAULT_AUTH_USER_MODEL,
-} from "@paneljs/paneljs";
+} from "paneljs";
 
 export type BuiltInAuthEntityOptions = {
   identifier?: "email" | "username";

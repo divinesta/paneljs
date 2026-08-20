@@ -3,7 +3,7 @@ import type {
   AdminFieldType,
   AdminModelMeta,
   RelationKind,
-} from "@paneljs/paneljs";
+} from "paneljs";
 import type { DataSource, EntityMetadata } from "typeorm";
 
 type TypeormColumn = EntityMetadata["columns"][number];

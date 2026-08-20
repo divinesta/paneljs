@@ -1,6 +1,6 @@
 # @paneljs/express
 
-Express adapter for [PanelJS](https://www.npmjs.com/package/@paneljs/paneljs). Mounts the admin UI and JSON API.
+Express adapter for [PanelJS](https://www.npmjs.com/package/paneljs). Mounts the admin UI and JSON API.
 
 ```ts
 import { mount } from "@paneljs/express";

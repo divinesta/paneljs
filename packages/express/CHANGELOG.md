@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0] - 2026-08-21
+
+### Breaking
+
+- The core dependency is now `paneljs`, replacing `@paneljs/paneljs`. Update core imports to `from "paneljs"` when upgrading.
+
 ## [0.2.1] - 2026-08-20
 
 ### Changed
@@ -21,7 +27,7 @@ Express talks only to core: PanelJS queries and `AdminAuthStore`. It does not bu
 ### Changed
 
 - List/search/create/update/delete and bulk delete go through the core query contract.
-- Built-in auth routes only handle HTTP (cookie header, same-origin, rate limit). Login and session rules live in `@paneljs/paneljs`.
+- Built-in auth routes only handle HTTP (cookie header, same-origin, rate limit). Login and session rules live in `paneljs`.
 
 ## [0.1.1]
 

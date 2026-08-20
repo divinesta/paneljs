@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0] - 2026-08-21
+
+### Breaking
+
+- The core dependency is now `paneljs`, replacing `@paneljs/paneljs`. Update core imports to `from "paneljs"` when upgrading.
+
 ## [0.1.4] - 2026-08-20
 
 ### Changed

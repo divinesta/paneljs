@@ -1,7 +1,7 @@
 # `createAdmin()`
 
 ```ts
-import { createAdmin } from "@paneljs/paneljs";
+import { createAdmin } from "paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
 import { mount } from "@paneljs/express";
 
@@ -49,5 +49,5 @@ import type {
   AdminAuditEvent,
   ModelConfig,
   DataAdapter,
-} from "@paneljs/paneljs";
+} from "paneljs";
 ```

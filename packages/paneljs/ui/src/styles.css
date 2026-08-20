@@ -40,6 +40,7 @@
    --focus-ring: rgba(219, 242, 124, 0.35);
    --danger: #b55e4e;
    --shadow: rgba(22, 38, 45, 0.1);
+   --announcement-height: 42px;
 }
 
 :root[data-palette="ocean"] {
@@ -136,8 +137,47 @@ a {
 
 .app-frame {
    display: flex;
-   min-height: 100vh;
+   min-height: calc(100vh - var(--announcement-height));
    background: #f5f7fb;
+}
+.announcement-banner {
+   align-items: center;
+   background: var(--accent-wash);
+   border-bottom: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+   color: var(--text-secondary);
+   display: flex;
+   font-size: 13px;
+   gap: 9px;
+   justify-content: center;
+   min-height: var(--announcement-height);
+   padding: 9px 24px;
+   position: sticky;
+   top: 0;
+   z-index: 40;
+}
+.announcement-banner svg {
+   color: var(--accent-strong);
+   flex: 0 0 auto;
+}
+.announcement-banner p {
+   align-items: center;
+   display: flex;
+   gap: 8px;
+   line-height: 1.35;
+   margin: 0;
+}
+.announcement-banner strong {
+   color: var(--text-primary);
+   font-weight: 700;
+}
+.announcement-banner code {
+   background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface-raised));
+   border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
+   border-radius: 4px;
+   color: var(--accent-strong);
+   font-family: "DM Mono", monospace;
+   font-size: 0.9em;
+   padding: 1px 4px;
 }
 
 /* Sidebar */
@@ -146,9 +186,10 @@ a {
    color: #dfe8eb;
    display: flex;
    flex-direction: column;
-   min-height: 100vh;
+   min-height: calc(100vh - var(--announcement-height));
    padding: 18px 14px;
    position: fixed;
+   top: var(--announcement-height);
    width: 264px;
    z-index: 20;
 }
@@ -294,7 +335,7 @@ a {
    justify-content: space-between;
    padding: 0 28px;
    position: sticky;
-   top: 0;
+   top: var(--announcement-height);
    z-index: 10;
    backdrop-filter: blur(12px);
 }
@@ -1646,6 +1687,20 @@ tbody tr:last-child td {
 }
 
 @media (max-width: 760px) {
+   :root {
+      --announcement-height: 60px;
+   }
+   .announcement-banner {
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 10px 14px;
+   }
+   .announcement-banner p {
+      display: block;
+   }
+   .announcement-banner p > * + * {
+      margin-left: 7px;
+   }
    .sidebar {
       box-shadow: 12px 0 35px rgba(8, 23, 30, 0.2);
       transform: translateX(-100%);

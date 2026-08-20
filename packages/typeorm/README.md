@@ -1,9 +1,9 @@
 # @paneljs/typeorm
 
-TypeORM adapter for [PanelJS](https://www.npmjs.com/package/@paneljs/paneljs).
+TypeORM adapter for [PanelJS](https://www.npmjs.com/package/paneljs).
 
 ```ts
-import { createAdmin } from "@paneljs/paneljs";
+import { createAdmin } from "paneljs";
 import { mount } from "@paneljs/express";
 import { DataSource } from "typeorm";
 
