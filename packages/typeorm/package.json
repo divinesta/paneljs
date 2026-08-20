@@ -1,0 +1,61 @@
+{
+  "name": "@paneljs/typeorm",
+  "version": "0.1.0",
+  "description": "TypeORM adapter for PanelJS, a Django-style admin panel for Express and Node.js applications.",
+  "license": "MIT",
+  "type": "module",
+  "author": "Divinesta",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/divinesta/paneljs.git",
+    "directory": "packages/typeorm"
+  },
+  "bugs": {
+    "url": "https://github.com/divinesta/paneljs/issues"
+  },
+  "homepage": "https://github.com/divinesta/paneljs",
+  "keywords": [
+    "paneljs",
+    "typeorm",
+    "typeorm-admin",
+    "express-admin",
+    "django-admin-alternative"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^20.19 || ^22.12 || >=24.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "echo \"@paneljs/typeorm: no lint yet\"",
+    "check-types": "tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@paneljs/paneljs": "workspace:^"
+  },
+  "peerDependencies": {
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typeorm": "^0.3.20",
+    "typescript": "5.9.2"
+  }
+}

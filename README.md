@@ -1,12 +1,13 @@
 # PanelJS
 
-A Django-style admin panel. One git repo, three packages:
+A Django-style admin panel. One git repo, four packages:
 
-| Package            | npm name           | Role                                  |
-| ------------------ | ------------------ | ------------------------------------- |
-| `packages/paneljs` | `@paneljs/paneljs` | Core: registry, schema JSON, admin UI |
-| `packages/express` | `@paneljs/express` | `mount(app, admin)`                   |
-| `packages/prisma`  | `@paneljs/prisma`  | `prismaAdapter()`, DMMF introspector  |
+| Package             | npm name            | Role                                           |
+| ------------------- | ------------------- | ---------------------------------------------- |
+| `packages/paneljs`  | `@paneljs/paneljs`  | Core: registry, schema JSON, admin UI          |
+| `packages/express`  | `@paneljs/express`  | `mount(app, admin)`                            |
+| `packages/prisma`   | `@paneljs/prisma`   | `prismaAdapter()`, DMMF introspector           |
+| `packages/typeorm`  | `@paneljs/typeorm`  | `typeormAdapter()` (introspect/CRUD next)      |
 
 Apps:
 
