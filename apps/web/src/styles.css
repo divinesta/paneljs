@@ -502,14 +502,19 @@ html[data-theme="light"] .stack-token img {
   transform: rotate(-6deg);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .hero-stack-orbit {
     display: none;
   }
 
-  .product-showcase {
-    margin-top: -4rem;
+  .hero {
+    min-height: auto;
     padding-bottom: 3rem;
+  }
+
+  .product-showcase {
+    margin-top: 0;
+    padding-bottom: 3.5rem;
   }
 }
 
@@ -937,18 +942,6 @@ html[data-theme="light"] .stack-token img {
 @media (max-width: 479px) {
   .btn-github {
     display: none;
-  }
-}
-
-@media (max-width: 767px) {
-  .hero {
-    min-height: auto;
-    padding-bottom: 3rem;
-  }
-
-  .product-showcase {
-    margin-top: 0;
-    padding-bottom: 3.5rem;
   }
 }
 

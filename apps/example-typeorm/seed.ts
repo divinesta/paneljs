@@ -1,0 +1,60 @@
+import { dataSource } from "./data-source.js";
+
+const tenants = [
+  { id: "northwind", name: "Northwind" },
+  { id: "contoso", name: "Contoso" },
+];
+
+await dataSource.initialize();
+
+const posts = dataSource.getRepository("Post");
+const users = dataSource.getRepository("User");
+const tenantRepo = dataSource.getRepository("Tenant");
+
+await posts.createQueryBuilder().delete().execute();
+await users.createQueryBuilder().delete().execute();
+await tenantRepo.createQueryBuilder().delete().execute();
+
+await tenantRepo.save(tenants);
+
+const ada = await users.save({
+  email: "ada@northwind.test",
+  fullName: "Ada Lovelace",
+  role: "ADMIN",
+  isActive: true,
+  tenantId: "northwind",
+});
+const grace = await users.save({
+  email: "grace@contoso.test",
+  fullName: "Grace Hopper",
+  role: "ADMIN",
+  isActive: true,
+  tenantId: "contoso",
+});
+
+await posts.save([
+  {
+    title: "Notes on the Analytical Engine",
+    content: "What the machine might do.",
+    published: true,
+    authorId: ada.id,
+    tenantId: "northwind",
+  },
+  {
+    title: "Draft: punch cards",
+    content: "Not ready yet.",
+    published: false,
+    authorId: ada.id,
+    tenantId: "northwind",
+  },
+  {
+    title: "COBOL remarks",
+    content: "People should be able to write in English.",
+    published: true,
+    authorId: grace.id,
+    tenantId: "contoso",
+  },
+]);
+
+console.log("[paneljs] TypeORM example seed complete (Northwind, Contoso).");
+await dataSource.destroy();

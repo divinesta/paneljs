@@ -13,6 +13,8 @@ Apps:
 
 - `apps/web` — marketing site (Vite + React)
 - `apps/docs` — VitePress documentation
+- `apps/example` — Prisma + Express dogfood app
+- `apps/example-typeorm` — TypeORM + Express dogfood app
 
 `EXPRESS-ADMIN` remains the published `prisma-express-admin` library until this repo is cut over.
 

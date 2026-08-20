@@ -1,0 +1,29 @@
+{
+  "name": "@paneljs/example-typeorm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "start": "tsx index.ts",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:seed": "tsx seed.ts",
+    "lint": "echo \"example-typeorm: no lint yet\""
+  },
+  "dependencies": {
+    "@paneljs/express": "workspace:*",
+    "@paneljs/paneljs": "workspace:*",
+    "@paneljs/typeorm": "workspace:*",
+    "express": "^5.0.0",
+    "pg": "^8.16.0",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.15.3",
+    "@types/pg": "^8.15.4",
+    "tsx": "^4.20.3",
+    "typescript": "5.9.2"
+  }
+}
