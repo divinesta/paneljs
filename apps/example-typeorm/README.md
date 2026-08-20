@@ -1,8 +1,6 @@
 # PanelJS TypeORM example
 
-Small Express host using `@paneljs/typeorm`. Proves list, search, filters, create, edit, delete, and bulk publish — without built-in `/admin/login`.
-
-Identity is a demo `getCurrentUser` (Ada, `SUPER_ADMIN`) so the UI opens with no login screen.
+Small Express host using `@paneljs/typeorm`. Proves list, search, filters, create, edit, delete, bulk publish, and built-in `/admin/login`.
 
 ## Run
 
@@ -22,12 +20,13 @@ pnpm --filter @paneljs/example-typeorm db:seed
 pnpm --filter @paneljs/example-typeorm dev
 ```
 
-Open `http://localhost:3001/admin`.
+Open `http://localhost:3001/admin/login`.
+
+Default seed login:
+
+- email: `ada@example.test` (super admin, all tenants)
+- password: `changeme-now`
+
+Also seeded: `northwind@example.test` / `changeme-now` (`ADMIN`, Northwind only).
 
 Uses its own Postgres on port **5436** so it does not collide with the Prisma example (5435 / 3000).
-
-## Scope as a tenant admin
-
-```bash
-EXAMPLE_ROLE=ADMIN EXAMPLE_TENANT_ID=northwind pnpm --filter @paneljs/example-typeorm dev
-```

@@ -11,22 +11,13 @@ await dataSource.initialize();
 
 const app = express();
 
-const demoRole = process.env.EXAMPLE_ROLE ?? "SUPER_ADMIN";
-const demoUser = {
-  id: process.env.EXAMPLE_USER_ID ?? "demo-admin",
-  email: process.env.EXAMPLE_USER_EMAIL ?? "ada@example.test",
-  role: demoRole,
-  isSuperAdmin: demoRole === "SUPER_ADMIN",
-  ...(process.env.EXAMPLE_TENANT_ID
-    ? { tenantId: process.env.EXAMPLE_TENANT_ID }
-    : {}),
-};
-
 const admin = createAdmin({
   adapter: typeormAdapter({ dataSource }),
   siteName: "PanelJS TypeORM",
   auth: {
-    getCurrentUser: async () => demoUser,
+    mode: "built-in",
+    identifier: "email",
+    secureCookies: process.env.PANELJS_SECURE_COOKIES === "true",
   },
 });
 
@@ -121,9 +112,6 @@ await mount(app, admin);
 const server = app.listen(port, () => {
   console.log(
     `[paneljs] TypeORM example running at http://localhost:${port}/admin`,
-  );
-  console.log(
-    `[paneljs] Demo identity: ${demoUser.email} (${demoUser.role}). Built-in login is not used.`,
   );
 });
 

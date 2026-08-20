@@ -1,3 +1,4 @@
+import { builtInAuthEntities } from "@paneljs/typeorm";
 import { EntitySchema } from "typeorm";
 
 export const Tenant = new EntitySchema<Record<string, unknown>>({
@@ -72,4 +73,9 @@ export const Post = new EntitySchema<Record<string, unknown>>({
   },
 });
 
-export const entities = [Tenant, User, Post];
+export const entities = [
+  Tenant,
+  User,
+  Post,
+  ...builtInAuthEntities({ identifier: "email" }),
+];

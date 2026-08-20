@@ -1,5 +1,6 @@
 import type { DataAdapter } from "@paneljs/paneljs";
 import type { DataSource } from "typeorm";
+import { typeormAuthStore } from "./authStore.js";
 import { introspect } from "./introspector.js";
 import { typeormResource } from "./resource.js";
 
@@ -27,8 +28,12 @@ export function typeormAdapter(options: TypeormAdapterOptions): DataAdapter {
     resource(meta) {
       return typeormResource(dataSource, meta);
     },
+    createAuthStore: (auth) => typeormAuthStore(dataSource, auth),
   };
 }
 
 export { introspect };
 export { typeormActionWhere, typeormResource } from "./resource.js";
+export { typeormAuthStore } from "./authStore.js";
+export { builtInAuthEntities } from "./authEntities.js";
+export type { BuiltInAuthEntityOptions } from "./authEntities.js";

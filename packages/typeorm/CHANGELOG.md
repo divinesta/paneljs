@@ -13,3 +13,5 @@
 - `typeormResource` implements list/get/create/update/delete from PanelJS queries.
 - Search uses `ILike` on Postgres (and Cockroach), `Like` otherwise.
 - `typeormActionWhere` builds TypeORM criteria from custom-action `{ scope, ids }`.
+- `builtInAuthEntities()` — TypeORM tables for built-in login.
+- `typeormAuthStore` / `createAuthStore` — same auth-store contract as Prisma.

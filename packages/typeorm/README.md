@@ -4,14 +4,21 @@ TypeORM adapter for [PanelJS](https://www.npmjs.com/package/@paneljs/paneljs).
 
 ```ts
 import { createAdmin } from "@paneljs/paneljs";
-import { typeormAdapter } from "@paneljs/typeorm";
 import { mount } from "@paneljs/express";
+import { DataSource } from "typeorm";
 
+import { builtInAuthEntities, typeormAdapter } from "@paneljs/typeorm";
+
+const dataSource = new DataSource({
+  type: "postgres",
+  url: process.env.DATABASE_URL,
+  entities: [...appEntities, ...builtInAuthEntities({ identifier: "email" })],
+});
 await dataSource.initialize();
 
 const admin = createAdmin({
   adapter: typeormAdapter({ dataSource }),
-  auth: { getCurrentUser },
+  auth: { mode: "built-in", identifier: "email" },
 });
 
 admin.register("User");
@@ -20,6 +27,8 @@ await mount(app, admin);
 
 Peer dependency: `typeorm` ^0.3.20.
 
-The `DataSource` must already be initialized. Introspection reads live entity metadata. CRUD is implemented through PanelJS query types (`findMany`, `findFirst`, `create`, `updateMany`, `deleteMany`).
+The `DataSource` must already be initialized. Introspection reads live entity metadata. CRUD uses PanelJS query types.
 
-Built-in `/admin/login` is not in this adapter yet. Use `auth: { getCurrentUser }` for now.
+For built-in login, add `builtInAuthEntities()` to the DataSource and set `auth: { mode: "built-in", identifier: "email" }`. `typeormAdapter` supplies `createAuthStore`. External `getCurrentUser` still works if you skip those entities.
+
+Do not `register("ExpressAdminUser")`.
