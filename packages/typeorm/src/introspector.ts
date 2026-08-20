@@ -220,13 +220,11 @@ function introspectColumn(
   const isFk = column.relationMetadata !== undefined;
   const isId = column.isPrimary;
   const isReadOnly =
-    isId ||
     column.isGenerated ||
     column.isCreateDate ||
     column.isUpdateDate ||
     column.isDeleteDate ||
-    column.isUpdate === false ||
-    isFk;
+    column.isUpdate === false;
 
   return {
     name: column.propertyName,

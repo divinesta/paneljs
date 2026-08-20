@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4] - 2026-08-20
+
+### Changed
+
+- Foreign-key scalars (`tenantId`, `authorId`, …) are writable, matching Prisma `belongsTo` selects.
+- Non-generated primary keys are writable on create. Generated ids stay read-only.
+- `create` fills uuid-generated ids when the payload omits them, and maps NOT NULL violations to `VALIDATION_ERROR`.
+
 ## [0.1.3] - 2026-08-20
 
 ### Changed

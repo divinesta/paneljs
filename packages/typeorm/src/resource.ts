@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   RequestValidationError,
   type ActionWhere,
@@ -161,9 +162,18 @@ function assertWriteTarget(query: { id?: string | number; ids?: Array<string | n
   }
 }
 
+function driverCode(error: unknown): string | undefined {
+  if (!(error instanceof QueryFailedError)) return undefined;
+  return (error.driverError as { code?: string } | undefined)?.code;
+}
+
+function driverColumn(error: unknown): string | undefined {
+  if (!(error instanceof QueryFailedError)) return undefined;
+  return (error.driverError as { column?: string } | undefined)?.column;
+}
+
 function isForeignKeyViolation(error: unknown): boolean {
-  if (!(error instanceof QueryFailedError)) return false;
-  const code = (error.driverError as { code?: string } | undefined)?.code;
+  const code = driverCode(error);
   return (
     code === "23503" ||
     code === "ER_ROW_IS_REFERENCED" ||
@@ -172,10 +182,25 @@ function isForeignKeyViolation(error: unknown): boolean {
   );
 }
 
+function isNotNullViolation(error: unknown): boolean {
+  const code = driverCode(error);
+  return (
+    code === "23502" ||
+    code === "ER_BAD_NULL_ERROR" ||
+    code === "SQLITE_CONSTRAINT_NOTNULL"
+  );
+}
+
 function rethrowWriteError(error: unknown): never {
   if (isForeignKeyViolation(error)) {
     throw new RequestValidationError(
       "Cannot delete this record because other records still reference it.",
+    );
+  }
+  if (isNotNullViolation(error)) {
+    const column = driverColumn(error);
+    throw new RequestValidationError(
+      column ? `Field "${column}" is required.` : "A required field was missing.",
     );
   }
   throw error;
@@ -228,16 +253,29 @@ export function typeormResource(
       });
     },
     async create(query: CreateQuery) {
-      const saved = await repo.save(repo.create(query.data));
-      const id = saved[meta.idField] as string | number | undefined;
-      if (id === undefined) {
-        return projectRecord(saved, query.select);
+      try {
+        const data = { ...query.data };
+        for (const column of repo.metadata.columns) {
+          if (
+            column.generationStrategy === "uuid" &&
+            data[column.propertyName] === undefined
+          ) {
+            data[column.propertyName] = randomUUID();
+          }
+        }
+        const saved = await repo.save(repo.create(data));
+        const id = saved[meta.idField] as string | number | undefined;
+        if (id === undefined) {
+          return projectRecord(saved, query.select);
+        }
+        const reloaded = await repo.findOne({
+          where: { [meta.idField]: id } as FindOptionsWhere<ObjectLiteral>,
+          relations: relationNames(query.select),
+        });
+        return projectRecord(reloaded ?? saved, query.select);
+      } catch (error) {
+        rethrowWriteError(error);
       }
-      const reloaded = await repo.findOne({
-        where: { [meta.idField]: id } as FindOptionsWhere<ObjectLiteral>,
-        relations: relationNames(query.select),
-      });
-      return projectRecord(reloaded ?? saved, query.select);
     },
     async updateMany(query: UpdateManyQuery) {
       assertWriteTarget(query);
