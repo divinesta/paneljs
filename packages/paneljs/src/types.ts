@@ -1,4 +1,5 @@
 import type { DataAdapter } from "./adapter.js";
+import type { ActionWhere } from "./query.js";
 
 export type AdminFieldType = "string" | "number" | "boolean" | "datetime" | "json" | "enum" | "relation" | "bytes";
 
@@ -58,7 +59,7 @@ export interface AdminUser {
 export interface AdminAction {
    name: string;
    label: string;
-   handler: (params: { ids: Array<string | number>; adminUser: AdminUser; client: unknown; where: Record<string, unknown> }) => Promise<{ message: string }>;
+   handler: (params: { ids: Array<string | number>; adminUser: AdminUser; client: unknown; where: ActionWhere }) => Promise<{ message: string }>;
    allowedRoles?: string[];
 }
 

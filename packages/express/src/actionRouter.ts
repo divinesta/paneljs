@@ -4,6 +4,8 @@ import {
   PermissionDeniedError,
   RequestValidationError,
   buildListRecordSelect,
+  idSelect,
+  withSelectFields,
   hasModelPermission,
   hasRegisteredActionPermission,
   parseRecordId,
@@ -104,7 +106,9 @@ export function createActionRouter(
       const delegate = adapter.resource(model.meta);
       const parentSelect = buildListRecordSelect(model.meta, model);
       const parentRecords = await delegate.findMany({
-        where: { AND: [scope, { [model.meta.idField]: { in: requestedIds } }] },
+        scope,
+        filters: {},
+        ids: requestedIds,
         select: parentSelect,
       });
       const ids = parentRecords
@@ -146,12 +150,13 @@ export function createActionRouter(
         if (!childForeignKey) continue;
 
         const childScope = await resolveScope(childModel.raw, adminUser);
-        const childSelect = {
-          ...buildListRecordSelect(childModel.meta, childModel),
-          [childForeignKey]: true,
-        };
+        const childSelect = withSelectFields(
+          buildListRecordSelect(childModel.meta, childModel),
+          [childForeignKey],
+        );
         const childRecords = await adapter.resource(childModel.meta).findMany({
-          where: { AND: [childScope, { [childForeignKey]: { in: ids } }] },
+          scope: childScope,
+          filters: { [childForeignKey]: { in: ids } },
           select: childSelect,
         });
         const recordsByParentId: Record<string, Record<string, unknown>[]> = {};
@@ -219,12 +224,12 @@ export function createActionRouter(
       const requestedIds = parseIds(model.meta, req.body);
       const scope = await resolveScope(model.raw, adminUser);
       const delegate = adapter.resource(model.meta);
-      const where = {
-        AND: [scope, { [model.meta.idField]: { in: requestedIds } }],
-      };
+      const where = { scope, ids: requestedIds };
       const records = await delegate.findMany({
-        where,
-        select: { [model.meta.idField]: true },
+        scope,
+        filters: {},
+        ids: requestedIds,
+        select: idSelect(model.meta.idField),
       });
       const ids = records
         .map((record) => record[model.meta.idField])
@@ -241,9 +246,7 @@ export function createActionRouter(
         const deletedIds: Array<string | number> = [];
         for (const id of ids) {
           if (model.raw.beforeDelete) await model.raw.beforeDelete(String(id));
-          const result = await delegate.deleteMany({
-            where: { AND: [scope, { [model.meta.idField]: id }] },
-          });
+          const result = await delegate.deleteMany({ scope, id });
           if (result.count !== 1) continue;
           deletedIds.push(id);
           if (model.raw.afterDelete)

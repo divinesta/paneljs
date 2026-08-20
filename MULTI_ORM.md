@@ -2,9 +2,9 @@
 
 How PanelJS adds TypeORM, Drizzle, Sequelize, MikroORM, and similar data layers.
 
-**Status:** Prisma is the shipped adapter (`@paneljs/prisma`). Do not start a second ORM until that adapter and the Express mount are stable.
+**Status:** Prisma is the shipped adapter (`@paneljs/prisma`). Do not start a second ORM until **core + Express speak the ORM-agnostic contract** in `CORE_CONTRACT.md` and that path is stable. Do not teach the first extra adapter to fake Prisma queries.
 
-**Related:** `packages/paneljs/src/adapter.ts`, `packages/prisma/src/introspector.ts`, `packages/express/src/crudRouter.ts`
+**Related:** `CORE_CONTRACT.md`, `packages/paneljs/src/adapter.ts`, `packages/prisma/src/introspector.ts`, `packages/express/src/crudRouter.ts`
 
 ---
 
@@ -24,7 +24,7 @@ The UI never sees the ORM. It only sees schema JSON.
 | Can we support TypeORM / Drizzle later? | Yes, via adapters — not a flag. |
 | Do they have `@prisma/internals`? | **No.** They expose public runtime metadata (often better for tooling). |
 | What is the contract today? | `DataAdapter` in `packages/paneljs/src/adapter.ts` |
-| What should we do next? | Keep Prisma solid. Second adapter: TypeORM or MikroORM. |
+| What should we do next? | Implement `CORE_CONTRACT.md` (common CRUD language + auth store). Then TypeORM. |
 
 ---
 
@@ -193,14 +193,7 @@ This is the hard half. Express CRUD (`packages/express/src/crudRouter.ts`) alrea
 - Prisma-shaped `where` (`AND`, `contains`, `mode: "insensitive"`, `{ in: ids }`)
 - Prisma-shaped `select` / `orderBy` / `skip` / `take`
 
-A second adapter has two options:
-
-| Approach | Meaning |
-| --- | --- |
-| **Translate Prisma-shaped args** | Resource accepts the same `where` / `select` the Express router already builds. TypeORM adapter turns `{ email: { contains, mode: "insensitive" } }` into `ILike`. Faster to ship; leaks Prisma query dialect into the contract. |
-| **Neutral query object** | Later: Express asks the adapter for list/get/create with a PanelJS query type. Cleaner; requires a small Express + Prisma change. |
-
-For the first extra ORM, **translate Prisma-shaped args** inside the adapter. Do not redesign `crudRouter` until a second adapter proves the dialect is painful.
+Do **not** translate Prisma-shaped args as the long-term contract. Express and core must send a PanelJS query (see `CORE_CONTRACT.md`). The first extra ORM implements that query, not Prisma’s `where` / `select`. Until `CORE_CONTRACT.md` lands, Express still builds Prisma-shaped args — that is debt, not the target.
 
 `client` on `DataAdapter` is the opaque handle custom actions receive (`handler({ client, where, ids })`). For TypeORM that is the `DataSource` or `EntityManager`; for Drizzle it is the `db` instance.
 
@@ -212,7 +205,7 @@ For the first extra ORM, **translate Prisma-shaped args** inside the adapter. Do
 2. **Filter / search dialects** — Prisma `contains` + `mode: "insensitive"` is Postgres-oriented; TypeORM `ILike` / `Like`; Drizzle `ilike()`.
 3. **Composite primary keys** — already skipped in Prisma v1; skip them everywhere.
 4. **Zero-config story** — Prisma: point at `schema.prisma`. TypeORM: pass an initialized `DataSource`. Drizzle: pass tables + relations.
-5. **Built-in auth tables** — login still expects Prisma-like `findUnique` / `create` / `deleteMany` on user/session delegates (`packages/express/src/builtIn.ts`). Built-in auth stays Prisma-only until a store interface is extracted. External `getCurrentUser` works with any adapter.
+5. **Built-in auth tables** — today login still expects Prisma-like `findUnique` on user/session delegates. Target is `AdminAuthStore` in `CORE_CONTRACT.md` (Prisma implements the first store). External `getCurrentUser` already works with any adapter.
 
 ---
 
@@ -241,9 +234,9 @@ import { drizzleAdapter } from "@paneljs/drizzle"
 
 | Step | Work |
 | --- | --- |
-| **Now** | Prisma-only. Ship `@paneljs/prisma`. |
-| **A** | Keep `DataAdapter` / `ModelResource` as the contract. Resist extra abstraction. |
-| **B** | Second adapter: **TypeORM** or **MikroORM** (richest public metadata, closest to “entities exist”). Plus an example app. |
+| **Now** | Implement `CORE_CONTRACT.md` on Prisma + Express (common CRUD language + auth store). |
+| **A** | Keep `DataAdapter` / `ModelResource` as the contract; replace Prisma-shaped args with the PanelJS query types. |
+| **B** | Second adapter: **TypeORM** or **MikroORM** (richest public metadata, closest to “entities exist”). Plus an example app. Only after A. |
 | **C** | **Drizzle** (popular; host-supplied schema). |
 | **D** | Sequelize if demand exists. |
 | **E** | Kysely / Knex last or never (no entity graph). |
@@ -254,7 +247,7 @@ Concrete TypeORM checklist:
 
 1. `packages/typeorm` with `typeormAdapter(dataSource)`
 2. `fromEntityMetadata` → `AdminModelMeta` (columns, PKs, uniques, generated, relations)
-3. `typeormResource` implementing `ModelResource` (translate `where` / `select` / `orderBy`)
+3. `typeormResource` implementing `ModelResource` (PanelJS query types from `CORE_CONTRACT.md`, not Prisma `where`)
 4. Example under `apps/example-typeorm`
 5. Peer `typeorm`; depend on `@paneljs/paneljs` with `workspace:^`
 6. Docs: one page “TypeORM adapter”, same register/mount story

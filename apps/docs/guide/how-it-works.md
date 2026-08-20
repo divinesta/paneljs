@@ -37,7 +37,7 @@ POST /admin/api/users/actions/:action
 Every `/admin/api/*` call runs this pipeline:
 
 ```
-getCurrentUser → permission → scope → validate → Prisma → audit?
+getCurrentUser → permission → scope → validate → adapter.resource() → audit?
 ```
 
 | Step | What it decides |
@@ -46,7 +46,7 @@ getCurrentUser → permission → scope → validate → Prisma → audit?
 | Permission | May this role list / view / create / update / delete / run the action? |
 | `scope()` | Which rows? Combined with the id so guessing another tenant's id is 404 |
 | Validate | Only known, visible, writable fields. No nested writes. |
-| Prisma | `prisma.user.findMany` / `create` / `updateMany` / `deleteMany` |
+| Adapter | PanelJS list/get/create/update/delete. Prisma translates that into `prisma.user.findMany` and friends. |
 | `audit.write` | Optional. After success only. No field values. |
 
 The UI never talks to Prisma. It fetches `/admin/api/schema` once and renders lists and forms from that JSON.

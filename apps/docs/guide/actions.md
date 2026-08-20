@@ -11,9 +11,9 @@ admin.register("Post", {
       name: "publish_selected",
       label: "Publish selected posts",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-      handler: async ({ prisma, where }) => {
-        const result = await prisma.post.updateMany({
-          where,
+      handler: async ({ client, ids, where }) => {
+        const result = await (client as PrismaClient).post.updateMany({
+          where: { AND: [where.scope, { id: { in: ids } }] },
           data: { published: true },
         });
         return { message: `Published ${result.count} posts.` };
@@ -31,8 +31,8 @@ The UI shows `label`. The route is `POST /admin/api/posts/actions/publish_select
 {
   ids: Array<string | number>; // only rows that passed scope
   adminUser: AdminUser;
-  prisma: PrismaLike;
-  where: Record<string, unknown>; // scope AND selected IDs; use for mutations
+  client: unknown; // the ORM client (Prisma, later TypeORM, …)
+  where: { scope: Record<string, unknown>; ids: Array<string | number> };
 }
 ```
 
@@ -44,7 +44,7 @@ Return `{ message: string }`. That string is what the UI toasts.
 2. Caller has **list** permission on the model
 3. The action exists and the caller may run it (`allowedRoles`, or `permissions.actions[name]`)
 4. Body is `{ ids: [...] }` — 1 to **100** unique string/number ids
-5. Those rows are reloaded with `AND: [scope, { id: { in: ids } }]`
+5. Those rows are reloaded with the action `where` (scope + selected ids)
 6. If any id is missing, the action **does not run** (`400`)
 7. Handler, then optional audit `{ type: "action", metadata: { action } }`
 
@@ -62,4 +62,4 @@ The built-in delete action uses the model's `delete` permission; it cannot be ch
 
 ## Do the work safely
 
-Use the supplied `where` in every mutation. It contains the scope and selected IDs, so your action remains tenant-safe at mutation time.
+Use `where.scope` and `ids` (or `where.ids`) in every mutation so the action stays tenant-safe. `where` is not a Prisma `where` object. With Prisma, combine them: `{ AND: [where.scope, { id: { in: ids } }] }`. You can also use `prismaActionWhere("id", where)` from `@paneljs/prisma`.

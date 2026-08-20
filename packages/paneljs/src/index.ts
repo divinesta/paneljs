@@ -55,6 +55,22 @@ export type {
    SchemaResponse,
 } from "./types.js";
 export type { DataAdapter, ModelResource } from "./adapter.js";
+export type {
+   ActionWhere,
+   CountQuery,
+   CreateQuery,
+   DeleteManyQuery,
+   EqualityFilter,
+   FieldFilter,
+   FieldFilters,
+   FieldSelect,
+   FindFirstQuery,
+   FindManyQuery,
+   RelationSelect,
+   SearchQuery,
+   UpdateManyQuery,
+} from "./query.js";
+export { idSelect, withSelectFields } from "./query.js";
 export type { ResolvedModelConfig, FullRegisteredModel } from "./registry.js";
 export { AdminRegistry } from "./registry.js";
 export { hashAdminPassword, verifyAdminPassword, verifyLoginPassword } from "./passwords.js";
@@ -65,7 +81,8 @@ export type { AdminOperation } from "./permissions.js";
 export { DELETE_SELECTED_ACTION } from "./defaultActions.js";
 export { writeAuditEvent } from "./audit.js";
 export { buildSchemaResponse } from "./schema.js";
-export { parseListQuery, buildListWhere } from "./listQuery.js";
+export { parseListQuery } from "./listQuery.js";
+export type { ParsedListQuery } from "./listQuery.js";
 export { parseRecordId } from "./ids.js";
 export { buildRecordSelect, buildListRecordSelect, assertSelectedRelationsAreVisible } from "./recordSelection.js";
 export { applyCreateScope, assertScopeFieldsUnchanged, buildScopedRecordWhere, collectScopeFieldNames, resolveScope } from "./scope.js";

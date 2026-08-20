@@ -19,6 +19,9 @@ const prisma = new PrismaClient({
 const app = express();
 const schemaPath = fileURLToPath(new URL("./prisma/schema.prisma", import.meta.url));
 
+const adapter = prismaAdapter({ prisma, schemaPath });
+console.log("Adapter returned by prismaAdapter:", adapter);
+
 const admin = createAdmin({
    adapter: prismaAdapter({ prisma, schemaPath }),
    databaseProvider: "postgresql",
@@ -45,6 +48,7 @@ const admin = createAdmin({
       },
    },
 });
+
 
 admin.register("User", {
    listDisplay: ["email", "fullName", "role", "isActive"],
@@ -85,9 +89,9 @@ admin.register("Post", {
          name: "publish_selected",
          label: "Publish selected posts",
          allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-         handler: async ({ client, where }) => {
+         handler: async ({ client, ids, where }) => {
             const result = await (client as PrismaClient).post.updateMany({
-               where,
+               where: { AND: [where.scope, { id: { in: ids } }] },
                data: { published: true },
             });
             return {
@@ -99,9 +103,9 @@ admin.register("Post", {
          name: "unpublish_selected",
          label: "Move selected posts to draft",
          allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-         handler: async ({ client, where }) => {
+         handler: async ({ client, ids, where }) => {
             const result = await (client as PrismaClient).post.updateMany({
-               where,
+               where: { AND: [where.scope, { id: { in: ids } }] },
                data: { published: false },
             });
             return {

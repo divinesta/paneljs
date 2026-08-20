@@ -5,7 +5,7 @@ import { RequestValidationError } from "./validation.js";
 // QUERY SCOPING
 // ============================================================
 
-/** A Prisma-compatible where fragment returned by a model scope function. */
+/** Equality (and historically nested) filter returned by a model scope function. */
 export type ScopeFilter = Record<string, unknown>;
 
 /**

@@ -1,13 +1,21 @@
 import type { AdminModelMeta } from "./types.js";
+import type {
+   CountQuery,
+   CreateQuery,
+   DeleteManyQuery,
+   FindFirstQuery,
+   FindManyQuery,
+   UpdateManyQuery,
+} from "./query.js";
 
 /** The subset of CRUD a host ORM must implement for one model. */
 export interface ModelResource {
-   findMany(args: Record<string, unknown>): Promise<Record<string, unknown>[]>;
-   findFirst(args: Record<string, unknown>): Promise<Record<string, unknown> | null>;
-   count(args: Record<string, unknown>): Promise<number>;
-   create(args: Record<string, unknown>): Promise<Record<string, unknown>>;
-   updateMany(args: Record<string, unknown>): Promise<{ count: number }>;
-   deleteMany(args: Record<string, unknown>): Promise<{ count: number }>;
+   findMany(query: FindManyQuery): Promise<Record<string, unknown>[]>;
+   findFirst(query: FindFirstQuery): Promise<Record<string, unknown> | null>;
+   count(query: CountQuery): Promise<number>;
+   create(query: CreateQuery): Promise<Record<string, unknown>>;
+   updateMany(query: UpdateManyQuery): Promise<{ count: number }>;
+   deleteMany(query: DeleteManyQuery): Promise<{ count: number }>;
 }
 
 /**

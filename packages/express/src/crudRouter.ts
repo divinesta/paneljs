@@ -7,14 +7,13 @@ import type {
 import {
   writeAuditEvent,
   RecordNotFoundError,
-  buildListWhere,
   parseListQuery,
   assertSelectedRelationsAreVisible,
   buildListRecordSelect,
   buildRecordSelect,
+  idSelect,
   applyCreateScope,
   assertScopeFieldsUnchanged,
-  buildScopedRecordWhere,
   collectScopeFieldNames,
   resolveScope,
   assertRequiredCreateFields,
@@ -53,19 +52,20 @@ export function createCrudRouter(
         databaseProvider,
       );
       const scope = await resolveScope(model.raw, adminUser);
-      const where = buildListWhere(scope, filters, search);
       const delegate = adapter.resource(model.meta);
       const select = buildListRecordSelect(model.meta, model);
       const perPage = model.resolved.perPage;
       const [records, total] = await Promise.all([
         delegate.findMany({
-          where,
-          select,
-          orderBy: { [sort]: dir },
+          scope,
+          filters,
+          search,
+          sort: { field: sort, direction: dir },
           skip: (page - 1) * perPage,
           take: perPage,
+          select,
         }),
-        delegate.count({ where }),
+        delegate.count({ scope, filters, search }),
       ]);
 
       res.json({
@@ -89,7 +89,8 @@ export function createCrudRouter(
       const scope = await resolveScope(model.raw, adminUser);
       const id = getRecordId(req, model.meta);
       const record = await adapter.resource(model.meta).findFirst({
-        where: buildScopedRecordWhere(scope, model.meta.idField, id),
+        scope,
+        id,
         select: buildRecordSelect(model.meta, model),
       });
       if (!record) {
@@ -180,10 +181,10 @@ export function createCrudRouter(
       const scope = await resolveScope(model.raw, adminUser);
       const id = getRecordId(req, model.meta);
       const delegate = adapter.resource(model.meta);
-      const where = buildScopedRecordWhere(scope, model.meta.idField, id);
       const existingRecord = await delegate.findFirst({
-        where,
-        select: { [model.meta.idField]: true },
+        scope,
+        id,
+        select: idSelect(model.meta.idField),
       });
       if (!existingRecord) {
         sendApiError(res, new RecordNotFoundError());
@@ -221,14 +222,15 @@ export function createCrudRouter(
         );
       }
 
-      const result = await delegate.updateMany({ where, data });
+      const result = await delegate.updateMany({ scope, id, data });
       if (result.count === 0) {
         sendApiError(res, new RecordNotFoundError());
         return;
       }
 
       const record = await delegate.findFirst({
-        where,
+        scope,
+        id,
         select: buildRecordSelect(model.meta, model),
       });
       if (!record)
@@ -261,9 +263,9 @@ export function createCrudRouter(
       const scope = await resolveScope(model.raw, adminUser);
       const id = getRecordId(req, model.meta);
       const delegate = adapter.resource(model.meta);
-      const where = buildScopedRecordWhere(scope, model.meta.idField, id);
       const record = await delegate.findFirst({
-        where,
+        scope,
+        id,
         select: buildRecordSelect(model.meta, model),
       });
       if (!record) {
@@ -272,7 +274,7 @@ export function createCrudRouter(
       }
 
       if (model.raw.beforeDelete) await model.raw.beforeDelete(String(id));
-      const result = await delegate.deleteMany({ where });
+      const result = await delegate.deleteMany({ scope, id });
       if (result.count === 0) {
         sendApiError(res, new RecordNotFoundError());
         return;
