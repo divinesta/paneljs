@@ -255,10 +255,23 @@ code {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  font-weight: 600;
-  letter-spacing: -0.03em;
   flex-shrink: 0;
+}
+
+.brand-logo {
+  display: block;
+  width: 104px;
+  height: 33px;
+  overflow: hidden;
+  flex: 0 0 104px;
+}
+
+.brand-logo img {
+  display: block;
+  width: 375px;
+  max-width: none;
+  height: 375px;
+  transform: translate(-54px, -81px);
 }
 
 .header-nav {
@@ -860,8 +873,6 @@ html[data-theme="light"] .stack-token img {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
 }
 
 .footer-brand small {

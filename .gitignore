@@ -39,3 +39,7 @@ yarn-error.log*
 .vitepress/cache
 .vitepress/dist
 apps/docs/.vitepress/.temp
+
+/apps/docs/MULTI_ORM_NOTES.md
+/CORE_CONTRACT.md
+/MULTI_ORM.md

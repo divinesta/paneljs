@@ -128,8 +128,7 @@ export default function App() {
          <header className={`header${scrolled ? " scrolled" : ""}`} role="banner">
             <div className="container header-inner">
                <a href="/" className="brand" aria-label="PanelJS home">
-                  <Mark />
-                  PanelJS
+                  <BrandLogo theme={theme} />
                </a>
                <nav className="header-nav" aria-label="Main">
                   <a href="#features">Features</a>
@@ -419,8 +418,7 @@ export default function App() {
          <footer className="footer" role="contentinfo">
             <div className="container footer-inner">
                <div className="footer-brand">
-                  <Mark />
-                  <span>PanelJS</span>
+                  <BrandLogo theme={theme} />
                   <small>MIT licensed</small>
                </div>
                <nav className="footer-links" aria-label="Footer">
@@ -435,12 +433,11 @@ export default function App() {
    );
 }
 
-function Mark() {
+function BrandLogo({ theme }: { theme: "dark" | "light" }) {
    return (
-      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-         <rect width="32" height="32" rx="6" fill="#dbf27c" />
-         <path d="M8 10h16M8 16h12M8 22h8" stroke="#0a0a0b" strokeWidth="2.5" strokeLinecap="round" />
-      </svg>
+      <span className="brand-logo" aria-hidden="true">
+         <img src={`/brand/paneljs-logo-${theme === "dark" ? "light" : "dark"}.svg`} alt="" />
+      </span>
    );
 }
 
