@@ -60,12 +60,15 @@ export type Schema = {
 
 export type RecordData = Record<string, unknown>;
 
+export type DeleteReferentialAction = "Cascade" | "SetNull" | "Restrict";
+
 export type DeletePreviewRelation = {
   fieldName: string;
   modelName: string;
   pluralName: string;
   idField: string;
   displayField: string;
+  onDelete: DeleteReferentialAction;
   recordsByParentId: Record<string, RecordData[]>;
 };
 

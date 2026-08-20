@@ -1445,7 +1445,7 @@ tbody tr:last-child td {
    white-space: nowrap;
 }
 .delete-parent-row span,
-.delete-child-list span {
+.delete-child-list span:not(.tree-branch):not(.delete-relation-tag) {
    color: var(--text-muted);
    flex-shrink: 0;
    font-family: "DM Mono", monospace;
@@ -1471,9 +1471,30 @@ tbody tr:last-child td {
    font-weight: 500;
    line-height: 1.35;
 }
-.delete-child-list span:not(.tree-branch) {
+.delete-child-list span:not(.tree-branch):not(.delete-relation-tag) {
    display: block;
    margin-top: 2px;
+}
+.delete-relation-tag {
+   border-radius: 999px;
+   display: inline-block;
+   font-size: 11px;
+   font-weight: 600;
+   letter-spacing: 0.02em;
+   margin: 4px 0 2px;
+   padding: 2px 8px;
+}
+.delete-relation-tag-restrict {
+   background: color-mix(in srgb, var(--danger) 12%, var(--surface-raised));
+   color: var(--danger);
+}
+.delete-relation-tag-cascade {
+   background: var(--accent-wash);
+   color: var(--accent-strong);
+}
+.delete-relation-tag-setnull {
+   background: var(--tag-background);
+   color: var(--tag-text);
 }
 .tree-branch {
    border-bottom: 1px solid var(--border-strong);

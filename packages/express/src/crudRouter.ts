@@ -21,6 +21,7 @@ import {
   validateHookPayload,
   validateWritePayload,
 } from "@paneljs/paneljs";
+import { assertNoRestrictedRelations } from "./deleteRelations.js";
 import { sendApiError } from "./httpErrors.js";
 import {
   authorizeModelOperation,
@@ -272,6 +273,7 @@ export function createCrudRouter(
       }
 
       if (model.raw.beforeDelete) await model.raw.beforeDelete(String(id));
+      await assertNoRestrictedRelations(model, models, adapter, adminUser, [id]);
       const result = await delegate.deleteMany({ scope, id });
       if (result.count === 0) {
         sendApiError(res, new RecordNotFoundError());

@@ -1,18 +1,36 @@
-import type {
-  ActionWhere,
-  AdminModelMeta,
-  CountQuery,
-  CreateQuery,
-  DeleteManyQuery,
-  EqualityFilter,
-  FieldFilters,
-  FieldSelect,
-  FindFirstQuery,
-  FindManyQuery,
-  ModelResource,
-  SearchQuery,
-  UpdateManyQuery,
+import {
+  RequestValidationError,
+  type ActionWhere,
+  type AdminModelMeta,
+  type CountQuery,
+  type CreateQuery,
+  type DeleteManyQuery,
+  type EqualityFilter,
+  type FieldFilters,
+  type FieldSelect,
+  type FindFirstQuery,
+  type FindManyQuery,
+  type ModelResource,
+  type SearchQuery,
+  type UpdateManyQuery,
 } from "@paneljs/paneljs";
+
+function isForeignKeyViolation(error: unknown): boolean {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return false;
+  }
+  const code = (error as { code?: unknown }).code;
+  return code === "P2003" || code === "P2014";
+}
+
+function rethrowWriteError(error: unknown): never {
+  if (isForeignKeyViolation(error)) {
+    throw new RequestValidationError(
+      "Cannot delete this record because other records still reference it.",
+    );
+  }
+  throw error;
+}
 
 export type PrismaDelegate = {
   findMany(args: Record<string, unknown>): Promise<Record<string, unknown>[]>;
@@ -149,10 +167,14 @@ export function prismaResource(
         data: query.data,
       });
     },
-    deleteMany(query: DeleteManyQuery) {
-      return delegate.deleteMany({
-        where: toPrismaWhere(meta, query, caseInsensitive),
-      });
+    async deleteMany(query: DeleteManyQuery) {
+      try {
+        return await delegate.deleteMany({
+          where: toPrismaWhere(meta, query, caseInsensitive),
+        });
+      } catch (error) {
+        rethrowWriteError(error);
+      }
     },
   };
 }

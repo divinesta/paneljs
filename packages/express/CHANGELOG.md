@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1] - 2026-08-20
+
+### Changed
+
+- `delete-preview` includes Cascade, SetNull, and Restrict child relations, with `onDelete` on each group.
+- Built-in delete (list action and `DELETE /:model/:id`) rejects Restrict relations with `VALIDATION_ERROR` instead of letting the ORM throw a 500.
+
 ## [0.2.0] - 2026-08-19
 
 Express talks only to core: PanelJS queries and `AdminAuthStore`. It does not build Prisma `where` / `select` or call model delegates on `adapter.client`.

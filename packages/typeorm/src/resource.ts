@@ -1,17 +1,18 @@
-import type {
-  ActionWhere,
-  AdminModelMeta,
-  CountQuery,
-  CreateQuery,
-  DeleteManyQuery,
-  EqualityFilter,
-  FieldFilters,
-  FieldSelect,
-  FindFirstQuery,
-  FindManyQuery,
-  ModelResource,
-  SearchQuery,
-  UpdateManyQuery,
+import {
+  RequestValidationError,
+  type ActionWhere,
+  type AdminModelMeta,
+  type CountQuery,
+  type CreateQuery,
+  type DeleteManyQuery,
+  type EqualityFilter,
+  type FieldFilters,
+  type FieldSelect,
+  type FindFirstQuery,
+  type FindManyQuery,
+  type ModelResource,
+  type SearchQuery,
+  type UpdateManyQuery,
 } from "@paneljs/paneljs";
 import {
   And,
@@ -20,6 +21,7 @@ import {
   LessThanOrEqual,
   Like,
   MoreThanOrEqual,
+  QueryFailedError,
   type DataSource,
   type FindOptionsOrder,
   type FindOptionsWhere,
@@ -159,6 +161,26 @@ function assertWriteTarget(query: { id?: string | number; ids?: Array<string | n
   }
 }
 
+function isForeignKeyViolation(error: unknown): boolean {
+  if (!(error instanceof QueryFailedError)) return false;
+  const code = (error.driverError as { code?: string } | undefined)?.code;
+  return (
+    code === "23503" ||
+    code === "ER_ROW_IS_REFERENCED" ||
+    code === "ER_ROW_IS_REFERENCED_2" ||
+    code === "SQLITE_CONSTRAINT_FOREIGNKEY"
+  );
+}
+
+function rethrowWriteError(error: unknown): never {
+  if (isForeignKeyViolation(error)) {
+    throw new RequestValidationError(
+      "Cannot delete this record because other records still reference it.",
+    );
+  }
+  throw error;
+}
+
 /** Turn a custom-action `where` into a TypeORM find/update criteria. */
 export function typeormActionWhere(
   idField: string,
@@ -227,10 +249,14 @@ export function typeormResource(
     },
     async deleteMany(query: DeleteManyQuery) {
       assertWriteTarget(query);
-      const result = await repo.delete(
-        toTypeormWhere(meta, query, caseInsensitive) as FindOptionsWhere<ObjectLiteral>,
-      );
-      return { count: result.affected ?? 0 };
+      try {
+        const result = await repo.delete(
+          toTypeormWhere(meta, query, caseInsensitive) as FindOptionsWhere<ObjectLiteral>,
+        );
+        return { count: result.affected ?? 0 };
+      } catch (error) {
+        rethrowWriteError(error);
+      }
     },
   };
 }

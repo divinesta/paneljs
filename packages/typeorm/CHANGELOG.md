@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3] - 2026-08-20
+
+### Changed
+
+- Introspection maps TypeORM `onDelete` (`CASCADE`, `SET NULL`, …) to Prisma-style names (`Cascade`, `SetNull`, …).
+- `belongsTo` relations with no `onDelete` default to `Restrict`.
+- `deleteMany` maps foreign-key violations to `VALIDATION_ERROR` instead of a 500.
+
 ## [0.1.0] - 2026-08-19
 
 ### Added

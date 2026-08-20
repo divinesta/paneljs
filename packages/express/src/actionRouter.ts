@@ -5,7 +5,6 @@ import {
   RequestValidationError,
   buildListRecordSelect,
   idSelect,
-  withSelectFields,
   hasModelPermission,
   hasRegisteredActionPermission,
   parseRecordId,
@@ -16,6 +15,10 @@ import {
   type DataAdapter,
   type FullRegisteredModel,
 } from "@paneljs/paneljs";
+import {
+  assertNoRestrictedRelations,
+  loadDeletePreviewRelations,
+} from "./deleteRelations.js";
 import { sendApiError } from "./httpErrors.js";
 import { getAdminUser, getRegisteredModel, route } from "./routeSupport.js";
 
@@ -58,24 +61,6 @@ function parseIdsQuery(
       : [];
   return parseIds(meta, {
     ids: ids.map((value) => value.trim()).filter(Boolean),
-  });
-}
-
-function findCascadeChildRelation(
-  parent: FullRegisteredModel,
-  child: FullRegisteredModel,
-  relationName: string,
-) {
-  return child.meta.fields.find((field) => {
-    const relation = field.relation;
-    return (
-      field.type === "relation" &&
-      relation?.kind === "belongsTo" &&
-      relation.model === parent.meta.name &&
-      relation.relationName === relationName &&
-      relation.foreignKeyFields.length === 1 &&
-      relation.onDelete === "Cascade"
-    );
   });
 }
 
@@ -122,60 +107,13 @@ export function createActionRouter(
           "One or more selected records are unavailable.",
         );
 
-      const relations = [];
-      const modelsByName = new Map(
-        [...models.values()].map((entry) => [entry.meta.name, entry]),
+      const relations = await loadDeletePreviewRelations(
+        model,
+        models,
+        adapter,
+        adminUser,
+        ids,
       );
-      for (const relationField of model.meta.fields) {
-        const relation = relationField.relation;
-        if (relationField.type !== "relation" || relation?.kind !== "hasMany")
-          continue;
-        const childModel = modelsByName.get(relation.model);
-        if (
-          !childModel ||
-          !hasModelPermission(
-            adminUser,
-            childModel.resolved.permissions,
-            "list",
-          )
-        )
-          continue;
-        const childRelationField = findCascadeChildRelation(
-          model,
-          childModel,
-          relation.relationName,
-        );
-        const childForeignKey =
-          childRelationField?.relation?.foreignKeyFields[0];
-        if (!childForeignKey) continue;
-
-        const childScope = await resolveScope(childModel.raw, adminUser);
-        const childSelect = withSelectFields(
-          buildListRecordSelect(childModel.meta, childModel),
-          [childForeignKey],
-        );
-        const childRecords = await adapter.resource(childModel.meta).findMany({
-          scope: childScope,
-          filters: { [childForeignKey]: { in: ids } },
-          select: childSelect,
-        });
-        const recordsByParentId: Record<string, Record<string, unknown>[]> = {};
-        for (const record of childRecords) {
-          const parentId = record[childForeignKey];
-          if (typeof parentId !== "string" && typeof parentId !== "number")
-            continue;
-          const key = String(parentId);
-          recordsByParentId[key] = [...(recordsByParentId[key] ?? []), record];
-        }
-        relations.push({
-          fieldName: relationField.name,
-          modelName: childModel.meta.name,
-          pluralName: childModel.meta.pluralName,
-          idField: childModel.meta.idField,
-          displayField: childModel.meta.displayField,
-          recordsByParentId,
-        });
-      }
 
       res.json({ records: parentRecords, relations });
     }),
@@ -243,6 +181,13 @@ export function createActionRouter(
         );
 
       if (isDeleteAction) {
+        await assertNoRestrictedRelations(
+          model,
+          models,
+          adapter,
+          adminUser,
+          ids,
+        );
         const deletedIds: Array<string | number> = [];
         for (const id of ids) {
           if (model.raw.beforeDelete) await model.raw.beforeDelete(String(id));

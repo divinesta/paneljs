@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1] - 2026-08-20
+
+### Changed
+
+- Delete confirmation lists related rows for Cascade, SetNull, and Restrict, not only Cascade.
+- Restrict / Protect relations disable Confirm delete and explain that related records still reference the row.
+
 ## [0.2.0] - 2026-08-19
 
 ORM-agnostic core contract. Adapters speak PanelJS query types; Express and the UI do not.

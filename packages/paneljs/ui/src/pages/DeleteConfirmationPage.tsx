@@ -4,8 +4,26 @@ import { NavLink, useNavigate, useParams, useSearchParams } from "react-router-d
 import { apiBase, readApiError } from "../api";
 import { ApiNotice, FullPageState, NotFound } from "../components/Feedback";
 import { useBulkActions } from "../hooks/useBulkActions";
-import type { DeletePreview, Field, Model, RecordData, Schema } from "../types";
+import type { DeletePreview, DeletePreviewRelation, Field, Model, RecordData, Schema } from "../types";
 import { fieldLabel, formatRecordValue } from "../utils/format";
+
+function relationHasRows(relation: DeletePreviewRelation, parentId: string) {
+   return (relation.recordsByParentId[parentId] ?? []).length > 0;
+}
+
+function isProtectedPreview(preview: DeletePreview) {
+   return preview.relations.some(
+      (relation) =>
+         relation.onDelete === "Restrict" &&
+         Object.values(relation.recordsByParentId).some((rows) => rows.length > 0),
+   );
+}
+
+function relationActionLabel(onDelete: DeletePreviewRelation["onDelete"]) {
+   if (onDelete === "Cascade") return "Will be deleted";
+   if (onDelete === "SetNull") return "Will be unlinked";
+   return "Protected";
+}
 
 export const DeleteConfirmationPage = ({ schema }: { schema: Schema }) => {
    const { model: modelPath } = useParams();
@@ -51,9 +69,12 @@ export const DeleteConfirmationPage = ({ schema }: { schema: Schema }) => {
    const listFields = model.config.listDisplay.map((name) => model.meta.fields.find((field) => field.name === name)).filter((field): field is Field => Boolean(field));
    const displayField = listFields[0];
    const cancelPath = `/${model.meta.pluralName}`;
+   const blocked = preview ? isProtectedPreview(preview) : false;
    const confirmDelete = async () => {
+      if (blocked) return;
       if (await bulkActions.run("delete_selected", ids)) navigate(cancelPath);
    };
+   const recordLabel = ids.length === 1 ? model.meta.name : `${model.meta.name} records`;
 
    return (
       <section className="page-section delete-confirm-page">
@@ -68,15 +89,24 @@ export const DeleteConfirmationPage = ({ schema }: { schema: Schema }) => {
                      <AlertTriangle size={18} strokeWidth={2} />
                   </span>
                   <div>
-                     <div className="eyebrow">Confirm deletion</div>
-                     <h1>Delete {ids.length} {ids.length === 1 ? model.meta.name : `${model.meta.name} records`}?</h1>
-                     <p>This page shows the selected records and any registered cascade relationships that will be deleted with them.</p>
+                     <div className="eyebrow">{blocked ? "Deletion blocked" : "Confirm deletion"}</div>
+                     <h1>{blocked ? `Can't delete ${ids.length === 1 ? `this ${model.meta.name}` : `these ${model.meta.name} records`}` : `Delete ${ids.length} ${recordLabel}?`}</h1>
+                     <p>
+                        {blocked
+                           ? "Related records still reference it. Delete or reassign those records first."
+                           : "This page shows the selected records and related rows that will be deleted or unlinked with them."}
+                     </p>
                   </div>
                </div>
             </div>
             <div className="delete-confirm-actions">
                <NavLink className="secondary-button" to={cancelPath}>Cancel</NavLink>
-               <button className="danger-button" type="button" disabled={bulkActions.status === "running"} onClick={() => void confirmDelete()}>
+               <button
+                  className="danger-button"
+                  type="button"
+                  disabled={blocked || status !== "ready" || bulkActions.status === "running"}
+                  onClick={() => void confirmDelete()}
+               >
                   <Trash2 size={14} strokeWidth={2} aria-hidden />
                   {bulkActions.status === "running" ? "Deleting..." : "Confirm delete"}
                </button>
@@ -108,8 +138,8 @@ const DeleteTreeItem = ({ model, record, displayField, preview }: { model: Model
             <span>{fieldLabel(model.meta.idField)}: {id}</span>
          </div>
          {preview.relations.map((relation) => {
+            if (!relationHasRows(relation, id)) return null;
             const children = relation.recordsByParentId[id] ?? [];
-            if (children.length === 0) return null;
             return (
                <ul className="delete-child-list" key={relation.fieldName}>
                   {children.map((child) => {
@@ -120,6 +150,7 @@ const DeleteTreeItem = ({ model, record, displayField, preview }: { model: Model
                            <span className="tree-branch" aria-hidden />
                            <div>
                               <strong>{relation.modelName}: {String(childValue)}</strong>
+                              <span className={`delete-relation-tag delete-relation-tag-${relation.onDelete.toLowerCase()}`}>{relationActionLabel(relation.onDelete)}</span>
                               <span>{fieldLabel(relation.idField)}: {childId}</span>
                            </div>
                         </li>

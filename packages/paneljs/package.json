@@ -1,6 +1,6 @@
 {
   "name": "paneljs",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Django-style, schema-driven Prisma admin panel for Express and Node.js applications.",
   "license": "MIT",
   "type": "module",

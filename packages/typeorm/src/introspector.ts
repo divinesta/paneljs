@@ -155,6 +155,26 @@ function simplePlural(name: string): string {
   return lower + "s";
 }
 
+/** Map TypeORM FK actions to Prisma-style names used by delete preview. */
+function mapOnDelete(value: string | undefined | null): string | null {
+  if (!value) return null;
+  switch (value.toUpperCase().replace(/[\s-]+/g, "_")) {
+    case "CASCADE":
+      return "Cascade";
+    case "RESTRICT":
+      return "Restrict";
+    case "SET_NULL":
+      return "SetNull";
+    case "NO_ACTION":
+      return "NoAction";
+    case "SET_DEFAULT":
+    case "DEFAULT":
+      return "SetDefault";
+    default:
+      return value;
+  }
+}
+
 function relationKind(relation: TypeormRelation): RelationKind {
   if (relation.isManyToMany) return "manyToMany";
   if (relation.isOneToMany) return "hasMany";
@@ -253,7 +273,9 @@ function introspectRelation(relation: TypeormRelation): AdminFieldMeta {
       foreignKeyFields: relation.joinColumns.map(
         (column: TypeormColumn) => column.propertyName,
       ),
-      onDelete: relation.onDelete ?? null,
+      onDelete:
+        mapOnDelete(relation.onDelete) ??
+        (kind === "belongsTo" ? "Restrict" : null),
       displayField: "id",
     },
   };

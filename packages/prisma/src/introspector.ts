@@ -282,7 +282,13 @@ function introspectField(
       foreignKeyFields: field.relationFromFields
         ? [...field.relationFromFields]
         : [],
-      onDelete: field.relationOnDelete ?? null,
+      onDelete:
+        field.relationOnDelete ??
+        (kind === "belongsTo"
+          ? field.isRequired
+            ? "Restrict"
+            : "SetNull"
+          : null),
       displayField: "id", // patched in second pass
     };
   }

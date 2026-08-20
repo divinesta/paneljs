@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1] - 2026-08-20
+
+### Changed
+
+- `belongsTo` `onDelete` defaults match Prisma: `Restrict` when the FK is required, `SetNull` when it is optional.
+- `deleteMany` maps Prisma foreign-key failures (`P2003`, `P2014`) to `VALIDATION_ERROR` instead of a 500.
+
 ## [0.2.0] - 2026-08-19
 
 Prisma is a translator: PanelJS queries in, Prisma Client calls out. Built-in auth is an `AdminAuthStore`, not Express reaching into delegates.
