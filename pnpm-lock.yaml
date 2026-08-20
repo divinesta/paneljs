@@ -27,17 +27,17 @@ importers:
         specifier: ^1.6.3
         version: 1.6.4(@algolia/client-search@5.57.0)(@types/node@22.20.1)(@types/react@19.2.2)(postcss@8.5.26)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(search-insights@2.17.3)(typescript@5.9.3)
 
-  apps/example:
+  apps/example/prisma-test:
     dependencies:
       '@paneljs/express':
         specifier: workspace:*
-        version: link:../../packages/express
+        version: link:../../../packages/express
       '@paneljs/paneljs':
         specifier: workspace:*
-        version: link:../../packages/paneljs
+        version: link:../../../packages/paneljs
       '@paneljs/prisma':
         specifier: workspace:*
-        version: link:../../packages/prisma
+        version: link:../../../packages/prisma
       '@prisma/adapter-pg':
         specifier: ~7.5.0
         version: 7.5.0
@@ -70,17 +70,17 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  apps/example-typeorm:
+  apps/example/typeorm-test:
     dependencies:
       '@paneljs/express':
         specifier: workspace:*
-        version: link:../../packages/express
+        version: link:../../../packages/express
       '@paneljs/paneljs':
         specifier: workspace:*
-        version: link:../../packages/paneljs
+        version: link:../../../packages/paneljs
       '@paneljs/typeorm':
         specifier: workspace:*
-        version: link:../../packages/typeorm
+        version: link:../../../packages/typeorm
       express:
         specifier: ^5.0.0
         version: 5.2.1

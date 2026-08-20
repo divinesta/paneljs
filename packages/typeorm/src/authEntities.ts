@@ -22,7 +22,7 @@ export function builtInAuthEntities(
     name: userModel,
     tableName: "express_admin_users",
     columns: {
-      id: { type: "varchar", primary: true, generated: "uuid" },
+      id: { type: "uuid", primary: true, generated: "uuid" },
       ...(identifier === "email"
         ? { email: { type: "varchar", unique: true } }
         : { username: { type: "varchar", unique: true } }),
@@ -51,9 +51,9 @@ export function builtInAuthEntities(
     name: sessionModel,
     tableName: "express_admin_sessions",
     columns: {
-      id: { type: "varchar", primary: true, generated: "uuid" },
+      id: { type: "uuid", primary: true, generated: "uuid" },
       tokenHash: { type: "varchar", unique: true },
-      userId: { type: "varchar" },
+      userId: { type: "uuid" },
       expiresAt: { type: "timestamptz" },
       createdAt: { type: "timestamptz", createDate: true },
     },
