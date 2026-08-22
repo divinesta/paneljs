@@ -70,6 +70,18 @@ schema, and resets deterministic data before every test. Docker is discovered
 normally. On Linux, an already-active rootless Podman socket at
 `/run/user/<uid>/podman/podman.sock` is also detected automatically.
 
+## TypeORM PostgreSQL contract
+
+Run the equivalent TypeORM adapter and auth-store contracts with:
+
+```sh
+pnpm --filter @paneljs/typeorm test:integration
+```
+
+This suite initializes the canonical `EntitySchema` definitions against its
+own PostgreSQL 16 container and uses the same seed and contract functions as
+Prisma. The root `pnpm test:integration` command runs both ORM suites.
+
 ## Demonstration harnesses
 
 `test/` contains deliberately small in-memory implementations. They prove the
