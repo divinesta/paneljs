@@ -43,8 +43,10 @@ currently implemented in `@paneljs/express`; see [Ownership migrations](#ownersh
 | `Adapter-specific` | Required only for an adapter that exposes this behavior |
 | `Deferred`         | Deliberately outside the first complete test release    |
 
-Phase 2 defines the requirements. Except for the Phase 1 tooling smoke test, the
-tests described below still need to be implemented.
+Phase 3 implements the `CU` coverage for registry, permissions, scopes, IDs,
+queries, validation, record selection, schema generation, authentication, and
+auditing. Adapter, admin-behavior, transport, and browser contracts remain to be
+implemented in later phases.
 
 ## Test data baseline
 
