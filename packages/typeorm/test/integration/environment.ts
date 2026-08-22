@@ -140,7 +140,11 @@ async function stopContainer(
       message.includes("rootless netns") &&
       message.includes("permission denied");
     if (!isRootlessPodmanCleanupFailure) throw error;
-    await execFileAsync("podman", ["rm", "-f", container.getId()]);
+    const podmanEnvironment = { ...process.env };
+    delete podmanEnvironment.XDG_DATA_HOME;
+    await execFileAsync("podman", ["rm", "-f", container.getId()], {
+      env: podmanEnvironment,
+    });
   }
 }
 

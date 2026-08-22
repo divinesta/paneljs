@@ -229,6 +229,10 @@ async function stopContainer(
     // Podman's Docker-compatible API can stop the container successfully but
     // fail while removing its rootless network namespace. Native removal
     // completes that cleanup. Docker environments never enter this branch.
-    await execFileAsync("podman", ["rm", "-f", container.getId()]);
+    const podmanEnvironment = { ...process.env };
+    delete podmanEnvironment.XDG_DATA_HOME;
+    await execFileAsync("podman", ["rm", "-f", container.getId()], {
+      env: podmanEnvironment,
+    });
   }
 }
