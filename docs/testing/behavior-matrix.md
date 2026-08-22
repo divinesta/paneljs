@@ -48,7 +48,8 @@ queries, validation, record selection, schema generation, authentication, and
 auditing. Phase 4 implements the reusable `AC`, `AS`, and initial `AB` contract
 definitions with in-memory demonstration harnesses. Real ORM execution,
 remaining admin behavior, transport, and browser coverage are implemented in
-later phases.
+later phases. Phase 9 implements the Express `HT` suite with a real mounted
+admin and an in-memory adapter; run it with `pnpm test:transport`.
 
 ## Test data baseline
 

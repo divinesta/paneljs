@@ -77,6 +77,11 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
     next();
   });
 
+  router.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "private, no-store");
+    next();
+  });
+
   router.use(json());
 
   if (isBuiltInAuth(config.auth) && authStore) {
@@ -105,11 +110,6 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
     }
     next();
   });
-  router.use("/api", (_req, res, next) => {
-    res.setHeader("Cache-Control", "private, no-store");
-    next();
-  });
-
   router.get("/api/schema", createSchemaEndpoint(admin));
 
   const modelsByPluralName = new Map(

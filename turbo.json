@@ -19,6 +19,9 @@
     "test:unit": {
       "dependsOn": ["^build"]
     },
+    "test:transport": {
+      "dependsOn": ["^build"]
+    },
     "test:integration": {
       "dependsOn": ["^build"],
       "cache": false
