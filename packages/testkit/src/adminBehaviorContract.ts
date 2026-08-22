@@ -1,4 +1,9 @@
-import type { AdminUser, PaginatedResponse } from "paneljs";
+import type {
+  AdminService,
+  AdminUser,
+  FullRegisteredModel,
+  PaginatedResponse,
+} from "paneljs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import {
@@ -51,6 +56,30 @@ export interface AdminBehaviorEnvironment {
 export interface AdminBehaviorHarness {
   readonly name: string;
   create(): Promise<AdminBehaviorEnvironment>;
+}
+
+/** Adapt the real core AdminService to the contract's canonical Post driver. */
+export function createAdminServiceBehaviorDriver(
+  service: AdminService,
+  postModel: FullRegisteredModel,
+): AdminBehaviorDriver {
+  return {
+    listPosts: (input) =>
+      service.list(postModel, input.adminUser, {
+        page: input.page,
+        perPage: input.perPage,
+        search: input.search
+          ? { text: input.search, fields: postModel.resolved.searchFields }
+          : undefined,
+      }),
+    getPost: (adminUser, id) => service.get(postModel, adminUser, id),
+    createPost: (adminUser, data) => service.create(postModel, adminUser, data),
+    updatePost: (adminUser, id, data) =>
+      service.update(postModel, adminUser, id, data),
+    deletePost: (adminUser, id) => service.delete(postModel, adminUser, id),
+    deletePosts: async (adminUser, ids) =>
+      (await service.deleteSelected(postModel, adminUser, ids)).deletedIds,
+  };
 }
 
 /** Register the first framework-neutral admin-operation behavior contract. */

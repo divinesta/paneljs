@@ -38,7 +38,23 @@ export type {
   AuthStoreContractHarness,
 } from "./authStoreContract.js";
 
-export { defineAdminBehaviorContract } from "./adminBehaviorContract.js";
+export {
+  createAdminServiceBehaviorDriver,
+  defineAdminBehaviorContract,
+} from "./adminBehaviorContract.js";
+
+export { createContractAdminService } from "./adminHarness.js";
+export type { ContractAdminService } from "./adminHarness.js";
+
+export {
+  createReferentialBehaviorDriver,
+  defineReferentialBehaviorContract,
+} from "./referentialBehaviorContract.js";
+export type {
+  ReferentialBehaviorDriver,
+  ReferentialBehaviorEnvironment,
+  ReferentialBehaviorHarness,
+} from "./referentialBehaviorContract.js";
 export type {
   AdminBehaviorDriver,
   AdminBehaviorEnvironment,

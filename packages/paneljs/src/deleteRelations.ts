@@ -1,13 +1,11 @@
-import {
-  RequestValidationError,
-  buildListRecordSelect,
-  hasModelPermission,
-  resolveScope,
-  withSelectFields,
-  type AdminUser,
-  type DataAdapter,
-  type FullRegisteredModel,
-} from "paneljs";
+import type { DataAdapter } from "./adapter.js";
+import { buildListRecordSelect } from "./recordSelection.js";
+import type { FullRegisteredModel } from "./registry.js";
+import { hasModelPermission } from "./permissions.js";
+import { withSelectFields } from "./query.js";
+import { resolveScope } from "./scope.js";
+import type { AdminUser } from "./types.js";
+import { RequestValidationError } from "./validation.js";
 
 export type DeleteReferentialAction = "Cascade" | "SetNull" | "Restrict";
 
@@ -21,7 +19,9 @@ export type DeletePreviewRelation = {
   recordsByParentId: Record<string, Record<string, unknown>[]>;
 };
 
-function referentialAction(onDelete: string | null | undefined): DeleteReferentialAction {
+function referentialAction(
+  onDelete: string | null | undefined,
+): DeleteReferentialAction {
   if (onDelete === "Cascade") return "Cascade";
   if (onDelete === "SetNull") return "SetNull";
   return "Restrict";
@@ -63,8 +63,9 @@ function listChildRelations(
 
   for (const relationField of parent.meta.fields) {
     const relation = relationField.relation;
-    if (relationField.type !== "relation" || relation?.kind !== "hasMany")
+    if (relationField.type !== "relation" || relation?.kind !== "hasMany") {
       continue;
+    }
     const childModel = modelsByName.get(relation.model);
     if (!childModel) continue;
     const childRelationField = findChildBelongsTo(
@@ -85,7 +86,7 @@ function listChildRelations(
   return children;
 }
 
-/** Related rows shown on the delete confirmation page. */
+/** Related rows shown on a transport's delete confirmation page. */
 export async function loadDeletePreviewRelations(
   parent: FullRegisteredModel,
   models: Map<string, FullRegisteredModel>,
@@ -97,7 +98,11 @@ export async function loadDeletePreviewRelations(
 
   for (const child of listChildRelations(parent, models)) {
     if (
-      !hasModelPermission(adminUser, child.childModel.resolved.permissions, "list")
+      !hasModelPermission(
+        adminUser,
+        child.childModel.resolved.permissions,
+        "list",
+      )
     ) {
       continue;
     }
@@ -107,15 +112,19 @@ export async function loadDeletePreviewRelations(
       buildListRecordSelect(child.childModel.meta, child.childModel),
       [child.foreignKey],
     );
-    const childRecords = await adapter.resource(child.childModel.meta).findMany({
-      scope: childScope,
-      filters: { [child.foreignKey]: { in: ids } },
-      select: childSelect,
-    });
+    const childRecords = await adapter
+      .resource(child.childModel.meta)
+      .findMany({
+        scope: childScope,
+        filters: { [child.foreignKey]: { in: ids } },
+        select: childSelect,
+      });
     const recordsByParentId: Record<string, Record<string, unknown>[]> = {};
     for (const record of childRecords) {
       const parentId = record[child.foreignKey];
-      if (typeof parentId !== "string" && typeof parentId !== "number") continue;
+      if (typeof parentId !== "string" && typeof parentId !== "number") {
+        continue;
+      }
       const key = String(parentId);
       recordsByParentId[key] = [...(recordsByParentId[key] ?? []), record];
     }

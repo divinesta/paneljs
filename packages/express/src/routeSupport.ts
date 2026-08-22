@@ -3,11 +3,8 @@ import {
   AdminApiError,
   AuthenticationError,
   ModelNotFoundError,
-  PermissionDeniedError,
   RequestValidationError,
-  hasModelPermission,
   parseRecordId,
-  type AdminOperation,
   type AdminUser,
   type FullRegisteredModel,
   type AdminModelMeta,
@@ -57,21 +54,6 @@ export function getRegisteredModel(
     return null;
   }
   return model;
-}
-
-export function authorizeModelOperation(
-  req: Request,
-  res: Response,
-  model: FullRegisteredModel,
-  operation: AdminOperation,
-): AdminUser | null {
-  const adminUser = getAdminUser(req, res);
-  if (!adminUser) return null;
-  if (!hasModelPermission(adminUser, model.resolved.permissions, operation)) {
-    sendApiError(res, new PermissionDeniedError());
-    return null;
-  }
-  return adminUser;
 }
 
 export function getRecordId(

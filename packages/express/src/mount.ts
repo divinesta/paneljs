@@ -97,12 +97,10 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
       ["POST", "PUT", "PATCH", "DELETE"].includes(req.method) &&
       !isSameOriginMutation(req)
     ) {
-      res
-        .status(403)
-        .json({
-          error: "Cross-origin requests are not allowed.",
-          code: "ORIGIN_FORBIDDEN",
-        });
+      res.status(403).json({
+        error: "Cross-origin requests are not allowed.",
+        code: "ORIGIN_FORBIDDEN",
+      });
       return;
     }
     next();
@@ -117,18 +115,8 @@ export async function mount(app: Application, admin: Admin): Promise<void> {
   const modelsByPluralName = new Map(
     admin.registry.getAll().map((model) => [model.meta.pluralName, model]),
   );
-  router.use(
-    "/api",
-    createActionRouter(modelsByPluralName, config.adapter, config.audit),
-  );
-  router.use(
-    "/api",
-    createCrudRouter(
-      modelsByPluralName,
-      config.adapter,
-      config.audit,
-    ),
-  );
+  router.use("/api", createActionRouter(modelsByPluralName, admin.service));
+  router.use("/api", createCrudRouter(modelsByPluralName, admin.service));
   router.use("/api", createApiErrorHandler());
 
   const uiDist = getAdminUiDist();

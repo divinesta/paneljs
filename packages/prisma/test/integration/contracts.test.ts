@@ -1,6 +1,8 @@
 import {
   defineAdapterContract,
+  defineAdminBehaviorContract,
   defineAuthStoreContract,
+  defineReferentialBehaviorContract,
 } from "@paneljs/testkit";
 import { afterAll, beforeAll, describe } from "vitest";
 
@@ -28,6 +30,20 @@ describe.sequential("Prisma PostgreSQL integration", () => {
     name: "Prisma PostgreSQL",
     async create() {
       return database.authEnvironment();
+    },
+  });
+
+  defineAdminBehaviorContract({
+    name: "Prisma PostgreSQL core service",
+    async create() {
+      return database.adminBehaviorEnvironment();
+    },
+  });
+
+  defineReferentialBehaviorContract({
+    name: "Prisma PostgreSQL core service",
+    async create() {
+      return database.referentialBehaviorEnvironment();
     },
   });
 });

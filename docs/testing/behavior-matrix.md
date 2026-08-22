@@ -428,14 +428,11 @@ additional ORM must run a smoke set containing `UI-003`, `UI-006`, `UI-015`,
 
 ## Ownership migrations
 
-The following target-core behaviors currently live in `@paneljs/express` and
-must be moved only after characterization tests protect them:
-
-| Current file                              | Behavior to move to core                                                           | Behavior groups protected first |
-| ----------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------- |
-| `packages/express/src/crudRouter.ts`      | CRUD orchestration, permissions, scopes, relation validation, hooks, audit calls   | `CRUD-*`, `SEC-*`, `AUDIT-*`    |
-| `packages/express/src/actionRouter.ts`    | Action authorization, selected-row verification, bulk deletion, hooks, audit calls | `ACT-*`, `DEL-014`–`DEL-024`    |
-| `packages/express/src/deleteRelations.ts` | Child-relation discovery, delete preview, Restrict checks                          | `DEL-005`–`DEL-011`             |
+The framework-neutral admin behavior now lives in
+`packages/paneljs/src/adminService.ts` and
+`packages/paneljs/src/deleteRelations.ts`. This includes CRUD orchestration,
+permissions, scopes, relation validation, hooks, audit calls, custom actions,
+selected-row verification, bulk deletion, delete preview, and Restrict checks.
 
 Express retains URL/query/body parsing, middleware, cookies, headers, status
 codes, static files, redirects, and error-to-HTTP conversion (`HTTP-*`).

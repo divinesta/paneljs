@@ -4,10 +4,16 @@ import { promisify } from "node:util";
 
 import {
   createAuthStoreSeed,
+  createAdminServiceBehaviorDriver,
+  createContractAdminService,
   createContractSeedData,
+  createReferentialBehaviorDriver,
   type AdapterContractEnvironment,
+  type AdminBehaviorEnvironment,
   type AuthStoreContractEnvironment,
+  type ContractAdminService,
   type ContractId,
+  type ReferentialBehaviorEnvironment,
 } from "@paneljs/testkit";
 import {
   PostgreSqlContainer,
@@ -139,14 +145,12 @@ async function stopContainer(
 }
 
 export class TypeormContractDatabase {
-  readonly adapter: DataAdapter;
-
   private constructor(
     private readonly container: StartedPostgreSqlContainer,
     readonly dataSource: DataSource,
-  ) {
-    this.adapter = typeormAdapter({ dataSource });
-  }
+    readonly adapter: DataAdapter,
+    private readonly admin: ContractAdminService,
+  ) {}
 
   static async start(): Promise<TypeormContractDatabase> {
     configureRootlessPodman();
@@ -166,7 +170,9 @@ export class TypeormContractDatabase {
         logging: false,
       });
       await dataSource.initialize();
-      return new TypeormContractDatabase(container, dataSource);
+      const adapter = typeormAdapter({ dataSource });
+      const admin = await createContractAdminService(adapter);
+      return new TypeormContractDatabase(container, dataSource, adapter, admin);
     } catch (error) {
       await stopContainer(container).catch(() => undefined);
       throw error;
@@ -187,6 +193,27 @@ export class TypeormContractDatabase {
       reset: (identifier) => resetAuthData(this.dataSource, identifier),
       createStore: (options: AuthStoreOptions): AdminAuthStore =>
         typeormAuthStore(this.dataSource, options),
+      dispose: async () => undefined,
+    };
+  }
+
+  adminBehaviorEnvironment(): AdminBehaviorEnvironment {
+    return {
+      driver: createAdminServiceBehaviorDriver(
+        this.admin.service,
+        this.admin.postModel,
+      ),
+      reset: () => resetAdapterData(this.dataSource),
+      readPost: (id) => readRecord(this.dataSource, "Post", id),
+      dispose: async () => undefined,
+    };
+  }
+
+  referentialBehaviorEnvironment(): ReferentialBehaviorEnvironment {
+    return {
+      driver: createReferentialBehaviorDriver(this.admin),
+      reset: () => resetAdapterData(this.dataSource),
+      readRecord: (modelName, id) => readRecord(this.dataSource, modelName, id),
       dispose: async () => undefined,
     };
   }

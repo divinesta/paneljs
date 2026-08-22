@@ -5,10 +5,16 @@ import { promisify } from "node:util";
 
 import {
   createAuthStoreSeed,
+  createAdminServiceBehaviorDriver,
+  createContractAdminService,
   createContractSeedData,
+  createReferentialBehaviorDriver,
   type AdapterContractEnvironment,
+  type AdminBehaviorEnvironment,
   type AuthStoreContractEnvironment,
+  type ContractAdminService,
   type ContractId,
+  type ReferentialBehaviorEnvironment,
 } from "@paneljs/testkit";
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
@@ -131,14 +137,12 @@ async function resetAuthData(
 }
 
 export class PrismaContractDatabase {
-  readonly adapter: DataAdapter;
-
   private constructor(
     private readonly container: StartedPostgreSqlContainer,
     readonly prisma: PrismaClient,
-  ) {
-    this.adapter = prismaAdapter({ prisma, schemaPath });
-  }
+    readonly adapter: DataAdapter,
+    private readonly admin: ContractAdminService,
+  ) {}
 
   static async start(): Promise<PrismaContractDatabase> {
     configureRootlessPodman();
@@ -155,7 +159,9 @@ export class PrismaContractDatabase {
         adapter: new PrismaPg({ connectionString: databaseUrl }),
       });
       await prisma.$connect();
-      return new PrismaContractDatabase(container, prisma);
+      const adapter = prismaAdapter({ prisma, schemaPath });
+      const admin = await createContractAdminService(adapter);
+      return new PrismaContractDatabase(container, prisma, adapter, admin);
     } catch (error) {
       await stopContainer(container).catch(() => undefined);
       throw error;
@@ -176,6 +182,27 @@ export class PrismaContractDatabase {
       reset: (identifier) => resetAuthData(this.prisma, identifier),
       createStore: (options: AuthStoreOptions): AdminAuthStore =>
         prismaAuthStore(this.prisma, options),
+      dispose: async () => undefined,
+    };
+  }
+
+  adminBehaviorEnvironment(): AdminBehaviorEnvironment {
+    return {
+      driver: createAdminServiceBehaviorDriver(
+        this.admin.service,
+        this.admin.postModel,
+      ),
+      reset: () => resetAdapterData(this.prisma),
+      readPost: (id) => readRecord(this.prisma, "Post", id),
+      dispose: async () => undefined,
+    };
+  }
+
+  referentialBehaviorEnvironment(): ReferentialBehaviorEnvironment {
+    return {
+      driver: createReferentialBehaviorDriver(this.admin),
+      reset: () => resetAdapterData(this.prisma),
+      readRecord: (modelName, id) => readRecord(this.prisma, modelName, id),
       dispose: async () => undefined,
     };
   }
