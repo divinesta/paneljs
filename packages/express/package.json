@@ -1,6 +1,6 @@
 {
   "name": "@paneljs/express",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Express adapter for PanelJS, a Django-style Prisma admin panel for Node.js applications.",
   "license": "MIT",
   "type": "module",

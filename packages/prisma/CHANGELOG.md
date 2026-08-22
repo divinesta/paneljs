@@ -1,6 +1,13 @@
 # Changelog
 
-## [0.3.0] - 2026-08-21
+## [0.3.0] - 2026-08-22
+
+### Changed
+
+- Introspection marks primary keys as `isUnique: true` even when Prisma only sets `isId`.
+- `updateMany` and `deleteMany` require `id` or `ids` and reject writes that would target a whole scope.
+
+## [0.2.2] - 2026-08-21
 
 ### Breaking
 

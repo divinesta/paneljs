@@ -1,6 +1,16 @@
 # Changelog
 
-## [0.3.0] - 2026-08-21
+## [0.3.0] - 2026-08-22
+
+Express now mounts a thin HTTP layer over core `AdminService`.
+
+### Changed
+
+- CRUD and action routers call `admin.service` instead of implementing permissions, scope, hooks, audit, and deletion themselves.
+- Invalid JSON request bodies return `400` with code `INVALID_JSON`.
+- Request bodies that exceed the parser limit return `413` with code `BODY_TOO_LARGE`.
+
+## [0.2.2] - 2026-08-21
 
 ### Breaking
 

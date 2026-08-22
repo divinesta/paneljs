@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0] - 2026-08-22
+
+Admin operations now live in core. Transports call `AdminService` instead of reimplementing CRUD, actions, and delete rules.
+
+### Added
+
+- `AdminService` with `list`, `get`, `create`, `update`, `delete`, `deletePreview`, `deleteSelected`, and `runAction`.
+- `admin.service`, available after `admin.initialize()`.
+- `validateSelectedIds` for bulk-action ID rules: non-empty, unique, and at most 100.
+- `loadDeletePreviewRelations` and `assertNoRestrictedRelations`, moved out of `@paneljs/express`.
+
+### Changed
+
+- Permission, scope, hook, audit, and referential-delete orchestration run in `AdminService`, so Express no longer owns that behavior.
+
+## [0.2.2] - 2026-08-21
+
+### Breaking
+
+- The package name is now `paneljs`, replacing `@paneljs/paneljs`. Update imports to `from "paneljs"` when upgrading.
+
 ## [0.2.1] - 2026-08-20
 
 ### Changed

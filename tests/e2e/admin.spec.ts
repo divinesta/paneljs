@@ -83,11 +83,13 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     const search = page.getByLabel("Search Post");
     await search.fill("seeded post 16 for Northwind.");
     await search.press("Enter");
-    await expect(page.getByText("Quarterly update 16")).toBeVisible();
+    await expect(page.getByText("Showing 1–1 of 1")).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "Quarterly update 16", exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByText("frances-allen.northwind@example.test"),
     ).toBeVisible();
-    await expect(page.getByText("Showing 1–1 of 1")).toBeVisible();
 
     await page.getByRole("button", { name: "Reset" }).click();
     const publishedFilter = page
@@ -193,7 +195,13 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
 
     await page.getByLabel("Search Post").fill("seeded post 1 for Northwind.");
     await page.getByLabel("Search Post").press("Enter");
-    await page.getByLabel("Select example-post-1-1").check();
+    await expect(page.getByText("Showing 1–1 of 1")).toBeVisible();
+    await page
+      .getByRole("checkbox", {
+        name: "Select example-post-1-1",
+        exact: true,
+      })
+      .check();
     await page
       .getByRole("combobox", { name: "Choose an action" })
       .selectOption("delete_selected");
