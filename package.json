@@ -2,22 +2,33 @@
   "name": "paneljs-monorepo",
   "private": true,
   "scripts": {
-  "build": "turbo run build",
+    "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,css}\"",
     "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "test:unit": "turbo run test:unit",
+    "test:integration": "turbo run test:integration",
+    "test:e2e": "playwright test --pass-with-no-tests",
+    "test:all": "pnpm run test && pnpm run test:integration && pnpm run test:e2e",
     "example": "pnpm --filter @paneljs/example dev",
     "example:db:up": "docker compose up -d postgres"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@testcontainers/postgresql": "^12.1.0",
     "@types/node": "^22.15.3",
+    "@types/supertest": "^7.2.1",
     "prettier": "^3.7.4",
+    "supertest": "^7.2.2",
+    "testcontainers": "^12.1.0",
     "turbo": "^2.10.10",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^4.1.11"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=18"
+    "node": "^20.19 || ^22.12 || >=24.0"
   }
 }

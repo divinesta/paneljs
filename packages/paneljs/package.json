@@ -52,6 +52,8 @@
     "dev": "pnpm --dir ui dev",
     "lint": "echo \"paneljs: no lint yet\"",
     "check-types": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "test:unit": "vitest run --passWithNoTests",
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
