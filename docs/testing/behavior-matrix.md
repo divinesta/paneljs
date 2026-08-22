@@ -45,8 +45,10 @@ currently implemented in `@paneljs/express`; see [Ownership migrations](#ownersh
 
 Phase 3 implements the `CU` coverage for registry, permissions, scopes, IDs,
 queries, validation, record selection, schema generation, authentication, and
-auditing. Adapter, admin-behavior, transport, and browser contracts remain to be
-implemented in later phases.
+auditing. Phase 4 implements the reusable `AC`, `AS`, and initial `AB` contract
+definitions with in-memory demonstration harnesses. Real ORM execution,
+remaining admin behavior, transport, and browser coverage are implemented in
+later phases.
 
 ## Test data baseline
 

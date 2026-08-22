@@ -240,6 +240,22 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
+  packages/testkit:
+    dependencies:
+      paneljs:
+        specifier: workspace:*
+        version: link:../paneljs
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@22.20.1)(vite@7.3.6(@types/node@22.20.1)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.20.1
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
   packages/typeorm:
     dependencies:
       paneljs:
