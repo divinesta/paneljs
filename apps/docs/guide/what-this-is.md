@@ -1,37 +1,52 @@
 # What this is
 
-PanelJS is an operations panel for apps that already use **Express** and **Prisma**.
+PanelJS is an operations panel for a Node app that already has a data model.
 
-You register the models you want to operate on. At mount, the library reads your `schema.prisma`, builds metadata, and serves:
+You register the models you want to operate on. At mount, the library asks your **data adapter** what exists, builds metadata, and serves:
 
 - a React admin UI at `/admin`
 - a guarded JSON API at `/admin/api/*`
 
-You do not describe your tables twice. The Prisma schema is the source of truth. `admin.register("User")` with no extra config still produces a list, search, filters, and a create/edit form.
+You do not describe your tables twice. Prisma’s `schema.prisma` or TypeORM entities are the source of truth. `admin.register("User")` with no extra config still produces a list, search, filters, and a create/edit form.
+
+## Two choices, then the same product
+
+| You pick | Package | Job |
+| --- | --- | --- |
+| HTTP framework | `@paneljs/express` today | `mount(app, admin)` |
+| ORM | `@paneljs/prisma` or `@paneljs/typeorm` | Introspect models, run CRUD |
+| Core | `paneljs` | Registry, schema JSON, UI, permissions, scope |
+
+Express and Fastify are how the admin hangs off the server. Prisma and TypeORM are how rows are discovered and written. After `mount`, `register("User")` is the same.
+
+[Installation](/guide/installation/) is the chooser for those two. The rest of this guide is shared.
 
 ## The whole public API
 
 ```ts
-const admin = createAdmin({ prisma, auth: { getCurrentUser } });
+const admin = createAdmin({
+  adapter: prismaAdapter({ prisma }), // or typeormAdapter({ dataSource })
+  auth: { getCurrentUser },
+});
 
 admin
   .register("User")
   .register("Post", { listDisplay: ["title", "author", "published"] });
 
-await admin.mount(app);
+await mount(app, admin);
 ```
 
 Three calls. Everything else is optional configuration on those calls.
 
 ## What you bring
 
-| You own                                                | The library owns                              |
-| ------------------------------------------------------ | --------------------------------------------- |
-| Express app                                            | Admin routes under `basePath`                 |
-| Generated Prisma Client                                | Introspection of `schema.prisma`              |
-| Built-in admin credentials, or external authentication | Creating an `AdminUser` request context       |
-| Tenancy rules, via `scope()`                           | Applying that scope on every record operation |
-| Optional audit destination                             | Emitting safe, append-only events             |
+| You own | The library owns |
+| --- | --- |
+| HTTP app (Express today) | Admin routes under `basePath` |
+| ORM client (`PrismaClient` or initialized `DataSource`) | Introspection through the adapter |
+| Built-in admin credentials, or external authentication | Creating an `AdminUser` request context |
+| Tenancy rules, via `scope()` | Applying that scope on every record operation |
+| Optional audit destination | Emitting safe, append-only events |
 
 Built-in mode provides an admin-only login screen, `ExpressAdminUser` table, and
 session store. External mode still lets you map an existing identity onto an
@@ -41,14 +56,14 @@ session store. External mode still lets you map an existing identity onto an
 
 - Not a replacement for your public API
 - Not a CMS with nested document editing
-- Not AdminJS with a Prisma adapter bolted on — DMMF is the contract
-- Not a multi-ORM tool (see [Prisma versions](/limits/prisma))
+- Not AdminJS with an adapter bolted on — PanelJS metadata is the contract
+- Not a new project generator — it mounts on the app you already have
 
 Current writes are **scalar** plus a single `belongsTo` foreign key. Nested creates, many-to-many editors, inlines, and uploads are [not included](/limits/not-included).
 
 ## The people in these docs
 
-The [basic example](/example/basic) seeds two companies and three operators. The Trust and Extend guides reuse them so the rules stay concrete.
+The [Prisma example](/example/basic) and [TypeORM example](/example/typeorm) seed two companies and operators. The Trust and Extend guides reuse them so the rules stay concrete.
 
 | Person         | Role          | Tenant    | What they see                      |
 | -------------- | ------------- | --------- | ---------------------------------- |
@@ -60,5 +75,5 @@ Same role does not mean same rows. That distinction — **permissions vs scope**
 
 ## Next
 
-1. [Getting started](/guide/getting-started) — install `paneljs` and mount
+1. [Installation](/guide/installation/) — pick framework, then ORM, then mount
 2. [Wire it into your app](/guide/in-your-app) — `listDisplay`, `searchFields`, `listFilter`, `scope`

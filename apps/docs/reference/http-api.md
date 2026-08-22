@@ -14,7 +14,7 @@ All routes sit under `basePath` (default `/admin`) and require a valid `AdminUse
 | `DELETE` | `/api/:model/:id` | `delete` | Delete a scoped row. `204` |
 | `POST` | `/api/:model/actions/:action` | list + action | Bulk action on 1–100 scoped ids |
 
-Pipeline on every call: authenticate → resolve model → permission → scope → validate → Prisma.
+Pipeline on every call: authenticate → resolve model → permission → scope → validate → `adapter.resource()`.
 
 ## List query
 

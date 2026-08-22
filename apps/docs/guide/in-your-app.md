@@ -1,21 +1,28 @@
 # Wire it into your app
 
-This is the implementation path: one module in **your** codebase, the same shape as [`examples/basic/index.ts`](https://github.com/divinesta/EXPRESS-ADMIN/blob/main/examples/basic/index.ts).
+This is the implementation path: one module in **your** codebase.
 
-You already [installed](/guide/getting-started) `paneljs` and can mount with `register("User")`. This page is what you add next so the panel matches how you operate.
+Snippets below use **Express + Prisma**. `register` options are the same on TypeORM. Adapter construction is on [Installation](/guide/installation/).
+
+You already [installed](/guide/installation/) PanelJS and can mount with `register("User")`. This page is what you add next so the panel matches how you operate.
 
 ## 1. One place to configure the admin
 
-Keep `createAdmin`, every `register`, and `mount` together — `admin.ts` next to your Prisma client, or the bottom of `src/index.ts`.
+Keep `createAdmin`, every `register`, and `mount` together — `admin.ts` next to your ORM client, or the bottom of `src/index.ts`.
 
-```ts
+::: code-group
+
+```ts [Prisma]
 import express from "express";
 import { createAdmin } from "paneljs";
+import { prismaAdapter } from "@paneljs/prisma";
+import { mount } from "@paneljs/express";
 import { prisma } from "./prisma.js";
 
 const app = express();
 
 const admin = createAdmin({
+  adapter: prismaAdapter({ prisma }),
   /* ... */
 });
 
@@ -26,16 +33,46 @@ admin.register("Post", {
   /* ... */
 });
 
-await admin.mount(app);
+await mount(app, admin);
 ```
 
-`register` is synchronous. `mount` is async and must run **after** every `register`. Model names are the Prisma names (`User`, not `users`).
+```ts [TypeORM]
+import express from "express";
+import { createAdmin } from "paneljs";
+import { typeormAdapter } from "@paneljs/typeorm";
+import { mount } from "@paneljs/express";
+import { dataSource } from "./data-source.js";
+
+await dataSource.initialize();
+
+const app = express();
+
+const admin = createAdmin({
+  adapter: typeormAdapter({ dataSource }),
+  /* ... */
+});
+
+admin.register("User", {
+  /* ... */
+});
+admin.register("Post", {
+  /* ... */
+});
+
+await mount(app, admin);
+```
+
+:::
+
+`register` is synchronous. `mount` is async and must run **after** every `register`. Model names are the names in your ORM (`User`, not `users`).
 
 ## 2. `createAdmin` — host options
 
 These belong on `createAdmin`, not on each model.
 
-```ts
+::: code-group
+
+```ts [Prisma]
 const admin = createAdmin({
   adapter: prismaAdapter({ prisma, schemaPath: "prisma/schema.prisma" }),
   siteName: "Express Admin",
@@ -71,15 +108,52 @@ const admin = createAdmin({
 });
 ```
 
+```ts [TypeORM]
+const admin = createAdmin({
+  adapter: typeormAdapter({ dataSource }),
+  siteName: "Express Admin",
+  auth: {
+    getCurrentUser: async (req) => {
+      const user = await getOperatorFromYourAuth(req);
+      if (!user) return null;
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isSuperAdmin: user.role === "SUPER_ADMIN",
+        tenantId: user.tenantId,
+      };
+    },
+  },
+  audit: {
+    write: async (event) => {
+      await dataSource.getRepository("AdminAuditLog").save({
+        eventType: event.type,
+        modelName: event.modelName,
+        recordIds: event.recordIds.map(String),
+        actorId: event.actor.id,
+        actorEmail: event.actor.email,
+        actorRole: event.actor.role,
+        metadata: event.metadata,
+        createdAt: event.timestamp,
+      });
+    },
+  },
+});
+```
+
+:::
+
 | Option                | Why you set it                                                           |
 | --------------------- | ------------------------------------------------------------------------ |
-| `prisma`              | Your generated client. Required.                                         |
+| `adapter`             | Required. `prismaAdapter({ prisma })` or `typeormAdapter({ dataSource })`. |
 | `siteName`            | Header label in the UI.                                                  |
-| `schemaPath`          | Only if `schema.prisma` is not at `prisma/schema.prisma`.                |
-| `auth.getCurrentUser` | Required. Your session/JWT → [`AdminUser`](/reference/admin-user).       |
+| `auth.getCurrentUser` | Required in external mode. Your session/JWT → [`AdminUser`](/reference/admin-user). |
 | `audit.write`         | Optional. Called after successful writes. You own the table.             |
 
-The example uses built-in admin-only authentication. In external mode, read your own cookie or `Authorization` header in `getCurrentUser`. See [Authentication](/guide/auth).
+Prisma-only: pass `schemaPath` to `prismaAdapter()` if `schema.prisma` is not at `prisma/schema.prisma`. TypeORM-only: the `DataSource` must already be initialized.
+
+The examples use built-in admin-only authentication. In external mode, read your own cookie or `Authorization` header in `getCurrentUser`. See [Authentication](/guide/auth).
 
 Skip `audit` until you have a place to store events. See [Audit log](/guide/audit).
 
@@ -111,6 +185,8 @@ admin.register("User", {
 ### Post
 
 ```ts
+import { prismaActionWhere } from "@paneljs/prisma";
+
 admin.register("Post", {
   listDisplay: ["title", "author", "published", "createdAt"],
   listFilter: ["published", "createdAt"],
@@ -124,9 +200,9 @@ admin.register("Post", {
       name: "publish_selected",
       label: "Publish selected posts",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-      handler: async ({ prisma, where }) => {
-        const result = await prisma.post.updateMany({
-          where,
+      handler: async ({ client, where }) => {
+        const result = await client.post.updateMany({
+          where: prismaActionWhere("id", where),
           data: { published: true },
         });
         return { message: `Published ${result.count} posts.` };
@@ -136,7 +212,9 @@ admin.register("Post", {
 });
 ```
 
-Put **your** field names in those arrays. They must exist on that Prisma model or `mount` throws.
+The Post action above is Prisma. TypeORM uses `typeormActionWhere` and `getRepository("Post").update(...)`. See [Custom actions](/guide/actions).
+
+Put **your** field names in those arrays. They must exist on that model or `mount` throws.
 
 ## 4. What each `register` option does
 
@@ -162,7 +240,7 @@ searchFields: ["email", "fullName"];
 The list search box runs `contains` across these **string** fields only. `mount` rejects a non-string here.
 
 - Omit it and every non-id string scalar is searched.
-- On PostgreSQL (`provider = "postgresql"` in `schema.prisma`), list search is case-insensitive. Other Prisma providers use `contains` as that engine defines it.
+- On PostgreSQL, list search is case-insensitive. Other databases use that engine’s ordinary contains / `LIKE`.
 
 ### `listFilter` — filter controls
 
@@ -235,14 +313,16 @@ In production, each registration must include `permissions`. Within that object,
 ### `actions` — bulk verbs on the list
 
 ```ts
+import { prismaActionWhere } from "@paneljs/prisma";
+
 actions: [
   {
     name: "publish_selected",
     label: "Publish selected posts",
     allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-    handler: async ({ prisma, where }) => {
-      const result = await prisma.post.updateMany({
-        where,
+    handler: async ({ client, where }) => {
+      const result = await client.post.updateMany({
+        where: prismaActionWhere("id", where),
         data: { published: true },
       });
       return { message: `Published ${result.count} posts.` };
@@ -251,7 +331,7 @@ actions: [
 ];
 ```
 
-`name` is the URL segment. `label` is the button. `where` contains the scope and selected IDs; use it for every action mutation. See [Custom actions](/guide/actions).
+`name` is the URL segment. `label` is the button. `where` contains the scope and selected IDs; use it for every action mutation. `client` is the ORM handle (Prisma client or TypeORM `DataSource`). See [Custom actions](/guide/actions).
 
 ### Hooks — mutate or block a write
 
@@ -269,17 +349,18 @@ See [Lifecycle hooks](/guide/hooks).
 
 ## 5. Models you should not register
 
-The example schema has `Tenant` and `AdminAuditLog`. They are **not** registered.
+The example schema has `Tenant` and `AdminAuditLog`. They are **not** registered (the TypeORM example registers `Tenant` for super-admins only).
 
 - `Tenant` is a join key. Operators should not CRUD companies from this panel unless you want that.
 - `AdminAuditLog` is written by `audit.write`. Registering it would make history editable.
+- Built-in `ExpressAdminUser` / `ExpressAdminSession` cannot be registered.
 
 Only `register` models operators should see in the sidebar.
 
 ## 6. Mount last
 
 ```ts
-await admin.mount(app);
+await mount(app, admin);
 ```
 
 Then listen. Open `/admin`. You should see:
@@ -299,4 +380,4 @@ If `mount` throws, read the message — it names the bad model or field.
 
 Every key: [`register()`](/reference/register) and [`createAdmin()`](/reference/create-admin).
 
-Copy-paste host: [Northwind and Contoso](/example/basic).
+Copy-paste hosts: [Express + Prisma](/example/basic) and [Express + TypeORM](/example/typeorm).

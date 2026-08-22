@@ -11,8 +11,8 @@ Shown and writable:
 
 Shown but locked:
 
-- The `@id` field
-- `@updatedAt` and `createdAt` with `@default(now())`
+- The id field
+- `updatedAt` / `createdAt` when the ORM marks them generated or timestamp-managed
 - Generated columns
 - Anything you mark `readOnly`
 

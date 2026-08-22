@@ -1,8 +1,8 @@
 # Multi-tenant scope
 
-Scope is the reason this library exists as more than “CRUD from DMMF.”
+Scope is the reason this library exists as more than “CRUD from schema metadata.”
 
-`scope` returns a Prisma `where` fragment. That fragment is applied to **list, read, update, delete, relation picks, and custom actions** — not only the table.
+`scope` returns an equality filter (usually `{ tenantId }`). That fragment is applied to **list, read, update, delete, relation picks, and custom actions** — not only the table.
 
 ```ts
 admin.register("Post", {
@@ -15,7 +15,7 @@ admin.register("Post", {
 
 ## Ada, Grace, Linus
 
-The [basic example](/example/basic) seeds this:
+The [examples](/example/basic) seed this:
 
 | Person | Email | Role | Tenant |
 | --- | --- | --- | --- |
@@ -38,7 +38,7 @@ Simple equality scopes are written into new records:
 // The API adds tenantId: northwind
 ```
 
-If the client sends a conflicting `tenantId`, the request is `400`. Complex Prisma predicates cannot be turned into create data automatically, so models that administrators can create must use simple equality scopes.
+If the client sends a conflicting `tenantId`, the request is `400`. Complex predicates cannot be turned into create data automatically, so models that administrators can create must use simple equality scopes.
 
 ## Update
 
@@ -62,7 +62,7 @@ scope: async (adminUser) => {
 
 The `"__no_tenant__"` fallback is deliberate: a missing tenant id must match **nothing**, not everything.
 
-Put whatever you need on `AdminUser` (`tenantId`, `institutionId`, `metadata`) inside `getCurrentUser`. The library does not infer tenancy from the Prisma schema.
+Put whatever you need on `AdminUser` (`tenantId`, `institutionId`, `metadata`) inside `getCurrentUser`. The library does not infer tenancy from the schema.
 
 ## Mental model
 

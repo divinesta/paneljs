@@ -1,6 +1,8 @@
 # Prisma versions
 
-The first releases support **Prisma 7.5.x only**.
+This page is Prisma-only. TypeORM has [its own notes](/limits/typeorm).
+
+The Prisma adapter supports **Prisma 7.5.x only**.
 
 ```json
 "peerDependencies": {

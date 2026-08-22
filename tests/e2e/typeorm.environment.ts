@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
 import {
@@ -9,6 +10,10 @@ import {
 } from "@testcontainers/postgresql";
 
 const exampleDirectory = resolve(process.cwd(), "apps/example/typeorm-test");
+const requireFromExample = createRequire(
+  resolve(exampleDirectory, "package.json"),
+);
+const tsxCli = requireFromExample.resolve("tsx/cli");
 const port = 4174;
 
 function configureRootlessPodman(): void {
@@ -80,10 +85,10 @@ export class TypeormBrowserEnvironment {
     };
     try {
       await run("pnpm", ["run", "db:seed"], env);
-      const server = spawn("pnpm", ["run", "start"], {
+      const server = spawn(process.execPath, [tsxCli, "index.ts"], {
         cwd: exampleDirectory,
         env,
-        stdio: "pipe",
+        stdio: process.env.PANELJS_E2E_DEBUG === "true" ? "inherit" : "pipe",
       });
       await waitForServer(`http://127.0.0.1:${port}/admin/login`);
       return new TypeormBrowserEnvironment(container, server);

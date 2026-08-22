@@ -4,7 +4,7 @@ The library does not own a table. You pass a writer. After a successful create, 
 
 ```ts
 createAdmin({
-  prisma,
+  adapter: prismaAdapter({ prisma }),
   auth: { getCurrentUser },
   audit: {
     write: async (event) => {
@@ -24,6 +24,8 @@ createAdmin({
   },
 });
 ```
+
+That writer is Prisma. With TypeORM, save through your own repository instead of `prisma.adminAuditLog.create`. You still own the table.
 
 ## Event shape
 

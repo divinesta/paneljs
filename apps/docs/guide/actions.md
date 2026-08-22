@@ -4,16 +4,20 @@ List actions are bulk verbs on selected rows. Every list has a built-in **Delete
 
 You can add custom actions for other operations, such as publishing posts:
 
-```ts
+::: code-group
+
+```ts [Prisma]
+import { prismaActionWhere } from "@paneljs/prisma";
+
 admin.register("Post", {
   actions: [
     {
       name: "publish_selected",
       label: "Publish selected posts",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-      handler: async ({ client, ids, where }) => {
-        const result = await (client as PrismaClient).post.updateMany({
-          where: { AND: [where.scope, { id: { in: ids } }] },
+      handler: async ({ client, where }) => {
+        const result = await client.post.updateMany({
+          where: prismaActionWhere("id", where),
           data: { published: true },
         });
         return { message: `Published ${result.count} posts.` };
@@ -23,6 +27,30 @@ admin.register("Post", {
 });
 ```
 
+```ts [TypeORM]
+import { typeormActionWhere } from "@paneljs/typeorm";
+import type { DataSource } from "typeorm";
+
+admin.register("Post", {
+  actions: [
+    {
+      name: "publish_selected",
+      label: "Publish selected posts",
+      allowedRoles: ["SUPER_ADMIN", "ADMIN"],
+      handler: async ({ client, where }) => {
+        const result = await (client as DataSource)
+          .getRepository("Post")
+          .update(typeormActionWhere("id", where), { published: true });
+        const count = result.affected ?? 0;
+        return { message: `Published ${count} posts.` };
+      },
+    },
+  ],
+});
+```
+
+:::
+
 The UI shows `label`. The route is `POST /admin/api/posts/actions/publish_selected`.
 
 ## What the handler receives
@@ -31,7 +59,7 @@ The UI shows `label`. The route is `POST /admin/api/posts/actions/publish_select
 {
   ids: Array<string | number>; // only rows that passed scope
   adminUser: AdminUser;
-  client: unknown; // the ORM client (Prisma, later TypeORM, …)
+  client: unknown; // Prisma client or TypeORM DataSource
   where: { scope: Record<string, unknown>; ids: Array<string | number> };
 }
 ```
@@ -62,4 +90,7 @@ The built-in delete action uses the model's `delete` permission; it cannot be ch
 
 ## Do the work safely
 
-Use `where.scope` and `ids` (or `where.ids`) in every mutation so the action stays tenant-safe. `where` is not a Prisma `where` object. With Prisma, combine them: `{ AND: [where.scope, { id: { in: ids } }] }`. You can also use `prismaActionWhere("id", where)` from `@paneljs/prisma`.
+Use `where.scope` and `ids` (or `where.ids`) in every mutation so the action stays tenant-safe. `where` is **not** a Prisma `where` object and not TypeORM criteria.
+
+- Prisma: `prismaActionWhere("id", where)` from `@paneljs/prisma`
+- TypeORM: `typeormActionWhere("id", where)` from `@paneljs/typeorm`

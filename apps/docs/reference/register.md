@@ -34,7 +34,7 @@ See [Forms](/guide/forms) and [Sensitive fields](/guide/sensitive-fields).
 | Key | Type | Default |
 | --- | --- | --- |
 | `permissions` | `{ list?, view?, create?, update?, delete?, actions? }` | omitted = allow authenticated |
-| `scope` | `(adminUser) => Promise<Prisma where>` | `{}` |
+| `scope` | `(adminUser) => Promise<Record<string, unknown>>` | `{}` |
 
 Omitted permission keys allow every signed-in admin. `[]` denies everyone except `isSuperAdmin`. Super-admin skips allowlists, not `scope`.
 
@@ -50,7 +50,7 @@ Omitted permission keys allow every signed-in admin. `[]` denies everyone except
 | `beforeDelete` | `(id) => Promise<void>` |
 | `afterDelete` | `(id) => Promise<void>` |
 
-Action `handler` is `({ ids, adminUser, prisma }) => Promise<{ message: string }>`.
+Action `handler` is `({ ids, adminUser, client, where }) => Promise<{ message: string }>`. `client` is the ORM handle (Prisma client or TypeORM `DataSource`). `where` is `{ scope, ids }`, not an ORM query object.
 
 ## Not on this object (yet)
 

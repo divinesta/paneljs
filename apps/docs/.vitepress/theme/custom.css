@@ -19,3 +19,70 @@
 .VPHero .name {
    max-width: 16ch;
 }
+
+.chooser-grid {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 16px;
+   margin: 28px 0 8px;
+}
+
+.chooser-card {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 10px;
+   min-height: 168px;
+   padding: 28px 16px 24px;
+   border-radius: 16px;
+   border: 1px solid var(--vp-c-divider);
+   background: var(--vp-c-bg-soft);
+   color: var(--vp-c-text-1);
+   text-decoration: none !important;
+   transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      transform 0.15s ease;
+}
+
+a.chooser-card:hover {
+   border-color: var(--vp-c-brand-1);
+   background: var(--vp-c-bg-elv);
+   transform: translateY(-1px);
+}
+
+.chooser-card.is-soon {
+   opacity: 0.48;
+   cursor: not-allowed;
+}
+
+.chooser-icon {
+   display: flex;
+   width: 48px;
+   height: 48px;
+   color: var(--vp-c-text-1);
+}
+
+.chooser-icon svg {
+   width: 48px;
+   height: 48px;
+}
+
+.chooser-title {
+   font-size: 16px;
+   font-weight: 600;
+   letter-spacing: -0.01em;
+}
+
+.chooser-hint {
+   font-size: 12px;
+   line-height: 1.3;
+   color: var(--vp-c-text-2);
+}
+
+@media (max-width: 640px) {
+   .chooser-grid {
+      grid-template-columns: 1fr;
+   }
+}

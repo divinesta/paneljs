@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { once } from "node:events";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
 import {
@@ -9,6 +10,10 @@ import {
 } from "@testcontainers/postgresql";
 
 const exampleDirectory = resolve(process.cwd(), "apps/example/prisma-test");
+const requireFromExample = createRequire(
+  resolve(exampleDirectory, "package.json"),
+);
+const tsxCli = requireFromExample.resolve("tsx/cli");
 const port = 4173;
 
 function configureRootlessPodman(): void {
@@ -85,7 +90,7 @@ export class BrowserEnvironment {
       await run("pnpm", ["run", "db:generate"], environment);
       await run("pnpm", ["run", "db:push"], environment);
       await run("pnpm", ["run", "e2e:seed"], environment);
-      const server = spawn("pnpm", ["run", "start"], {
+      const server = spawn(process.execPath, [tsxCli, "index.ts"], {
         cwd: exampleDirectory,
         env: environment,
         stdio: process.env.PANELJS_E2E_DEBUG === "true" ? "inherit" : "pipe",

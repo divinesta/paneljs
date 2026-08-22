@@ -1,8 +1,10 @@
-# Northwind and Contoso
+# Express + Prisma example
 
-`examples/basic/` is the dogfood app in this repository. It is not the library. It is the story the Trust guides keep pointing at.
+`apps/example/prisma-test/` is the Prisma dogfood app in this repository. It is not the library. It is the story the Trust guides keep pointing at.
 
 To copy the same `createAdmin` / `register` options into **your** server, follow [Wire it into your app](/guide/in-your-app).
+
+The TypeORM twin is [Express + TypeORM](/example/typeorm).
 
 ## What is in it
 
@@ -18,14 +20,19 @@ separate and are created with the superuser command.
 From the repository root (this is for people cloning the repo, not `npm install` consumers):
 
 ```bash
-bun install
-bun run example:db:up
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5435/prisma_express_admin_basic
-bun run example:db:generate
-bun run example:db:push
-bun run example:seed
-bun run example:admin:createsuperuser
-bun run dev
+pnpm install
+pnpm --filter paneljs build
+pnpm --filter @paneljs/express build
+pnpm --filter @paneljs/prisma build
+pnpm --filter @paneljs/example db:up
+
+cp apps/example/prisma-test/.env.example apps/example/prisma-test/.env
+
+pnpm --filter @paneljs/example db:generate
+pnpm --filter @paneljs/example db:push
+pnpm --filter @paneljs/example db:seed
+pnpm --filter @paneljs/example admin:createsuperuser
+pnpm --filter @paneljs/example dev
 ```
 
 Open `http://localhost:3000/admin/login` and sign in with the superuser you
@@ -73,4 +80,4 @@ If any of that fails, `scope` is not on that path. File an issue — that is a s
 
 ## Source
 
-[examples/basic](https://github.com/divinesta/EXPRESS-ADMIN/tree/main/examples/basic) on GitHub.
+[apps/example/prisma-test](https://github.com/divinesta/paneljs/tree/main/apps/example/prisma-test) on GitHub.

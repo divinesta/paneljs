@@ -50,7 +50,7 @@ WHERE email CONTAINS ? OR fullName CONTAINS ?
 | --- | --- |
 | Omit `searchFields` | All non-id string scalars |
 | Pass a non-string (`"isActive"`) | `mount` throws |
-| Use PostgreSQL | Search is case-insensitive when `schema.prisma` has `provider = "postgresql"` |
+| Use PostgreSQL | Search is case-insensitive (Prisma reads the schema `provider`; TypeORM reads the driver) |
 | Type more than 200 characters | `400 VALIDATION_ERROR` |
 
 ## `listFilter` — filters
@@ -102,7 +102,7 @@ Drives `/admin/categories` and `/admin/api/categories`. The auto plural is usual
 
 ## Minimal real file
 
-This is enough for a useful User list after [install](/guide/getting-started):
+This is enough for a useful User list after [install](/guide/installation/):
 
 ```ts
 admin.register("User", {

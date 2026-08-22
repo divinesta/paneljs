@@ -2,7 +2,7 @@
 
 ```ts
 import { createAdmin } from "paneljs";
-import { prismaAdapter } from "@paneljs/prisma";
+import { prismaAdapter } from "@paneljs/prisma"; // or typeormAdapter from @paneljs/typeorm
 import { mount } from "@paneljs/express";
 
 const admin = createAdmin({
@@ -19,21 +19,20 @@ await mount(app, admin);
 
 | Option             | Type                                                              | Default   | Role                                                                   |
 | ------------------ | ----------------------------------------------------------------- | --------- | ---------------------------------------------------------------------- |
-| `adapter`          | `DataAdapter`                                                     | required  | From `prismaAdapter({ prisma, schemaPath })`.                          |
+| `adapter`          | `DataAdapter`                                                     | required  | `prismaAdapter({ prisma })` or `typeormAdapter({ dataSource })`.       |
 | `auth`             | built-in or external auth config                                  | required  | Built-in admin credentials/sessions, or an external identity adapter.  |
 | `basePath`         | `string`                                                          | `/admin`  | Where UI and API are mounted.                                          |
 | `siteName`         | `string`                                                          | `PanelJS` | Header label in the UI.                                                |
-| `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset     | **Deprecated, ignored.** PostgreSQL case-insensitive search is read from the Prisma schema `datasource` provider. |
+| `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset     | **Deprecated, ignored.** Each adapter decides search sensitivity.      |
 | `audit.write`      | `(event) => Promise<void>`                                        | unset     | Called after successful mutations.                                     |
 
-`schemaPath` is passed to `prismaAdapter()`, not to `createAdmin()`.
+Prisma `schemaPath` is passed to `prismaAdapter()`, not to `createAdmin()`. TypeORM does not take a schema path; the `DataSource` must already be initialized.
 
 ## `mount(app, admin)`
 
 Must run after every `register`. Must be awaited. Throws if:
 
-- the schema file cannot be read
-- DMMF cannot be built (invalid schema or Prisma version mismatch)
+- the adapter cannot introspect (missing Prisma schema, uninitialized TypeORM `DataSource`, version mismatch)
 - a registered model or field does not exist
 
 Mounts, in order: JSON body parser, built-in auth endpoints when enabled, auth on `/api`, schema route, action routes, CRUD routes, error handler, static UI, SPA fallback.

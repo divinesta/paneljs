@@ -9,27 +9,15 @@ Application User + application session     ExpressAdminUser + admin session
              /app/login                              /admin/login
 ```
 
+How those two tables are created depends on the ORM. Login HTTP, cookies, and roles do not.
+
 ## Built-in authentication
 
-Choose whether administrators sign in with an email address or a username. Generate the matching Prisma schema:
-
-```sh
-npx paneljs auth:schema --identifier email
-```
-
-or:
-
-```sh
-npx paneljs auth:schema --identifier username
-```
-
-Paste the generated models into `schema.prisma`, then run your normal Prisma migration and client generation commands.
-
-Configure the admin with the same choice:
+Choose whether administrators sign in with an email address or a username. Create the matching tables, then configure the admin with the same choice:
 
 ```ts
 const admin = createAdmin({
-  adapter: prismaAdapter({ prisma }),
+  adapter, // prismaAdapter or typeormAdapter
   auth: {
     mode: "built-in",
     identifier: "email",
@@ -37,13 +25,59 @@ const admin = createAdmin({
 });
 ```
 
-The user model is `ExpressAdminUser` and the session model is `ExpressAdminSession` by default. You may rename either with `userModel` or `sessionModel` if your Prisma schema uses a different name.
+The user model is `ExpressAdminUser` and the session model is `ExpressAdminSession` by default. You may rename either with `userModel` or `sessionModel` if your tables use a different name.
 
-`prismaAdapter` supplies the auth store (how those tables are read). Express only handles the login HTTP and cookie. You can pass `auth.store` to override that.
+The data adapter supplies the auth store (how those tables are read). Express only handles the login HTTP and cookie. You can pass `auth.store` to override that.
+
+### Create the tables
+
+::: code-group
+
+```sh [Prisma]
+npx paneljs auth:schema --identifier email
+```
+
+```ts [TypeORM]
+import { builtInAuthEntities } from "@paneljs/typeorm";
+
+const dataSource = new DataSource({
+  type: "postgres",
+  url: process.env.DATABASE_URL,
+  entities: [...appEntities, ...builtInAuthEntities({ identifier: "email" })],
+});
+```
+
+:::
+
+**Prisma:** paste the printed models into `schema.prisma`, then run your normal Prisma migration and client generation commands.
+
+**TypeORM:** put `builtInAuthEntities()` on the `DataSource` `entities` list (and sync/migrate however you already do). There is no schema-file paste step.
+
+Use `--identifier username` / `{ identifier: "username" }` if operators sign in with a username.
 
 ## Create the first superuser
 
-The CLI needs the application's real Prisma client. Create `express-admin.config.mjs` next to your package manifest:
+::: code-group
+
+```sh [Prisma]
+npx paneljs createsuperuser --config ./paneljs.config.mjs
+```
+
+```ts [TypeORM]
+import { hashAdminPassword } from "paneljs";
+
+const passwordHash = await hashAdminPassword(password);
+await dataSource.getRepository("ExpressAdminUser").save({
+  email,
+  passwordHash,
+  role: "SUPER_ADMIN",
+  isActive: true,
+});
+```
+
+:::
+
+**Prisma:** the CLI needs the application's real Prisma client. Create `paneljs.config.mjs` next to your package manifest:
 
 ```js
 import { prisma } from "./src/prisma.js";
@@ -57,13 +91,9 @@ export default {
 };
 ```
 
-Then run:
-
-```sh
-npx paneljs createsuperuser --config ./express-admin.config.mjs
-```
-
 The command asks for the selected identifier and password, hashes the password, then creates an active `SUPER_ADMIN` account. In a CI-only setup, provide `--email` or `--username` plus `EXPRESS_ADMIN_PASSWORD` instead of interactive input.
+
+**TypeORM:** there is no `createsuperuser` CLI for a `DataSource` yet. Insert the row as above (the [TypeORM example](/example/typeorm) does this in its seed).
 
 Open `/admin/login` after starting the server. Built-in auth creates a secure, `HttpOnly`, `SameSite=Lax` cookie scoped to your configured `basePath`. It does not create an application session. The login page and API routes use that same path automatically.
 
@@ -106,4 +136,4 @@ auth: {
 }
 ```
 
-External mode has no built-in login page because the external system owns the login flow.
+External mode has no built-in login page because the external system owns the login flow. You do not add `ExpressAdminUser` tables.

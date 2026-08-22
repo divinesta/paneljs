@@ -54,17 +54,18 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
       .getByRole("button")
       .click();
     await page.getByRole("button", { name: "Create record" }).click();
-    await expect(page.getByText(title)).toBeVisible();
+    await expect(page.locator("#field-title")).toHaveValue(title);
 
-    await page.getByRole("button", { name: "Go back" }).click();
+    await page.goto(`${environment.baseUrl}/posts`);
     await page.getByLabel("Search Post").fill(title);
     await page.getByLabel("Search Post").press("Enter");
     await page.locator("tbody tr").filter({ hasText: title }).click();
+    await expect(page.locator("#field-title")).toHaveValue(title);
     await page.locator("#field-title").fill(`${title} updated`);
     await page.getByRole("button", { name: "Save changes" }).click();
-    await expect(page.getByText(`${title} updated`)).toBeVisible();
+    await expect(page.locator("#field-title")).toHaveValue(`${title} updated`);
 
-    await page.getByRole("button", { name: "Go back" }).click();
+    await page.goto(`${environment.baseUrl}/posts`);
     await page.getByLabel("Select all records on this page").check();
     await page
       .getByRole("combobox", { name: "Choose an action" })
@@ -75,7 +76,11 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
       page.getByRole("status").filter({ hasText: "Published" }),
     ).toBeVisible();
 
-    await page.getByLabel(`Select ${title} updated`).check();
+    await page
+      .locator("tbody tr")
+      .filter({ hasText: `${title} updated` })
+      .getByRole("checkbox")
+      .check();
     await page
       .getByRole("combobox", { name: "Choose an action" })
       .selectOption("delete_selected");
@@ -96,7 +101,10 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
       .getByRole("combobox", { name: "Choose an action" })
       .selectOption("delete_selected");
     await page.getByRole("button", { name: "Delete selected" }).click();
-    await expect(page.getByText(/Cascade/i)).toBeVisible();
+    await expect(
+      page.getByText("Post: Notes on the Analytical Engine"),
+    ).toBeVisible();
+    await expect(page.getByText("Will be deleted").first()).toBeVisible();
     await page.getByRole("button", { name: "Confirm delete" }).click();
 
     await page.goto(`${environment.baseUrl}/posts`);

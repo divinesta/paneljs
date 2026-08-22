@@ -10,165 +10,199 @@ const port = Number(process.env.PORT ?? 3000);
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-   throw new Error("DATABASE_URL is required to start the example host.");
+  throw new Error("DATABASE_URL is required to start the example host.");
 }
 
 const prisma = new PrismaClient({
-   adapter: new PrismaPg({ connectionString: databaseUrl }),
+  adapter: new PrismaPg({ connectionString: databaseUrl }),
 });
 const app = express();
-const schemaPath = fileURLToPath(new URL("./prisma/schema.prisma", import.meta.url));
-
+const schemaPath = fileURLToPath(
+  new URL("./prisma/schema.prisma", import.meta.url),
+);
 
 const admin = createAdmin({
-   adapter: prismaAdapter({ prisma, schemaPath }),
-   siteName: "PanelJS",
-   auth: {
-      mode: "built-in",
-      identifier: "email",
-      secureCookies: process.env.PANELJS_SECURE_COOKIES === "true",
-   },
-   audit: {
-      write: async (event) => {
-         await prisma.adminAuditLog.create({
-            data: {
-               eventType: event.type,
-               modelName: event.modelName,
-               recordIds: event.recordIds.map(String),
-               actorId: event.actor.id,
-               actorEmail: event.actor.email,
-               actorRole: event.actor.role,
-               metadata: event.metadata,
-               createdAt: event.timestamp,
-            },
-         });
-      },
-   },
+  adapter: prismaAdapter({ prisma, schemaPath }),
+  siteName: "PanelJS",
+  auth: {
+    mode: "built-in",
+    identifier: "email",
+    secureCookies: process.env.PANELJS_SECURE_COOKIES === "true",
+  },
+  audit: {
+    write: async (event) => {
+      await prisma.adminAuditLog.create({
+        data: {
+          eventType: event.type,
+          modelName: event.modelName,
+          recordIds: event.recordIds.map(String),
+          actorId: event.actor.id,
+          actorEmail: event.actor.email,
+          actorRole: event.actor.role,
+          metadata: event.metadata,
+          createdAt: event.timestamp,
+        },
+      });
+    },
+  },
 });
 
+admin.register("Tenant", {
+  listDisplay: ["name", "createdAt"],
+  searchFields: ["name"],
+  permissions: {
+    list: ["SUPER_ADMIN"],
+    view: ["SUPER_ADMIN"],
+    create: ["SUPER_ADMIN"],
+    update: ["SUPER_ADMIN"],
+    delete: ["SUPER_ADMIN"],
+  },
+});
 
 admin.register("User", {
-   listDisplay: ["email", "fullName", "role", "isActive"],
-   listFilter: ["role", "isActive"],
-   searchFields: ["email", "fullName"],
-   permissions: {
-      list: ["SUPER_ADMIN", "ADMIN"],
-      view: ["SUPER_ADMIN", "ADMIN"],
-      create: ["SUPER_ADMIN", "ADMIN"],
-      update: ["SUPER_ADMIN", "ADMIN"],
-      delete: ["SUPER_ADMIN"],
-   },
-   fields: {
-      role: { writeRoles: ["SUPER_ADMIN"] },
-      isActive: { writeRoles: ["SUPER_ADMIN"] },
-   },
-   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
+  listDisplay: ["email", "fullName", "role", "isActive"],
+  listFilter: ["role", "isActive"],
+  searchFields: ["email", "fullName"],
+  permissions: {
+    list: ["SUPER_ADMIN", "ADMIN"],
+    view: ["SUPER_ADMIN", "ADMIN"],
+    create: ["SUPER_ADMIN", "ADMIN"],
+    update: ["SUPER_ADMIN", "ADMIN"],
+    delete: ["SUPER_ADMIN"],
+  },
+  fields: {
+    role: { writeRoles: ["SUPER_ADMIN"] },
+    isActive: { writeRoles: ["SUPER_ADMIN"] },
+  },
+  scope: async (adminUser) =>
+    adminUser.isSuperAdmin
+      ? {}
+      : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
 });
 
 admin.register("Post", {
-   listDisplay: ["title", "author", "published", "createdAt"],
-   listFilter: ["published", "createdAt"],
-   searchFields: ["title", "content"],
-   permissions: {
-      list: ["SUPER_ADMIN", "ADMIN"],
-      view: ["SUPER_ADMIN", "ADMIN"],
-      create: ["SUPER_ADMIN", "ADMIN"],
-      update: ["SUPER_ADMIN", "ADMIN"],
-      delete: ["SUPER_ADMIN"],
-      actions: {
-         publish_selected: ["SUPER_ADMIN", "ADMIN"],
-         unpublish_selected: ["SUPER_ADMIN", "ADMIN"],
+  listDisplay: ["title", "author", "published", "createdAt"],
+  listFilter: ["published", "createdAt"],
+  searchFields: ["title", "content"],
+  permissions: {
+    list: ["SUPER_ADMIN", "ADMIN"],
+    view: ["SUPER_ADMIN", "ADMIN"],
+    create: ["SUPER_ADMIN", "ADMIN"],
+    update: ["SUPER_ADMIN", "ADMIN"],
+    delete: ["SUPER_ADMIN"],
+    actions: {
+      publish_selected: ["SUPER_ADMIN", "ADMIN"],
+      unpublish_selected: ["SUPER_ADMIN", "ADMIN"],
+    },
+  },
+  scope: async (adminUser) =>
+    adminUser.isSuperAdmin
+      ? {}
+      : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
+  actions: [
+    {
+      name: "publish_selected",
+      label: "Publish selected posts",
+      allowedRoles: ["SUPER_ADMIN", "ADMIN"],
+      handler: async ({ client, ids, where }) => {
+        const result = await (client as PrismaClient).post.updateMany({
+          where: { AND: [where.scope, { id: { in: ids } }] },
+          data: { published: true },
+        });
+        return {
+          message: `Published ${result.count} ${result.count === 1 ? "post" : "posts"}.`,
+        };
       },
-   },
-   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
-   actions: [
-      {
-         name: "publish_selected",
-         label: "Publish selected posts",
-         allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-         handler: async ({ client, ids, where }) => {
-            const result = await (client as PrismaClient).post.updateMany({
-               where: { AND: [where.scope, { id: { in: ids } }] },
-               data: { published: true },
-            });
-            return {
-               message: `Published ${result.count} ${result.count === 1 ? "post" : "posts"}.`,
-            };
-         },
+    },
+    {
+      name: "unpublish_selected",
+      label: "Move selected posts to draft",
+      allowedRoles: ["SUPER_ADMIN", "ADMIN"],
+      handler: async ({ client, ids, where }) => {
+        const result = await (client as PrismaClient).post.updateMany({
+          where: { AND: [where.scope, { id: { in: ids } }] },
+          data: { published: false },
+        });
+        return {
+          message: `Moved ${result.count} ${result.count === 1 ? "post" : "posts"} to draft.`,
+        };
       },
-      {
-         name: "unpublish_selected",
-         label: "Move selected posts to draft",
-         allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-         handler: async ({ client, ids, where }) => {
-            const result = await (client as PrismaClient).post.updateMany({
-               where: { AND: [where.scope, { id: { in: ids } }] },
-               data: { published: false },
-            });
-            return {
-               message: `Moved ${result.count} ${result.count === 1 ? "post" : "posts"} to draft.`,
-            };
-         },
-      },
-   ],
+    },
+  ],
 });
 
-const tenantScope = async (adminUser: { isSuperAdmin: boolean; tenantId?: string }) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" });
+const tenantScope = async (adminUser: {
+  isSuperAdmin: boolean;
+  tenantId?: string;
+}) =>
+  adminUser.isSuperAdmin
+    ? {}
+    : { tenantId: adminUser.tenantId ?? "__no_tenant__" };
 const editorPermissions = {
-   list: ["SUPER_ADMIN", "ADMIN"],
-   view: ["SUPER_ADMIN", "ADMIN"],
-   create: ["SUPER_ADMIN", "ADMIN"],
-   update: ["SUPER_ADMIN", "ADMIN"],
-   delete: ["SUPER_ADMIN"],
+  list: ["SUPER_ADMIN", "ADMIN"],
+  view: ["SUPER_ADMIN", "ADMIN"],
+  create: ["SUPER_ADMIN", "ADMIN"],
+  update: ["SUPER_ADMIN", "ADMIN"],
+  delete: ["SUPER_ADMIN"],
 };
 
 admin.register("Customer", {
-   listDisplay: ["email", "fullName", "company", "isActive", "createdAt"],
-   listFilter: ["isActive", "createdAt"],
-   searchFields: ["email", "fullName", "company"],
-   permissions: editorPermissions,
-   scope: tenantScope,
+  listDisplay: ["email", "fullName", "company", "isActive", "createdAt"],
+  listFilter: ["isActive", "createdAt"],
+  searchFields: ["email", "fullName", "company"],
+  permissions: editorPermissions,
+  scope: tenantScope,
 });
 
 admin.register("Category", {
-   listDisplay: ["name", "description", "createdAt"],
-   searchFields: ["name", "description"],
-   permissions: editorPermissions,
-   scope: tenantScope,
+  listDisplay: ["name", "description", "createdAt"],
+  searchFields: ["name", "description"],
+  permissions: editorPermissions,
+  scope: tenantScope,
 });
 
 admin.register("Product", {
-   listDisplay: ["sku", "name", "category", "price", "stock", "status"],
-   listFilter: ["status", "createdAt"],
-   searchFields: ["sku", "name", "description"],
-   permissions: editorPermissions,
-   scope: tenantScope,
+  listDisplay: ["sku", "name", "category", "price", "stock", "status"],
+  listFilter: ["status", "createdAt"],
+  searchFields: ["sku", "name", "description"],
+  permissions: editorPermissions,
+  scope: tenantScope,
 });
 
 admin.register("Order", {
-   listDisplay: ["reference", "customer", "owner", "status", "total", "placedAt"],
-   listFilter: ["status", "placedAt"],
-   searchFields: ["reference"],
-   permissions: editorPermissions,
-   scope: tenantScope,
+  listDisplay: [
+    "reference",
+    "customer",
+    "owner",
+    "status",
+    "total",
+    "placedAt",
+  ],
+  listFilter: ["status", "placedAt"],
+  searchFields: ["reference"],
+  permissions: editorPermissions,
+  scope: tenantScope,
 });
 
 admin.register("OrderItem", {
-   listDisplay: ["order", "product", "quantity", "unitPrice", "createdAt"],
-   searchFields: [],
-   permissions: editorPermissions,
-   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { order: { tenantId: adminUser.tenantId ?? "__no_tenant__" } }),
+  listDisplay: ["order", "product", "quantity", "unitPrice", "createdAt"],
+  searchFields: [],
+  permissions: editorPermissions,
+  scope: async (adminUser) =>
+    adminUser.isSuperAdmin
+      ? {}
+      : { order: { tenantId: adminUser.tenantId ?? "__no_tenant__" } },
 });
 
 await mount(app, admin);
 
 const server = app.listen(port, () => {
-   console.log(`[paneljs] Example running at http://localhost:${port}/admin`);
+  console.log(`[paneljs] Example running at http://localhost:${port}/admin`);
 });
 
 const shutdown = async () => {
-   server.close();
-   await prisma.$disconnect();
+  server.close();
+  await prisma.$disconnect();
 };
 
 process.once("SIGINT", () => void shutdown());

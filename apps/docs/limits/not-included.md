@@ -21,9 +21,9 @@ You can set a `belongsTo` foreign key. That is the full relation write model.
 
 ## Schema
 
-- Composite primary keys (`@@id([a, b])`) — skipped
-- Models with no `@id` (views) — skipped
-- `prisma.$queryRaw` / unmapped SQL — not introspected
+- Composite primary keys (Prisma `@@id([a, b])`, TypeORM composite primary columns) — skipped
+- Models with no id (Prisma views, entities without a primary column) — skipped
+- Raw SQL / unmapped tables — not introspected
 
 ## Operations
 
@@ -33,7 +33,8 @@ You can set a `belongsTo` foreign key. That is the full relation write model.
 
 ## Deploy
 
-- The Prisma schema file must ship with the app (or you pass `schemaPath`)
+- Prisma: the `schema.prisma` file must ship with the app (or you pass `schemaPath`)
+- TypeORM: the `DataSource` must be initialized before `typeormAdapter`
 - The UI is the pre-built bundle inside the package. You do not run a React build in the consumer app
 
 If you need something on this list, it is not a missing config key. It is not built.

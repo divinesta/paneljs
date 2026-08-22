@@ -1,6 +1,6 @@
 # Lifecycle hooks
 
-Hooks run on the server inside the request, after validation (and after create-scope is applied), around the Prisma call.
+Hooks run on the server inside the request, after validation (and after create-scope is applied), around the adapter write.
 
 ```ts
 admin.register("User", {
@@ -46,7 +46,7 @@ Thrown errors become `500 INTERNAL_ERROR` unless you throw an `AdminApiError`. D
 1. Auth, permission, validate payload
 2. Apply simple `scope` equalities
 3. `beforeCreate`
-4. Prisma `create`
+4. Adapter `create`
 5. `afterCreate`
 6. `audit.write` if configured
 

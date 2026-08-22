@@ -57,7 +57,7 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
   }) => {
     await login(page, tenantAdmin);
     await expect(
-      page.getByRole("link", { name: "Post", exact: true }),
+      page.locator(".model-card", { hasText: "Post" }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "ExpressAdminUser" }),
@@ -74,17 +74,19 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     await login(page);
     await page.goto(`${environment.baseUrl}/posts`);
     await expect(
-      page.getByText("40 records available to your account."),
+      page.getByText("120 records available to your account."),
     ).toBeVisible();
     await expect(
       page.getByRole("columnheader", { name: /Title/ }),
     ).toBeVisible();
-    await expect(page.getByText("Ada Lovelace").first()).toBeVisible();
 
     const search = page.getByLabel("Search Post");
-    await search.fill("Quarterly update 1");
+    await search.fill("seeded post 16 for Northwind.");
     await search.press("Enter");
-    await expect(page.getByText("Quarterly update 1").first()).toBeVisible();
+    await expect(page.getByText("Quarterly update 16")).toBeVisible();
+    await expect(
+      page.getByText("frances-allen.northwind@example.test"),
+    ).toBeVisible();
     await expect(page.getByText("Showing 1–1 of 1")).toBeVisible();
 
     await page.getByRole("button", { name: "Reset" }).click();
@@ -94,7 +96,7 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
       .locator("select");
     await publishedFilter.selectOption("false");
     await expect(
-      page.getByText("10 records available to your account."),
+      page.getByText("30 records available to your account."),
     ).toBeVisible();
     await page.getByRole("button", { name: "Reset" }).click();
 
@@ -103,7 +105,7 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
       page.getByRole("columnheader", { name: /Title/ }),
     ).toHaveAttribute("aria-sort", "ascending");
     await page.getByRole("button", { name: "Next page" }).click();
-    await expect(page.getByText("Page 2 of 2")).toBeVisible();
+    await expect(page.getByText("Page 2 of 3")).toBeVisible();
 
     await search.fill("this text has no seeded match");
     await search.press("Enter");
@@ -119,14 +121,14 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     await page.goto(`${environment.baseUrl}/posts/new`);
     const title = `Browser-created post ${Date.now()}`;
     await page.locator("#field-title").fill(title);
+    await page.locator("#field-tenantId").fill("example-tenant-northwind");
     await page.getByRole("button", { name: "Create record" }).click();
-    await expect(page.getByText("Author is required.")).toBeVisible();
+    await expect(page.getByText("Author Id is required.")).toBeVisible();
     await expect(page.locator("#field-title")).toHaveValue(title);
 
     await page
       .locator("#field-content")
       .fill("Created by the canonical browser suite.");
-    await page.locator("#field-tenantId").fill("example-tenant-northwind");
     const authorSearch = page.getByPlaceholder("Search users by email");
     await authorSearch.fill("ada");
     await page
@@ -134,20 +136,21 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
       .getByRole("button")
       .click();
     await page.getByRole("button", { name: "Create record" }).click();
-    await expect(page.getByRole("heading", { name: "Post" })).toBeVisible();
-    await expect(page.getByText(title)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Post", exact: true }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/admin\/posts\/[^/]+$/);
+    await expect(page.locator("#field-title")).toHaveValue(title);
     await expect(page.locator("#field-id")).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Go back" }).click();
-    await page.getByLabel("Search Post").fill(title);
-    await page.getByLabel("Search Post").press("Enter");
-    await page.locator("tbody tr").filter({ hasText: title }).click();
+    await page.goto(`${page.url()}/edit`);
     await expect(
       page.getByRole("heading", { name: "Edit Post" }),
     ).toBeVisible();
+    await expect(page.locator("#field-title")).toHaveValue(title);
     await page.locator("#field-title").fill(`${title} updated`);
     await page.getByRole("button", { name: "Save changes" }).click();
-    await expect(page.getByText(`${title} updated`)).toBeVisible();
+    await expect(page.locator("#field-title")).toHaveValue(`${title} updated`);
   });
 
   test("UI-014/UI-017/UI-021 hides disallowed write and delete routes for an administrator", async ({
@@ -172,7 +175,7 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     await login(page);
     await page.goto(`${environment.baseUrl}/posts`);
     await page.getByLabel("Select all records on this page").check();
-    await expect(page.getByText("25 selected")).toBeVisible();
+    await expect(page.getByText("50 selected")).toBeVisible();
 
     await page
       .getByRole("combobox", { name: "Choose an action" })
@@ -180,9 +183,11 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Run action" }).click();
     await expect(
-      page.getByRole("status").filter({ hasText: "Published 25 posts." }),
+      page.getByRole("status").filter({ hasText: "Published 50 posts." }),
     ).toBeVisible();
 
+    await page.getByLabel("Search Post").fill("seeded post 1 for Northwind.");
+    await page.getByLabel("Search Post").press("Enter");
     await page.getByLabel("Select example-post-1-1").check();
     await page
       .getByRole("combobox", { name: "Choose an action" })
@@ -200,10 +205,12 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
   }) => {
     await login(page);
     await page.goto(`${environment.baseUrl}/posts`);
-    await page.getByRole("button", { name: "Next page" }).click();
-    await page.goBack();
-    await expect(page.getByText("Page 1 of 2")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Post" })).toBeVisible();
     await page.goto(`${environment.baseUrl}/products`);
+    await expect(page.getByRole("heading", { name: "Product" })).toBeVisible();
+    await page.goBack();
+    await expect(page.getByRole("heading", { name: "Post" })).toBeVisible();
+    await page.goForward();
     await expect(page.getByRole("heading", { name: "Product" })).toBeVisible();
   });
 });

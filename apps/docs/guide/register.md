@@ -5,7 +5,7 @@ admin.register("User")
 admin.register("Post", { listDisplay: ["title", "author", "published"] })
 ```
 
-The first argument is the Prisma model name, **PascalCase, exact**. The second argument is optional. Every key on it is optional.
+The first argument is the model name in your ORM — Prisma model or TypeORM entity — **PascalCase, exact**. The second argument is optional. Every key on it is optional.
 
 `register` is synchronous. It stores intent. Validation and default-filling happen in `mount`.
 
@@ -56,15 +56,15 @@ Full table: [`register()` reference](/reference/register).
 
 These throw with the available names so a typo does not become a silent empty column:
 
-- Model does not exist in `schema.prisma`
+- Model does not exist in the adapter’s introspected models
 - `listDisplay` / `fields` / `displayField` names that are not on the model
 - `searchFields` that are not strings
 - `listFilter` fields that are not filterable
 - `register()` after `mount()`
 - `mount()` twice
 
-Composite primary keys (`@@id([a, b])`) and models with no `@id` are skipped with a warning. They cannot be registered in this release.
+Composite primary keys (Prisma `@@id([a, b])`, TypeORM composite primary columns) and models with no id are skipped with a warning. They cannot be registered in this release.
 
 ## Only registered models appear
 
-A model in the schema is invisible to the admin until you `register` it. The [basic example](/example/basic) has `Tenant` and `AdminAuditLog` in Prisma and never registers them — so they never show in the sidebar.
+A model in the schema is invisible to the admin until you `register` it. The [Prisma example](/example/basic) has `Tenant` and `AdminAuditLog` in the schema and never registers them — so they never show in the sidebar.

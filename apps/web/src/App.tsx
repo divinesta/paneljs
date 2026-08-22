@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 
-const docsStart = "/docs/guide/getting-started";
+const docsStart = "/docs/guide/installation";
 const github = "https://github.com/divinesta/paneljs";
 const sponsor = "https://github.com/sponsors/divinesta";
 const installSource = `import express from "express";
@@ -292,10 +292,10 @@ export default function App() {
                   <div className="feature-intro reveal">
                      <h2>Built from the schema. Guarded by your auth.</h2>
                      <p>
-                        You register models. At mount, PanelJS introspects <code>schema.prisma</code> and serves a React admin at <code>/admin</code> plus a JSON API at <code>/admin/api/*</code>.
+                        You register models. At mount, PanelJS introspects your Prisma schema or TypeORM entities and serves a React admin at <code>/admin</code> plus a JSON API at <code>/admin/api/*</code>.
                      </p>
                      <p>
-                        Learn how to <a href="/docs/guide/getting-started">get started</a>, <a href="/docs/guide/register">register models</a>, and configure{" "}
+                        Learn how to <a href="/docs/guide/installation">get started</a>, <a href="/docs/guide/register">register models</a>, and configure{" "}
                         <a href="/docs/guide/auth">authentication</a>.
                      </p>
                   </div>

@@ -4,13 +4,13 @@ Two clocks. Almost every surprise in this library is mixing them up.
 
 ## Mount time
 
-`await admin.mount(app)` is async because this is when the schema is read.
+`await mount(app, admin)` is async because this is when the schema is read.
 
-1. `register("User")` only stored intent. It did not talk to Prisma.
-2. `mount` calls `getDMMF()` from `@prisma/internals` on your `schema.prisma`.
+1. `register("User")` only stored intent. It did not talk to the database.
+2. `mount` calls `adapter.introspect()`. Prisma compiles `schema.prisma` (DMMF). TypeORM reads live `entityMetadatas` from an initialized `DataSource`.
 3. Every registered name is checked against the real models.
 4. Field overrides, `listDisplay`, and `searchFields` are validated.
-5. Missing config is filled from the schema (display field, columns, filters).
+5. Missing config is filled from that metadata (display field, columns, filters).
 6. Express gets a router at `basePath` (default `/admin`):
    - `GET /admin/api/schema`
    - CRUD and actions under `/admin/api/:model`
@@ -46,10 +46,10 @@ getCurrentUser → permission → scope → validate → adapter.resource() → 
 | Permission | May this role list / view / create / update / delete / run the action? |
 | `scope()` | Which rows? Combined with the id so guessing another tenant's id is 404 |
 | Validate | Only known, visible, writable fields. No nested writes. |
-| Adapter | PanelJS list/get/create/update/delete. Prisma translates that into `prisma.user.findMany` and friends. |
+| Adapter | PanelJS list/get/create/update/delete. Prisma or TypeORM translates that into `findMany` / `save` / … |
 | `audit.write` | Optional. After success only. No field values. |
 
-The UI never talks to Prisma. It fetches `/admin/api/schema` once and renders lists and forms from that JSON.
+The UI never talks to the ORM. It fetches `/admin/api/schema` once and renders lists and forms from that JSON.
 
 ## Why `/admin/posts/123` still works
 
@@ -65,7 +65,7 @@ It is behind the same auth middleware as CRUD. It exposes field names, enums, an
 
 After mount, each model is a `FullRegisteredModel`:
 
-- `meta` — from DMMF (`User`, `users`, `prisma.user`, fields)
+- `meta` — from the adapter (`User`, `users`, fields, id)
 - `resolved` — defaults filled in (`listDisplay`, `perPage`, …)
 - `raw` — your functions (`scope`, hooks, actions). Functions are not sent to the browser.
 

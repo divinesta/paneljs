@@ -36,7 +36,7 @@ Not accepted:
 { "tags": { "set": [] } }
 ```
 
-Those are Prisma write shapes. The admin rejects them as unknown or relation writes.
+Those are nested ORM write shapes (Prisma `connect` / `create` / `set`, and the TypeORM equivalents). The admin rejects them as unknown or relation writes.
 
 ## Self-referential models
 

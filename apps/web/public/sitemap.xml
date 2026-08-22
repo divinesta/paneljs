@@ -3,6 +3,10 @@
   <url><loc>https://www.paneljs.com/</loc></url>
   <url><loc>https://www.paneljs.com/docs/</loc></url>
   <url><loc>https://www.paneljs.com/docs/guide/what-this-is</loc></url>
+  <url><loc>https://www.paneljs.com/docs/guide/installation</loc></url>
+  <url><loc>https://www.paneljs.com/docs/guide/installation/express</loc></url>
+  <url><loc>https://www.paneljs.com/docs/guide/installation/express/prisma</loc></url>
+  <url><loc>https://www.paneljs.com/docs/guide/installation/express/typeorm</loc></url>
   <url><loc>https://www.paneljs.com/docs/guide/getting-started</loc></url>
   <url><loc>https://www.paneljs.com/docs/guide/in-your-app</loc></url>
   <url><loc>https://www.paneljs.com/docs/guide/how-it-works</loc></url>
@@ -19,6 +23,10 @@
   <url><loc>https://www.paneljs.com/docs/guide/actions</loc></url>
   <url><loc>https://www.paneljs.com/docs/guide/audit</loc></url>
   <url><loc>https://www.paneljs.com/docs/example/basic</loc></url>
+  <url><loc>https://www.paneljs.com/docs/example/typeorm</loc></url>
+  <url><loc>https://www.paneljs.com/docs/adapters/prisma</loc></url>
+  <url><loc>https://www.paneljs.com/docs/adapters/typeorm</loc></url>
+  <url><loc>https://www.paneljs.com/docs/frameworks/express</loc></url>
   <url><loc>https://www.paneljs.com/docs/reference/create-admin</loc></url>
   <url><loc>https://www.paneljs.com/docs/reference/register</loc></url>
   <url><loc>https://www.paneljs.com/docs/reference/admin-user</loc></url>
@@ -26,4 +34,5 @@
   <url><loc>https://www.paneljs.com/docs/reference/errors</loc></url>
   <url><loc>https://www.paneljs.com/docs/limits/not-included</loc></url>
   <url><loc>https://www.paneljs.com/docs/limits/prisma</loc></url>
+  <url><loc>https://www.paneljs.com/docs/limits/typeorm</loc></url>
 </urlset>
