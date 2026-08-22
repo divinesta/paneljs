@@ -1,0 +1,36 @@
+name: Release gate
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prettier --check "**/*.{ts,tsx,md,css,yml,yaml}"
+      - run: pnpm check-types
+      - run: pnpm build
+      - run: pnpm test:all
+      - name: Verify publishable package contents
+        run: |
+          mkdir -p .artifacts
+          pnpm --filter paneljs pack --pack-destination ../../.artifacts
+          pnpm --filter @paneljs/prisma pack --pack-destination ../../.artifacts
+          pnpm --filter @paneljs/typeorm pack --pack-destination ../../.artifacts
+          pnpm --filter @paneljs/express pack --pack-destination ../../.artifacts
+          test "$(find .artifacts -name '*.tgz' | wc -l)" -eq 4

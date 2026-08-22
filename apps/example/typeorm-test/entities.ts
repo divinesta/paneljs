@@ -63,6 +63,7 @@ export const Post = new EntitySchema<Record<string, unknown>>({
       target: "User",
       joinColumn: { name: "authorId" },
       inverseSide: "posts",
+      onDelete: "CASCADE",
     },
     tenant: {
       type: "many-to-one",

@@ -48,7 +48,7 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     await expect(
       page.getByRole("heading", { name: "Available models" }),
     ).toBeVisible();
-    await page.getByRole("link", { name: "Post", exact: true }).first().click();
+    await page.locator(".model-card", { hasText: "Post" }).click();
     await expect(page.getByRole("heading", { name: "Post" })).toBeVisible();
   });
 
