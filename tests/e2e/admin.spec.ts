@@ -121,7 +121,12 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     await page.goto(`${environment.baseUrl}/posts/new`);
     const title = `Browser-created post ${Date.now()}`;
     await page.locator("#field-title").fill(title);
-    await page.locator("#field-tenantId").fill("example-tenant-northwind");
+    const tenantSearch = page.getByPlaceholder("Search tenants by name");
+    await tenantSearch.fill("Northwind");
+    await page
+      .getByRole("option", { name: /Northwind/ })
+      .getByRole("button")
+      .click();
     await page.getByRole("button", { name: "Create record" }).click();
     await expect(page.getByText("Author Id is required.")).toBeVisible();
     await expect(page.locator("#field-title")).toHaveValue(title);
@@ -141,7 +146,7 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     ).toBeVisible();
     await expect(page).toHaveURL(/\/admin\/posts\/[^/]+$/);
     await expect(page.locator("#field-title")).toHaveValue(title);
-    await expect(page.locator("#field-id")).toHaveCount(0);
+    await expect(page.locator("#field-id")).not.toBeEditable();
 
     await page.goto(`${page.url()}/edit`);
     await expect(
@@ -165,7 +170,7 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     ).toHaveCount(0);
     await page.goto(`${environment.baseUrl}/posts/delete?ids=example-post-1-1`);
     await expect(
-      page.getByRole("heading", { name: "Page not found" }),
+      page.getByRole("heading", { name: "Model not found" }),
     ).toBeVisible();
   });
 
