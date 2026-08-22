@@ -11,7 +11,7 @@
     "test:unit": "turbo run test:unit",
     "test:transport": "turbo run test:transport",
     "test:integration": "turbo run test:integration",
-    "test:e2e": "playwright test --pass-with-no-tests",
+    "test:e2e": "pnpm build && playwright test",
     "test:all": "pnpm run test && pnpm run test:integration && pnpm run test:e2e",
     "example": "pnpm --filter @paneljs/example dev",
     "example:db:up": "docker compose up -d postgres"

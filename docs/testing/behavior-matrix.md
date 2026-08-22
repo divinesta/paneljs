@@ -401,6 +401,12 @@ The complete browser suite runs on the canonical Prisma + Express setup. Every
 additional ORM must run a smoke set containing `UI-003`, `UI-006`, `UI-015`,
 `UI-018`, `UI-022`, `UI-024`, and one referential-action flow.
 
+Run the canonical suite with `pnpm test:e2e`. It builds the published admin UI,
+then starts an isolated PostgreSQL container, seeds the Prisma example with
+deterministic browser users, and mounts the real Express application. In local
+environments without Playwright-managed browsers, set
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a system Chrome or Chromium executable.
+
 ## 13. Error and failure guarantees
 
 | ID        | Behavior                      | Expected result                                           | Owner             | Test    | Level    |
