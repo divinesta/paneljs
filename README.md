@@ -2,12 +2,12 @@
 
 A Django-style admin panel. One git repo, four packages:
 
-| Package             | npm name            | Role                                           |
-| ------------------- | ------------------- | ---------------------------------------------- |
-| `packages/paneljs`  | `paneljs`  | Core: registry, schema JSON, admin UI          |
-| `packages/express`  | `@paneljs/express`  | `mount(app, admin)`                            |
-| `packages/prisma`   | `@paneljs/prisma`   | `prismaAdapter()`, DMMF introspector           |
-| `packages/typeorm`  | `@paneljs/typeorm`  | `typeormAdapter()`                             |
+| Package            | npm name           | Role                                  |
+| ------------------ | ------------------ | ------------------------------------- |
+| `packages/paneljs` | `paneljs`          | Core: registry, schema JSON, admin UI |
+| `packages/express` | `@paneljs/express` | `mount(app, admin)`                   |
+| `packages/prisma`  | `@paneljs/prisma`  | `prismaAdapter()`, DMMF introspector  |
+| `packages/typeorm` | `@paneljs/typeorm` | `typeormAdapter()`                    |
 
 Apps:
 
@@ -15,6 +15,9 @@ Apps:
 - `apps/docs` — VitePress documentation
 - `apps/example` — Prisma + Express dogfood app
 - `apps/example-typeorm` — TypeORM + Express dogfood app
+
+Testing requirements and package ownership are defined in the
+[behavior matrix](./docs/testing/behavior-matrix.md).
 
 `EXPRESS-ADMIN` remains the published `prisma-express-admin` library until this repo is cut over.
 
