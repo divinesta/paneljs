@@ -49,10 +49,13 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "fixture:generate": "prisma generate --config test/fixture/prisma.config.ts",
+    "fixture:validate": "prisma validate --config test/fixture/prisma.config.ts",
     "lint": "echo \"@paneljs/prisma: no lint yet\"",
-    "check-types": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests",
-    "test:unit": "vitest run --passWithNoTests",
+    "check-types": "pnpm run fixture:generate && tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests --exclude 'test/integration/**'",
+    "test:unit": "vitest run --passWithNoTests --exclude 'test/integration/**'",
+    "test:integration": "pnpm run fixture:generate && vitest run test/integration --testTimeout 30000 --hookTimeout 120000",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
@@ -65,8 +68,13 @@
     "prisma": "~7.5.0"
   },
   "devDependencies": {
+    "@paneljs/testkit": "workspace:*",
+    "@prisma/adapter-pg": "~7.5.0",
     "@prisma/client": "~7.5.0",
+    "@testcontainers/postgresql": "^12.1.0",
     "@types/node": "^22.15.3",
+    "@types/pg": "^8.15.5",
+    "pg": "^8.16.3",
     "prisma": "~7.5.0",
     "typescript": "5.9.2"
   }

@@ -257,7 +257,9 @@ function introspectField(
     nativeType: field.type,
     isId: field.isId,
     isRequired: field.isRequired,
-    isUnique: field.isUnique,
+    // Prisma reports @id and @unique as separate flags. A primary key is
+    // inherently unique in PanelJS's normalized metadata contract.
+    isUnique: field.isUnique || field.isId,
     isReadOnly: readOnly,
     isList: field.isList,
     isFilterable: isFilterable(field),

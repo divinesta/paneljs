@@ -29,6 +29,7 @@ blob-report
 out/
 build
 dist
+packages/prisma/test/generated/
 
 
 # Debug

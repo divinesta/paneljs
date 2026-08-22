@@ -32,16 +32,31 @@ function rethrowWriteError(error: unknown): never {
   throw error;
 }
 
+function requireWriteTarget(query: {
+  id?: string | number;
+  ids?: Array<string | number>;
+}): void {
+  if (query.id === undefined && query.ids === undefined) {
+    throw new RequestValidationError(
+      "An id or ids selection is required for update and delete operations.",
+    );
+  }
+}
+
 export type PrismaDelegate = {
   findMany(args: Record<string, unknown>): Promise<Record<string, unknown>[]>;
-  findFirst(args: Record<string, unknown>): Promise<Record<string, unknown> | null>;
+  findFirst(
+    args: Record<string, unknown>,
+  ): Promise<Record<string, unknown> | null>;
   count(args: Record<string, unknown>): Promise<number>;
   create(args: Record<string, unknown>): Promise<Record<string, unknown>>;
   updateMany(args: Record<string, unknown>): Promise<{ count: number }>;
   deleteMany(args: Record<string, unknown>): Promise<{ count: number }>;
 };
 
-function toPrismaSelect(select: FieldSelect): Record<string, true | { select: Record<string, true> }> {
+function toPrismaSelect(
+  select: FieldSelect,
+): Record<string, true | { select: Record<string, true> }> {
   const result: Record<string, true | { select: Record<string, true> }> = {};
   for (const field of select.fields) result[field] = true;
   for (const relation of select.relations) {
@@ -121,10 +136,7 @@ export function prismaActionWhere(
   idField: string,
   where: ActionWhere,
 ): Record<string, unknown> {
-  return combineAnd([
-    where.scope,
-    { [idField]: { in: where.ids } },
-  ]);
+  return combineAnd([where.scope, { [idField]: { in: where.ids } }]);
 }
 
 export function prismaResource(
@@ -139,7 +151,8 @@ export function prismaResource(
         where: toPrismaWhere(meta, query, caseInsensitive),
         select: toPrismaSelect(query.select),
       };
-      if (query.sort) args.orderBy = { [query.sort.field]: query.sort.direction };
+      if (query.sort)
+        args.orderBy = { [query.sort.field]: query.sort.direction };
       if (query.skip !== undefined) args.skip = query.skip;
       if (query.take !== undefined) args.take = query.take;
       return delegate.findMany(args);
@@ -161,13 +174,15 @@ export function prismaResource(
         select: toPrismaSelect(query.select),
       });
     },
-    updateMany(query: UpdateManyQuery) {
-      return delegate.updateMany({
+    async updateMany(query: UpdateManyQuery) {
+      requireWriteTarget(query);
+      return await delegate.updateMany({
         where: toPrismaWhere(meta, query, caseInsensitive),
         data: query.data,
       });
     },
     async deleteMany(query: DeleteManyQuery) {
+      requireWriteTarget(query);
       try {
         return await delegate.deleteMany({
           where: toPrismaWhere(meta, query, caseInsensitive),

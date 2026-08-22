@@ -11,6 +11,21 @@ export type {
   ContractId,
 } from "./fixtures.js";
 
+export {
+  CONTRACT_SEED_TIME,
+  createAuthStoreSeed,
+  createContractSeedData,
+} from "./seed.js";
+export type {
+  AuthIdentifier,
+  ContractChildSeed,
+  ContractPostSeed,
+  ContractSeedData,
+  ContractTenantSeed,
+  ContractUserSeed,
+  ReferentialContractSeed,
+} from "./seed.js";
+
 export { defineAdapterContract } from "./adapterContract.js";
 export type {
   AdapterContractEnvironment,

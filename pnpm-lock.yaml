@@ -227,12 +227,27 @@ importers:
         specifier: workspace:^
         version: link:../paneljs
     devDependencies:
+      '@paneljs/testkit':
+        specifier: workspace:*
+        version: link:../testkit
+      '@prisma/adapter-pg':
+        specifier: ~7.5.0
+        version: 7.5.0
       '@prisma/client':
         specifier: ~7.5.0
         version: 7.5.0(prisma@7.5.0(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.2))(typescript@5.9.2)
+      '@testcontainers/postgresql':
+        specifier: ^12.1.0
+        version: 12.1.0
       '@types/node':
         specifier: ^22.15.3
         version: 22.20.1
+      '@types/pg':
+        specifier: ^8.15.5
+        version: 8.23.1
+      pg:
+        specifier: ^8.16.3
+        version: 8.23.0
       prisma:
         specifier: ~7.5.0
         version: 7.5.0(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.2)
