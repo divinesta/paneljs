@@ -370,6 +370,22 @@ html[data-theme="light"] .theme-icon-moon {
   min-height: 40px;
 }
 
+.btn-github {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  color: var(--muted);
+  transition: color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+
+.btn-github:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 .btn-sponsor {
   color: var(--accent);
   min-width: 40px;
@@ -883,6 +899,136 @@ html[data-theme="light"] .stack-token img {
 .tok-s { color: var(--tok-string); }
 .tok-n { color: var(--tok-number); }
 
+.blog-page {
+  padding: calc(var(--header) + 4rem) 0 5rem;
+}
+
+.blog-wrap {
+  max-width: 42rem;
+}
+
+.blog-wrap h1 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.blog-back {
+  margin-bottom: 1.2rem;
+}
+
+.blog-back a,
+.blog-wrap time {
+  color: var(--faint);
+  font-size: 0.88rem;
+}
+
+.blog-wrap time {
+  display: block;
+  font-family: "DM Mono", ui-monospace, monospace;
+  margin-bottom: 0.7rem;
+}
+
+.blog-empty,
+.blog-list {
+  margin-top: 2rem;
+}
+
+.blog-list {
+  list-style: none;
+  display: grid;
+  gap: 0;
+}
+
+.blog-list li {
+  border-top: 1px solid var(--line);
+}
+
+.blog-list a {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.4rem 0;
+}
+
+.blog-cover,
+.blog-hero,
+.post-body img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.blog-cover {
+  margin-bottom: 0.55rem;
+}
+
+.blog-hero {
+  margin: 1.6rem 0 0;
+}
+
+.blog-list strong {
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
+}
+
+.blog-list span {
+  color: var(--muted);
+}
+
+.post-body {
+  margin-top: 2rem;
+  color: var(--text);
+}
+
+.post-body > * + * {
+  margin-top: 1rem;
+}
+
+.post-body h2,
+.post-body h3 {
+  margin-top: 2rem;
+  letter-spacing: -0.03em;
+}
+
+.post-body a {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.post-body pre {
+  overflow-x: auto;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--code-bg);
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.post-body code {
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 0.86em;
+}
+
+.post-body pre code {
+  font-size: inherit;
+}
+
+.post-body ul,
+.post-body ol {
+  padding-left: 1.2rem;
+  color: var(--muted);
+}
+
+.post-body p {
+  color: var(--muted);
+  max-width: 65ch;
+}
+
 .close {
   padding: 6rem 0 5rem;
   text-align: center;
@@ -955,7 +1101,8 @@ html[data-theme="light"] .stack-token img {
   .header-nav a:hover,
   .footer-links a:hover,
   .btn-ghost:hover,
-  .btn-sponsor:hover {
+  .btn-sponsor:hover,
+  .btn-github:hover {
     color: var(--text);
   }
 
@@ -974,12 +1121,6 @@ html[data-theme="light"] .stack-token img {
   .theme-toggle:hover,
   .code-tabs button:hover {
     color: var(--text);
-  }
-}
-
-@media (max-width: 479px) {
-  .btn-github {
-    display: none;
   }
 }
 

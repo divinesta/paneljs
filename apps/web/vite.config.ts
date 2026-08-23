@@ -23,6 +23,12 @@ function docsMiddleware(): Plugin {
     configureServer(server: ViteDevServer) {
       server.middlewares.use((req, res, next) => {
         const url = req.url?.split("?")[0] ?? "/";
+        if (url === "/blog" || url.startsWith("/blog/")) {
+          req.url = "/";
+          next();
+          return;
+        }
+
         if (url !== "/docs" && !url.startsWith("/docs/")) {
           next();
           return;
