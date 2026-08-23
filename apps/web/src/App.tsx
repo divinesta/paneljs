@@ -4,7 +4,19 @@ import { Heart } from "lucide-react";
 const docsStart = "/docs/guide/installation";
 const github = "https://github.com/divinesta/paneljs";
 const sponsor = "https://github.com/sponsors/divinesta";
-const installSource = `import express from "express";
+
+const packageManagers = [
+   { id: "pnpm", label: "pnpm", command: "pnpm dlx paneljs@latest init" },
+   { id: "npm", label: "npm", command: "npx paneljs@latest init" },
+   { id: "yarn", label: "yarn", command: "yarn dlx paneljs@latest init" },
+   { id: "bun", label: "bun", command: "bunx paneljs@latest init" },
+] as const;
+
+type PackageManagerId = (typeof packageManagers)[number]["id"];
+type AdapterId = "prisma" | "typeorm";
+
+const snippets: Record<AdapterId, string> = {
+   prisma: `import express from "express";
 import { createAdmin } from "paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
 import { mount } from "@paneljs/express";
@@ -22,7 +34,29 @@ admin
   .register("Post", { listDisplay: ["title", "published"] });
 
 await mount(app, admin);
-app.listen(3000);`;
+app.listen(3000);`,
+   typeorm: `import express from "express";
+import { createAdmin } from "paneljs";
+import { typeormAdapter } from "@paneljs/typeorm";
+import { mount } from "@paneljs/express";
+import { dataSource } from "./data-source.js";
+
+await dataSource.initialize();
+
+const app = express();
+
+const admin = createAdmin({
+  adapter: typeormAdapter({ dataSource }),
+  auth: { getCurrentUser },
+});
+
+admin
+  .register("User")
+  .register("Post", { listDisplay: ["title", "published"] });
+
+await mount(app, admin);
+app.listen(3000);`,
+};
 
 const slides = [
    {
@@ -59,7 +93,9 @@ export default function App() {
    const [theme, setTheme] = useState<"dark" | "light">(readTheme);
    const [index, setIndex] = useState(0);
    const [playing, setPlaying] = useState(() => typeof window === "undefined" || !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-   const [copied, setCopied] = useState(false);
+   const [copied, setCopied] = useState<"cli" | "snippet" | null>(null);
+   const [manager, setManager] = useState<PackageManagerId>("pnpm");
+   const [adapter, setAdapter] = useState<AdapterId>("prisma");
    const [scrolled, setScrolled] = useState(false);
 
    useEffect(() => {
@@ -110,14 +146,17 @@ export default function App() {
    const slide = slides[index] ?? slides[0]!;
    const src = theme === "light" ? slide.light : slide.dark;
 
-   const copy = async () => {
+   const selectedManager = packageManagers.find((item) => item.id === manager) ?? packageManagers[0];
+   const installSource = snippets[adapter];
+
+   const copy = async (key: "cli" | "snippet", value: string) => {
       try {
-         await navigator.clipboard.writeText(installSource);
+         await navigator.clipboard.writeText(value);
       } catch {
          /* ignore */
       }
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
+      setCopied(key);
+      window.setTimeout(() => setCopied(null), 1800);
    };
 
    return (
@@ -167,8 +206,8 @@ export default function App() {
                   <span className="stack-token stack-token-prisma">
                      <img src="/images/prisma.svg" width={46} height={46} alt="" />
                   </span>
-                  <span className="stack-token stack-token-postgres">
-                     <img src="/images/postgresql.svg" width={46} height={46} alt="" />
+                  <span className="stack-token stack-token-typeorm">
+                     <img src="/images/typeorm.svg" width={46} height={46} alt="" />
                   </span>
                   <span className="stack-token stack-token-typescript">
                      <img src="/images/typescript.svg" width={46} height={46} alt="" />
@@ -181,7 +220,7 @@ export default function App() {
                      <br />
                      for JavaScript ORMs.
                   </h1>
-                  <p className="hero-sub">Register models, keep your auth, and give operators a guarded UI and API from the schema your app already trusts.</p>
+                  <p className="hero-sub">Register models, keep your auth, and get a guarded admin from the schema you already have.</p>
                   <div className="hero-ctas">
                      <a href={docsStart} className="btn btn-primary btn-lg">
                         See Docs
@@ -249,7 +288,7 @@ export default function App() {
             <section className="stack-section" aria-label="Works with your stack">
                <div className="container">
                   <h2>It mounts on the stack you already run.</h2>
-                  <p className="lede">PanelJS does not replace your app. You keep Express, Prisma, and your auth. The packages read the schema and serve the panel.</p>
+                  <p className="lede">PanelJS does not replace your app. You keep the HTTP server, the ORM, and your auth. The packages read the schema and serve the panel.</p>
 
                   <ul className="stack-row">
                      <li>
@@ -261,6 +300,11 @@ export default function App() {
                         <img src="/images/prisma.svg" alt="" width={28} height={28} />
                         <strong>Prisma</strong>
                         <span>schema.prisma</span>
+                     </li>
+                     <li>
+                        <img src="/images/typeorm.svg" alt="" width={28} height={28} />
+                        <strong>TypeORM</strong>
+                        <span>DataSource</span>
                      </li>
                      <li>
                         <img src="/images/postgresql.svg" alt="" width={28} height={28} />
@@ -307,9 +351,9 @@ export default function App() {
                         </p>
                      </li>
                      <li className="reveal">
-                        <h3>Your identity adapter</h3>
+                        <h3>Built-in or your own auth</h3>
                         <p>
-                           There is no bundled login screen. If <code>getCurrentUser</code> returns null, the API is 401. Wire it to the session you already have.
+                           Use the admin-only login, or map an existing session onto <code>getCurrentUser</code>. If that returns null, the API is 401.
                         </p>
                      </li>
                      <li className="reveal">
@@ -335,7 +379,7 @@ export default function App() {
                      <li className="reveal">
                         <span>createAdmin</span>
                         <p>
-                           Pass a Prisma adapter and a <code>getCurrentUser</code> function. The library never ships a development backdoor.
+                           Pass <code>prismaAdapter</code> or <code>typeormAdapter</code>, plus auth. The library never ships a development backdoor.
                         </p>
                      </li>
                      <li className="reveal">
@@ -344,7 +388,7 @@ export default function App() {
                      </li>
                      <li className="reveal">
                         <span>mount</span>
-                        <p>Attach the UI and API to your Express app. Deploy wherever that app already runs.</p>
+                        <p>Attach the UI and API to your Express app. Fastify and Nest are next. Deploy wherever that app already runs.</p>
                      </li>
                   </ol>
                </div>
@@ -353,49 +397,66 @@ export default function App() {
             <section className="code-section" id="install">
                <div className="container code-layout">
                   <div className="code-copy reveal">
-                     <h2>Install, register, mount.</h2>
+                     <h2>One command. Then mount.</h2>
                      <p>
-                        Point it at the Prisma client you already generate. Include <code>schema.prisma</code> in the deploy artifact, or pass <code>schemaPath</code>.
+                        <code>init</code> asks for your framework and ORM, then installs the packages. It does not rewrite your source. Paste <code>createAdmin</code> next to the server you already have.
                      </p>
                      <ul className="install-notes">
-                        <li>Works on Express 4 and 5</li>
-                        <li>
-                           Prisma and <code>@prisma/client</code> 7.5.x
-                        </li>
+                        <li>Express 4 and 5 today. Fastify and Nest next.</li>
+                        <li>Prisma 7.5.x or TypeORM 0.3</li>
                         <li>Node 20.19+ or Bun 1.3+</li>
                      </ul>
                   </div>
-                  <div className="code-panel reveal">
-                     <div className="code-panel-header">
-                        <span>server.ts</span>
-                        <button type="button" className={`copy-btn${copied ? " copied" : ""}`} onClick={() => void copy()} aria-label="Copy install snippet">
-                           {copied ? "Copied" : "Copy"}
-                        </button>
+                  <div className="code-stack reveal">
+                     <div className="code-panel">
+                        <div className="code-panel-header">
+                           <div className="code-tabs" role="tablist" aria-label="Package manager">
+                              {packageManagers.map((item) => (
+                                 <button
+                                    key={item.id}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={manager === item.id}
+                                    onClick={() => setManager(item.id)}
+                                 >
+                                    {item.label}
+                                 </button>
+                              ))}
+                           </div>
+                           <button
+                              type="button"
+                              className={`copy-btn${copied === "cli" ? " copied" : ""}`}
+                              onClick={() => void copy("cli", selectedManager.command)}
+                              aria-label="Copy init command"
+                           >
+                              {copied === "cli" ? "Copied" : "Copy"}
+                           </button>
+                        </div>
+                        <pre className="code-block cli-command">
+                           <code>{selectedManager.command}</code>
+                        </pre>
                      </div>
-                     <pre className="code-block">
-                        <code>
-                           <span className="tok-k">import</span> express <span className="tok-k">from</span> <span className="tok-s">"express"</span>
-                           {"\n"}
-                           <span className="tok-k">import</span> {"{ createAdmin }"} <span className="tok-k">from</span> <span className="tok-s">"paneljs"</span>
-                           {"\n"}
-                           <span className="tok-k">import</span> {"{ prismaAdapter }"} <span className="tok-k">from</span> <span className="tok-s">"@paneljs/prisma"</span>
-                           {"\n"}
-                           <span className="tok-k">import</span> {"{ mount }"} <span className="tok-k">from</span> <span className="tok-s">"@paneljs/express"</span>
-                           {"\n"}
-                           <span className="tok-k">import</span> {"{ prisma }"} <span className="tok-k">from</span> <span className="tok-s">"./prisma.js"</span>
-                           {"\n\n"}
-                           <span className="tok-k">const</span> app = express()
-                           {"\n\n"}
-                           <span className="tok-k">const</span> admin = createAdmin({"{"}
-                           {"\n  "}adapter: prismaAdapter({"{"} prisma {"}"}),
-                           {"\n  "}auth: {"{"} getCurrentUser {"}"},{"\n"}
-                           {"}"}){"\n\n"}admin{"\n  "}.register(
-                           <span className="tok-s">"User"</span>){"\n  "}.register(
-                           <span className="tok-s">"Post"</span>, {"{"} listDisplay: [<span className="tok-s">"title"</span>, <span className="tok-s">"published"</span>] {"}"}){"\n\n"}
-                           <span className="tok-k">await</span> mount(app, admin){"\n"}
-                           app.listen(<span className="tok-n">3000</span>)
-                        </code>
-                     </pre>
+                     <div className="code-panel">
+                        <div className="code-panel-header">
+                           <div className="code-tabs" role="tablist" aria-label="ORM snippet">
+                              <button type="button" role="tab" aria-selected={adapter === "prisma"} onClick={() => setAdapter("prisma")}>
+                                 Prisma
+                              </button>
+                              <button type="button" role="tab" aria-selected={adapter === "typeorm"} onClick={() => setAdapter("typeorm")}>
+                                 TypeORM
+                              </button>
+                           </div>
+                           <button
+                              type="button"
+                              className={`copy-btn${copied === "snippet" ? " copied" : ""}`}
+                              onClick={() => void copy("snippet", installSource)}
+                              aria-label="Copy mount snippet"
+                           >
+                              {copied === "snippet" ? "Copied" : "Copy"}
+                           </button>
+                        </div>
+                        <InstallSnippet adapter={adapter} />
+                     </div>
                   </div>
                </div>
             </section>
@@ -403,7 +464,7 @@ export default function App() {
             <section className="close">
                <div className="container close-inner reveal">
                   <h2>Your operators deserve better than a custom dashboard.</h2>
-                  <p>Install it, connect the auth you already have, and let the schema do the rest.</p>
+                  <p>Init, register your models, and let the schema do the rest.</p>
                   <div className="hero-ctas">
                      <a href={docsStart} className="btn btn-primary btn-lg">
                         Get started
@@ -431,6 +492,66 @@ export default function App() {
             </div>
          </footer>
       </>
+   );
+}
+
+function InstallSnippet({ adapter }: { adapter: AdapterId }) {
+   if (adapter === "typeorm") {
+      return (
+         <pre className="code-block">
+            <code>
+               <span className="tok-k">import</span> express <span className="tok-k">from</span> <span className="tok-s">"express"</span>
+               {"\n"}
+               <span className="tok-k">import</span> {"{ createAdmin }"} <span className="tok-k">from</span> <span className="tok-s">"paneljs"</span>
+               {"\n"}
+               <span className="tok-k">import</span> {"{ typeormAdapter }"} <span className="tok-k">from</span> <span className="tok-s">"@paneljs/typeorm"</span>
+               {"\n"}
+               <span className="tok-k">import</span> {"{ mount }"} <span className="tok-k">from</span> <span className="tok-s">"@paneljs/express"</span>
+               {"\n"}
+               <span className="tok-k">import</span> {"{ dataSource }"} <span className="tok-k">from</span> <span className="tok-s">"./data-source.js"</span>
+               {"\n\n"}
+               <span className="tok-k">await</span> dataSource.initialize()
+               {"\n\n"}
+               <span className="tok-k">const</span> app = express()
+               {"\n\n"}
+               <span className="tok-k">const</span> admin = createAdmin({"{"}
+               {"\n  "}adapter: typeormAdapter({"{"} dataSource {"}"}),
+               {"\n  "}auth: {"{"} getCurrentUser {"}"},{"\n"}
+               {"}"}){"\n\n"}admin{"\n  "}.register(
+               <span className="tok-s">"User"</span>){"\n  "}.register(
+               <span className="tok-s">"Post"</span>, {"{"} listDisplay: [<span className="tok-s">"title"</span>, <span className="tok-s">"published"</span>] {"}"}){"\n\n"}
+               <span className="tok-k">await</span> mount(app, admin){"\n"}
+               app.listen(<span className="tok-n">3000</span>)
+            </code>
+         </pre>
+      );
+   }
+
+   return (
+      <pre className="code-block">
+         <code>
+            <span className="tok-k">import</span> express <span className="tok-k">from</span> <span className="tok-s">"express"</span>
+            {"\n"}
+            <span className="tok-k">import</span> {"{ createAdmin }"} <span className="tok-k">from</span> <span className="tok-s">"paneljs"</span>
+            {"\n"}
+            <span className="tok-k">import</span> {"{ prismaAdapter }"} <span className="tok-k">from</span> <span className="tok-s">"@paneljs/prisma"</span>
+            {"\n"}
+            <span className="tok-k">import</span> {"{ mount }"} <span className="tok-k">from</span> <span className="tok-s">"@paneljs/express"</span>
+            {"\n"}
+            <span className="tok-k">import</span> {"{ prisma }"} <span className="tok-k">from</span> <span className="tok-s">"./prisma.js"</span>
+            {"\n\n"}
+            <span className="tok-k">const</span> app = express()
+            {"\n\n"}
+            <span className="tok-k">const</span> admin = createAdmin({"{"}
+            {"\n  "}adapter: prismaAdapter({"{"} prisma {"}"}),
+            {"\n  "}auth: {"{"} getCurrentUser {"}"},{"\n"}
+            {"}"}){"\n\n"}admin{"\n  "}.register(
+            <span className="tok-s">"User"</span>){"\n  "}.register(
+            <span className="tok-s">"Post"</span>, {"{"} listDisplay: [<span className="tok-s">"title"</span>, <span className="tok-s">"published"</span>] {"}"}){"\n\n"}
+            <span className="tok-k">await</span> mount(app, admin){"\n"}
+            app.listen(<span className="tok-n">3000</span>)
+         </code>
+      </pre>
    );
 }
 
