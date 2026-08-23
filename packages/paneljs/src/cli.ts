@@ -3,19 +3,22 @@ import { stdin, stdout } from "node:process";
 
 import { argument } from "./cli/args.js";
 import { authSchema, createSuperuser } from "./cli/auth.js";
+import { color } from "./cli/color.js";
 import { createDefaultInstall, runInit } from "./cli/init.js";
 import { confirm, select } from "./cli/prompt.js";
 
 const usage = (): void => {
-  console.log(`Usage:
-  paneljs init [--framework express] [--orm prisma|typeorm] [--pm npm|pnpm|yarn|bun] [--yes] [--dry-run]
-  paneljs auth:schema --identifier <email|username>
-  paneljs createsuperuser --config ./paneljs.config.mjs [--email value] [--username value] [--password value]
+  console.log(`${color.title("paneljs")}
 
-init adds PanelJS packages to the current app. It does not rewrite source files.
-auth:schema and createsuperuser are Prisma setup tools. TypeORM uses builtInAuthEntities() instead.
+${color.bold("Usage")}
+  ${color.cyan("paneljs init")} [--framework express] [--orm prisma|typeorm] [--pm npm|pnpm|yarn|bun] [--yes] [--dry-run]
+  ${color.cyan("paneljs auth:schema")} --identifier <email|username>
+  ${color.cyan("paneljs createsuperuser")} --config ./paneljs.config.mjs [--email value] [--username value] [--password value]
 
-The createsuperuser config module must default-export { prisma, auth }, where auth is a built-in auth configuration.`);
+${color.dim("init adds PanelJS packages to the current app. It does not rewrite source files.")}
+${color.dim("auth:schema and createsuperuser are Prisma setup tools. TypeORM uses builtInAuthEntities() instead.")}
+
+${color.dim("The createsuperuser config module must default-export { prisma, auth }, where auth is a built-in auth configuration.")}`);
 };
 
 const command = process.argv[2];
@@ -46,6 +49,7 @@ try {
     process.exitCode = command ? 1 : 0;
   }
 } catch (error) {
-  console.error(error instanceof Error ? error.message : "Command failed.");
+  const message = error instanceof Error ? error.message : "Command failed.";
+  console.error(`${color.red("Error")} ${message}`);
   process.exitCode = 1;
 }

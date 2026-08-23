@@ -6,8 +6,9 @@ A Django-style admin panel. One git repo, four packages:
 | ------------------ | ------------------ | ------------------------------------- |
 | `packages/paneljs` | `paneljs`          | Core: registry, schema JSON, admin UI |
 | `packages/express` | `@paneljs/express` | `mount(app, admin)`                   |
-| `packages/prisma`  | `@paneljs/prisma`  | `prismaAdapter()`, DMMF introspector  |
-| `packages/typeorm` | `@paneljs/typeorm` | `typeormAdapter()`                    |
+| `packages/prisma`   | `@paneljs/prisma`    | `prismaAdapter()`, DMMF introspector |
+| `packages/typeorm`  | `@paneljs/typeorm`   | `typeormAdapter()`                   |
+| `packages/mikroorm` | `@paneljs/mikroorm`  | `mikroormAdapter()`                  |
 
 Apps:
 
@@ -15,6 +16,7 @@ Apps:
 - `apps/docs` — VitePress documentation
 - `apps/example` — Prisma + Express dogfood app
 - `apps/example-typeorm` — TypeORM + Express dogfood app
+- `apps/example-mikroorm` — MikroORM + Express dogfood app
 
 Testing requirements and package ownership are defined in the
 [behavior matrix](./docs/testing/behavior-matrix.md).
@@ -25,7 +27,7 @@ Testing requirements and package ownership are defined in the
 npx paneljs@latest init
 ```
 
-Adds `paneljs`, `@paneljs/express`, and `@paneljs/prisma` or `@paneljs/typeorm`. Does not rewrite source files.
+Adds `paneljs`, `@paneljs/express`, and `@paneljs/prisma`, `@paneljs/typeorm`, or `@paneljs/mikroorm`. Does not rewrite source files.
 
 ```ts
 import { createAdmin } from "paneljs";

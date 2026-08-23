@@ -166,6 +166,7 @@ export function planInstall(
   manifest: PackageManifest,
   panelPackages: string[],
   peers: PeerNeed[],
+  specs: Record<string, string> = {},
 ): InstallPlan {
   const incompatible: string[] = [];
   const alreadyPresent: string[] = [];
@@ -185,7 +186,7 @@ export function planInstall(
     else dependencies.push(token);
   };
 
-  for (const name of panelPackages) consider(name, "dep");
+  for (const name of panelPackages) consider(name, "dep", specs[name]);
   for (const peer of peers) consider(peer.name, peer.installAs, peer.spec);
 
   return { dependencies, devDependencies, alreadyPresent, incompatible };
@@ -197,7 +198,13 @@ export function installArgs(
   dev: boolean,
 ): string[] {
   if (packages.length === 0) return [];
-  if (pm === "npm") return ["install", ...(dev ? ["-D"] : []), ...packages];
+  if (pm === "npm")
+    return [
+      "install",
+      "--no-workspaces",
+      ...(dev ? ["-D"] : []),
+      ...packages,
+    ];
   if (pm === "bun") return ["add", ...(dev ? ["-d"] : []), ...packages];
   return ["add", ...(dev ? ["-D"] : []), ...packages];
 }

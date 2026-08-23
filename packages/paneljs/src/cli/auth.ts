@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { hashAdminPassword } from "../passwords.js";
 import type { BuiltInAuthConfig } from "../types.js";
 import { argument } from "./args.js";
+import { color } from "./color.js";
 import { confirm, hiddenQuestion, question } from "./prompt.js";
 
 export interface PaneljsCliConfig {
@@ -112,7 +113,7 @@ export const createSuperuser = async (argv: string[]): Promise<void> => {
       },
     });
     console.log(
-      `Superuser created. Sign in at /admin/login with your ${identifierName}.`,
+      `${color.title("Superuser created.")} Sign in at /admin/login with your ${identifierName}.`,
     );
   } finally {
     const disconnect = (config.prisma as { $disconnect?: () => Promise<void> })

@@ -1,0 +1,23 @@
+name: paneljs-example-mikroorm
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: paneljs-example-mikroorm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: paneljs_mikroorm_example
+    ports:
+      - "5437:5432"
+    volumes:
+      - paneljs_mikroorm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paneljs_mikroorm_example"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  paneljs_mikroorm_postgres_data:

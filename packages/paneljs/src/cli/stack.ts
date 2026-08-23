@@ -80,6 +80,14 @@ export function resolveOrm(id: OrmId): StackChoice<OrmId> {
   return choice;
 }
 
+/** npm-safe ranges. Published adapters used to leak `workspace:^`, which npm cannot install. */
+export const PACKAGE_INSTALL_SPEC: Record<string, string> = {
+  paneljs: "^0.3.2",
+  "@paneljs/express": "^0.3.1",
+  "@paneljs/prisma": "^0.3.2",
+  "@paneljs/typeorm": "^0.1.6",
+};
+
 export function paneljsPackages(framework: FrameworkId, orm: OrmId): string[] {
   resolveFramework(framework);
   resolveOrm(orm);

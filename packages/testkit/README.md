@@ -39,7 +39,7 @@ defineAdapterContract({
 });
 ```
 
-Prisma and TypeORM environments must use equivalent model names and the fresh,
+Prisma, TypeORM, and MikroORM environments must use equivalent model names and the fresh,
 deterministic data returned by `createContractSeedData()`. It includes two
 tenants, two users, three posts, and Cascade, SetNull, and Restrict child rows.
 `createAuthStoreSeed()` supplies equivalent email and username auth records.
@@ -49,6 +49,7 @@ The canonical PostgreSQL schemas live with their adapters:
 
 - Prisma: `packages/prisma/test/fixture/schema.prisma`
 - TypeORM: `packages/typeorm/test/fixture/entities.ts`
+- MikroORM: `packages/mikroorm/test/fixture/entities.ts`
 
 Generated Prisma client files are intentionally ignored. Run
 `pnpm --filter @paneljs/prisma fixture:generate` before a Prisma integration
@@ -77,7 +78,19 @@ pnpm --filter @paneljs/typeorm test:integration
 
 This suite initializes the canonical `EntitySchema` definitions against its
 own PostgreSQL 16 container and uses the same seed and contract functions as
-Prisma. The root `pnpm test:integration` command runs both ORM suites.
+Prisma.
+
+## MikroORM PostgreSQL contract
+
+Run the equivalent MikroORM adapter and auth-store contracts with:
+
+```sh
+pnpm --filter @paneljs/mikroorm test:integration
+```
+
+This suite initializes the canonical MikroORM `EntitySchema` definitions against
+its own PostgreSQL 16 container and uses the same seed and contract functions as
+Prisma and TypeORM. The root `pnpm test:integration` command runs all ORM suites.
 
 ## Demonstration harnesses
 
