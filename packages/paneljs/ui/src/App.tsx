@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, CircleAlert, Home, LayoutDashboard, Menu } from "lucide-react";
+import { ArrowLeft, Home, LayoutDashboard, Menu } from "lucide-react";
 import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { FullPageState, NotFound } from "./components/Feedback";
 import { CreateView } from "./pages/CreateView";
@@ -55,14 +55,6 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
 
    return (
       <div className="admin-screen">
-         <div className="announcement-banner" role="status">
-            <CircleAlert size={16} strokeWidth={1.8} aria-hidden />
-            <p>
-               <strong>Package update</strong>
-               <span aria-hidden>—</span>
-               The <code>@paneljs/planjs</code> package is now <code>paneljs</code>.
-            </p>
-         </div>
          <div className="app-frame">
          <div className={`scrim ${sidebarOpen ? "is-visible" : ""}`} onClick={closeSidebar} />
          <aside className={`sidebar ${sidebarOpen ? "is-open" : ""}`}>
