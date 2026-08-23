@@ -13,6 +13,14 @@ Introspection reads **live** entity metadata. The `DataSource` must already be `
 
 ## Install
 
+CLI, from the root of this app (does not rewrite source):
+
+```sh
+npx paneljs@latest init --framework express --orm typeorm --yes
+```
+
+Or add the packages yourself:
+
 ::: code-group
 
 ```sh [npm]

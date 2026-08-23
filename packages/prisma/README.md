@@ -13,8 +13,9 @@ const admin = createAdmin({
 
 Peer dependencies: `prisma` and `@prisma/client` 7.5.x.
 
-CLI (after adding the built-in auth models):
+The `paneljs` CLI lives on the `paneljs` package. After adding the built-in auth models:
 
 ```bash
+npx paneljs init --framework express --orm prisma
 npx paneljs createsuperuser --config ./paneljs.config.mjs
 ```

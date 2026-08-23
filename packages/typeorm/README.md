@@ -2,6 +2,10 @@
 
 TypeORM adapter for [PanelJS](https://www.npmjs.com/package/paneljs).
 
+```bash
+npx paneljs@latest init --framework express --orm typeorm
+```
+
 ```ts
 import { createAdmin } from "paneljs";
 import { mount } from "@paneljs/express";

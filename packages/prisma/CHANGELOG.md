@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1] - 2026-08-23
+
+### Breaking
+
+- The `paneljs` executable now ships from the `paneljs` package, not `@paneljs/prisma`. `npx paneljs` still works because `paneljs` is a dependency. `auth:schema` and `createsuperuser` are unchanged.
+
+### Added
+
+- `npx paneljs init` (on `paneljs`) can install this adapter with `--framework express --orm prisma`.
+
 ## [0.3.0] - 2026-08-22
 
 ### Changed

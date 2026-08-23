@@ -168,18 +168,25 @@ Homepage hero can say “JavaScript ORMs.” Guide pages should still be specifi
 
 ---
 
-## CLI (when it ships)
+## CLI
 
-The documented install is still the chooser + `npm install`. A future `npx paneljs init` must emit the **same packages** as the matching install page:
+The binary lives on the `paneljs` package (`npx paneljs@latest init`). It must emit the **same packages** as the matching install page:
 
 ```text
 Express + Prisma   →  paneljs @paneljs/express @paneljs/prisma
 Express + TypeORM  →  paneljs @paneljs/express @paneljs/typeorm
 ```
 
-Coming-soon options in the TUI are visible and disabled, same as greyed cards. The CLI must not live on `@paneljs/prisma`; TypeORM users do not install that package.
+Rules the CLI must keep:
 
-Do not document `paneljs init` until the binary exists.
+- Run inside an existing app (`package.json` required). It is not a project generator.
+- Add packages only. Do not rewrite `index.ts`, `schema.prisma`, entities, or env files.
+- Coming-soon options (Fastify, Nest, Drizzle) are visible and disabled.
+- `--framework` / `--orm` / `--yes` / `--dry-run` for non-interactive use.
+- Abort on an incompatible peer (Prisma not 7.5.x, TypeORM below 0.3.20, Express below 4.18).
+- `auth:schema` and `createsuperuser` stay Prisma-only setup commands.
+
+Document `init` on `/guide/installation/` and the two live Express install pages.
 
 ---
 

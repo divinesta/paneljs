@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.1] - 2026-08-23
+
+### Added
+
+- `paneljs` CLI on this package: `npx paneljs init` installs `paneljs`, the HTTP adapter, and the ORM adapter for the stack you pick. It does not rewrite source files.
+- `init --framework express --orm prisma|typeorm --yes` for non-interactive use. `--dry-run` prints the plan without installing.
+- Fastify, Nest.js, and Drizzle appear in the prompt but cannot be selected yet.
+- `auth:schema` and `createsuperuser` now live here (Prisma setup only).
+
 ## [0.3.0] - 2026-08-22
 
 Admin operations now live in core. Transports call `AdminService` instead of reimplementing CRUD, actions, and delete rules.

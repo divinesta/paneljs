@@ -2,7 +2,11 @@
 
 Schema-driven admin core. Register models and serve a guarded operations UI.
 
-Install with the adapters for your stack:
+Install with the adapters for your stack, or let the CLI pick them:
+
+```bash
+npx paneljs@latest init
+```
 
 ```bash
 npm install paneljs @paneljs/express @paneljs/prisma

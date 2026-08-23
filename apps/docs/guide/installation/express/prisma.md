@@ -13,6 +13,14 @@ Keep `prisma`, `@prisma/client`, and `@paneljs/prisma` on the same 7.5 line. See
 
 ## Install
 
+CLI, from the root of this app (does not rewrite source):
+
+```sh
+npx paneljs@latest init --framework express --orm prisma --yes
+```
+
+Or add the packages yourself:
+
 ::: code-group
 
 ```sh [npm]

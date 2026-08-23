@@ -18,4 +18,34 @@ Pick the HTTP framework first, then the ORM that app already uses. After mount, 
 
 Coming-soon cards are listed so you can see what is next. They are not installable yet.
 
+## CLI
+
+From the root of **your** app:
+
+```sh
+npx paneljs@latest init
+```
+
+The prompt asks for a framework, then an ORM. Fastify, Nest.js, and Drizzle are listed and cannot be selected yet.
+
+`init` adds packages to this project. It does not create a new app and does not rewrite your source. You paste `createAdmin` / `mount` next to your existing `listen` call.
+
+Skip the prompt:
+
+::: code-group
+
+```sh [Prisma]
+npx paneljs init --framework express --orm prisma --yes
+```
+
+```sh [TypeORM]
+npx paneljs init --framework express --orm typeorm --yes
+```
+
+:::
+
+`--dry-run` prints the plan without installing. `--pm pnpm` (or npm / yarn / bun) overrides lockfile detection.
+
+Or pick a stack below and install by hand.
+
 <ChooserGrid :items="frameworks" />

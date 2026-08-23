@@ -21,6 +21,12 @@ Testing requirements and package ownership are defined in the
 
 `EXPRESS-ADMIN` remains the published `prisma-express-admin` library until this repo is cut over.
 
+```bash
+npx paneljs@latest init
+```
+
+Adds `paneljs`, `@paneljs/express`, and `@paneljs/prisma` or `@paneljs/typeorm`. Does not rewrite source files.
+
 ```ts
 import { createAdmin } from "paneljs";
 import { prismaAdapter } from "@paneljs/prisma";
