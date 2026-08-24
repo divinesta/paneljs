@@ -9,7 +9,7 @@ const packageManagers = [
 ] as const;
 
 type PackageManagerId = (typeof packageManagers)[number]["id"];
-type AdapterId = "prisma" | "typeorm";
+type AdapterId = "prisma" | "typeorm" | "mikroorm";
 
 const snippets: Record<AdapterId, string> = {
   prisma: `import express from "express";
@@ -43,6 +43,25 @@ const app = express();
 
 const admin = createAdmin({
   adapter: typeormAdapter({ dataSource }),
+  auth: { getCurrentUser },
+});
+
+admin
+  .register("User")
+  .register("Post", { listDisplay: ["title", "published"] });
+
+await mount(app, admin);
+app.listen(3000);`,
+  mikroorm: `import express from "express";
+import { createAdmin } from "paneljs";
+import { mikroormAdapter } from "@paneljs/mikroorm";
+import { mount } from "@paneljs/express";
+import { orm } from "./orm.js";
+
+const app = express();
+
+const admin = createAdmin({
+  adapter: mikroormAdapter({ orm }),
   auth: { getCurrentUser },
 });
 
@@ -166,8 +185,8 @@ export default function App() {
             <span className="stack-token stack-token-typeorm">
               <img src="/images/typeorm.svg" width={46} height={46} alt="" />
             </span>
-            <span className="stack-token stack-token-typescript">
-              <img src="/images/typescript.svg" width={46} height={46} alt="" />
+            <span className="stack-token stack-token-mikroorm">
+              <img src="/images/mikroorm.svg" width={46} height={46} alt="" />
             </span>
           </div>
 
@@ -306,14 +325,9 @@ export default function App() {
                 <span>DataSource</span>
               </li>
               <li>
-                <img
-                  src="/images/postgresql.svg"
-                  alt=""
-                  width={28}
-                  height={28}
-                />
-                <strong>PostgreSQL</strong>
-                <span>your database</span>
+                <img src="/images/mikroorm.svg" alt="" width={28} height={28} />
+                <strong>MikroORM</strong>
+                <span>MikroORM instance</span>
               </li>
               <li>
                 <img
@@ -346,9 +360,9 @@ export default function App() {
               <h2>Built from the schema. Guarded by your auth.</h2>
               <p>
                 You register models. At mount, PanelJS introspects your Prisma
-                schema or TypeORM entities and serves a React admin at{" "}
-                <code>/admin</code> plus a JSON API at <code>/admin/api/*</code>
-                .
+                schema, TypeORM entities, or MikroORM metadata and serves a
+                React admin at <code>/admin</code> plus a JSON API at{" "}
+                <code>/admin/api/*</code>.
               </p>
               <p>
                 Learn how to <a href="/docs/guide/installation">get started</a>,{" "}
@@ -399,8 +413,8 @@ export default function App() {
               <li className="reveal">
                 <span>createAdmin</span>
                 <p>
-                  Pass <code>prismaAdapter</code> or <code>typeormAdapter</code>
-                  , plus auth. The library never ships a development backdoor.
+                  Pass a Prisma, TypeORM, or MikroORM adapter, plus auth. The
+                  library never ships a development backdoor.
                 </p>
               </li>
               <li className="reveal">
@@ -432,7 +446,7 @@ export default function App() {
               </p>
               <ul className="install-notes">
                 <li>Express 4 and 5 today. Fastify and Nest next.</li>
-                <li>Prisma 7.5.x or TypeORM 0.3</li>
+                <li>Prisma 7.5.x, TypeORM 0.3, or MikroORM 6.4+</li>
                 <li>Node 20.19+ or Bun 1.3+</li>
               </ul>
             </div>
@@ -492,6 +506,14 @@ export default function App() {
                     >
                       TypeORM
                     </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={adapter === "mikroorm"}
+                      onClick={() => setAdapter("mikroorm")}
+                    >
+                      MikroORM
+                    </button>
                   </div>
                   <button
                     type="button"
@@ -530,6 +552,47 @@ export default function App() {
 }
 
 function InstallSnippet({ adapter }: { adapter: AdapterId }) {
+  if (adapter === "mikroorm") {
+    return (
+      <pre className="code-block">
+        <code>
+          <span className="tok-k">import</span> express{" "}
+          <span className="tok-k">from</span>{" "}
+          <span className="tok-s">"express"</span>
+          {"\n"}
+          <span className="tok-k">import</span> {"{ createAdmin }"}{" "}
+          <span className="tok-k">from</span>{" "}
+          <span className="tok-s">"paneljs"</span>
+          {"\n"}
+          <span className="tok-k">import</span> {"{ mikroormAdapter }"}{" "}
+          <span className="tok-k">from</span>{" "}
+          <span className="tok-s">"@paneljs/mikroorm"</span>
+          {"\n"}
+          <span className="tok-k">import</span> {"{ mount }"}{" "}
+          <span className="tok-k">from</span>{" "}
+          <span className="tok-s">"@paneljs/express"</span>
+          {"\n"}
+          <span className="tok-k">import</span> {"{ orm }"}{" "}
+          <span className="tok-k">from</span>{" "}
+          <span className="tok-s">"./orm.js"</span>
+          {"\n\n"}
+          <span className="tok-k">const</span> app = express()
+          {"\n\n"}
+          <span className="tok-k">const</span> admin = createAdmin({"{"}
+          {"\n  "}adapter: mikroormAdapter({"{"} orm {"}"}),
+          {"\n  "}auth: {"{"} getCurrentUser {"}"},{"\n"}
+          {"}"}){"\n\n"}admin{"\n  "}.register(
+          <span className="tok-s">"User"</span>){"\n  "}.register(
+          <span className="tok-s">"Post"</span>, {"{"} listDisplay: [
+          <span className="tok-s">"title"</span>,{" "}
+          <span className="tok-s">"published"</span>] {"}"}){"\n\n"}
+          <span className="tok-k">await</span> mount(app, admin){"\n"}
+          app.listen(<span className="tok-n">3000</span>)
+        </code>
+      </pre>
+    );
+  }
+
   if (adapter === "typeorm") {
     return (
       <pre className="code-block">

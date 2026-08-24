@@ -2,7 +2,7 @@
 
 This is the implementation path: one module in **your** codebase.
 
-Snippets below use **Express + Prisma**. `register` options are the same on TypeORM. Adapter construction is on [Installation](/guide/installation/).
+Snippets below use **Express + Prisma**. `register` options are the same on TypeORM and MikroORM. Adapter construction is on [Installation](/guide/installation/).
 
 You already [installed](/guide/installation/) PanelJS and can mount with `register("User")`. This page is what you add next so the panel matches how you operate.
 
@@ -49,6 +49,30 @@ const app = express();
 
 const admin = createAdmin({
   adapter: typeormAdapter({ dataSource }),
+  /* ... */
+});
+
+admin.register("User", {
+  /* ... */
+});
+admin.register("Post", {
+  /* ... */
+});
+
+await mount(app, admin);
+```
+
+```ts [MikroORM]
+import express from "express";
+import { createAdmin } from "paneljs";
+import { mikroormAdapter } from "@paneljs/mikroorm";
+import { mount } from "@paneljs/express";
+import { orm } from "./orm.js";
+
+const app = express();
+
+const admin = createAdmin({
+  adapter: mikroormAdapter({ orm }),
   /* ... */
 });
 
@@ -146,12 +170,12 @@ const admin = createAdmin({
 
 | Option                | Why you set it                                                                      |
 | --------------------- | ----------------------------------------------------------------------------------- |
-| `adapter`             | Required. `prismaAdapter({ prisma })` or `typeormAdapter({ dataSource })`.          |
+| `adapter`             | Required. A Prisma, TypeORM, or MikroORM data adapter.                              |
 | `siteName`            | Header label in the UI.                                                             |
 | `auth.getCurrentUser` | Required in external mode. Your session/JWT → [`AdminUser`](/reference/admin-user). |
 | `audit.write`         | Optional. Called after successful writes. You own the table.                        |
 
-Prisma-only: pass `schemaPath` to `prismaAdapter()` if `schema.prisma` is not at `prisma/schema.prisma`. TypeORM-only: the `DataSource` must already be initialized.
+Prisma-only: pass `schemaPath` to `prismaAdapter()` if `schema.prisma` is not at `prisma/schema.prisma`. TypeORM and MikroORM require an initialized ORM instance.
 
 The examples use built-in admin-only authentication. In external mode, read your own cookie or `Authorization` header in `getCurrentUser`. See [Authentication](/guide/auth).
 

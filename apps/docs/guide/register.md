@@ -5,7 +5,7 @@ admin.register("User");
 admin.register("Post", { listDisplay: ["title", "author", "published"] });
 ```
 
-The first argument is the model name in your ORM — Prisma model or TypeORM entity — **PascalCase, exact**. The second argument is optional. Every key on it is optional.
+The first argument is the model or entity name in your ORM — **PascalCase, exact**. The second argument is optional. Every key on it is optional.
 
 `register` is synchronous. It stores intent. Validation and default-filling happen in `mount`.
 
@@ -65,7 +65,7 @@ These throw with the available names so a typo does not become a silent empty co
 - `register()` after `mount()`
 - `mount()` twice
 
-Composite primary keys (Prisma `@@id([a, b])`, TypeORM composite primary columns) and models with no id are skipped with a warning. They cannot be registered in this release.
+Composite primary keys and models with no id are skipped with a warning across all adapters. They cannot be registered in this release.
 
 ## Only registered models appear
 

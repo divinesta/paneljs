@@ -1,7 +1,7 @@
 ---
 layout: home
 title: PanelJS - The Admin Panel for JavaScript ORMs
-description: A Django-style admin for Node.js. Mount it on Express. Prisma and TypeORM today — Fastify, Nest, and more adapters next.
+description: A Django-style admin for Node.js. Mount it on Express with Prisma, TypeORM, or MikroORM.
 
 hero:
   name: PanelJS
@@ -19,7 +19,7 @@ features:
   - title: Schema-driven
     details: The ORM you already have is the source of truth. register("User") is enough to get a working list and form. No second admin schema.
   - title: Pick your stack
-    details: Express today. Prisma and TypeORM today. Fastify, Nest, and Drizzle are next. After mount, the admin API does not change.
+    details: Express today, with Prisma, TypeORM, or MikroORM. Fastify, Nest, and Drizzle are next. After mount, the admin API does not change.
   - title: Built-in or external auth
     details: Use the built-in admin-only login, sessions, and first-user setup, or plug in an existing session, JWT, or API key.
   - title: Scope is first-class

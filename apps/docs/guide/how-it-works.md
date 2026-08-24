@@ -7,7 +7,7 @@ Two clocks. Almost every surprise in this library is mixing them up.
 `await mount(app, admin)` is async because this is when the schema is read.
 
 1. `register("User")` only stored intent. It did not talk to the database.
-2. `mount` calls `adapter.introspect()`. Prisma compiles `schema.prisma` (DMMF). TypeORM reads live `entityMetadatas` from an initialized `DataSource`.
+2. `mount` calls `adapter.introspect()`. Prisma compiles `schema.prisma` (DMMF). TypeORM reads an initialized `DataSource`; MikroORM reads the initialized ORM's live metadata.
 3. Every registered name is checked against the real models.
 4. Field overrides, `listDisplay`, and `searchFields` are validated.
 5. Missing config is filled from that metadata (display field, columns, filters).

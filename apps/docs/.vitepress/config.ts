@@ -3,7 +3,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "PanelJS",
   description:
-    "PanelJS is a Django-style admin panel for Node.js. Mount it on Express. Prisma and TypeORM today.",
+    "PanelJS is a Django-style admin panel for Node.js. Mount it on Express with Prisma, TypeORM, or MikroORM.",
   base: "/docs/",
   head: [
     ["meta", { name: "robots", content: "index, follow" }],
@@ -74,6 +74,7 @@ export default defineConfig({
         items: [
           { text: "Express + Prisma", link: "/example/basic" },
           { text: "Express + TypeORM", link: "/example/typeorm" },
+          { text: "Express + MikroORM", link: "/example/mikroorm" },
         ],
       },
       {
@@ -81,6 +82,7 @@ export default defineConfig({
         items: [
           { text: "Prisma", link: "/adapters/prisma" },
           { text: "TypeORM", link: "/adapters/typeorm" },
+          { text: "MikroORM", link: "/adapters/mikroorm" },
         ],
       },
       {
@@ -107,6 +109,7 @@ export default defineConfig({
           { text: "What is not included", link: "/limits/not-included" },
           { text: "Prisma versions", link: "/limits/prisma" },
           { text: "TypeORM notes", link: "/limits/typeorm" },
+          { text: "MikroORM notes", link: "/limits/mikroorm" },
         ],
       },
     ],

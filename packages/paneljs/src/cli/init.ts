@@ -81,7 +81,7 @@ export function parseInitArgs(argv: string[]): InitFlags {
 }
 
 export const INIT_USAGE = `Usage:
-  paneljs init [--framework express] [--orm prisma|typeorm] [--pm npm|pnpm|yarn|bun] [--yes] [--dry-run]
+  paneljs init [--framework express] [--orm prisma|typeorm|mikroorm] [--pm npm|pnpm|yarn|bun] [--yes] [--dry-run]
 
 Adds PanelJS packages to the app in this directory. Does not rewrite source files.
 Fastify, Nest.js, and Drizzle are listed in the prompt but are not selectable yet.`;

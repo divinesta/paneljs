@@ -11,7 +11,7 @@ const usage = (): void => {
   console.log(`${color.title("paneljs")}
 
 ${color.bold("Usage")}
-  ${color.cyan("paneljs init")} [--framework express] [--orm prisma|typeorm] [--pm npm|pnpm|yarn|bun] [--yes] [--dry-run]
+  ${color.cyan("paneljs init")} [--framework express] [--orm prisma|typeorm|mikroorm] [--pm npm|pnpm|yarn|bun] [--yes] [--dry-run]
   ${color.cyan("paneljs auth:schema")} --identifier <email|username>
   ${color.cyan("paneljs createsuperuser")} --config ./paneljs.config.mjs [--email value] [--username value] [--password value]
 

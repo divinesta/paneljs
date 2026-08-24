@@ -6,6 +6,7 @@ title: Express
 const orms = [
   { title: "Prisma", icon: "prisma", href: "/guide/installation/express/prisma", hint: "schema.prisma" },
   { title: "TypeORM", icon: "typeorm", href: "/guide/installation/express/typeorm", hint: "DataSource + entities" },
+  { title: "MikroORM", icon: "mikroorm", href: "/guide/installation/express/mikroorm", hint: "MikroORM + entities" },
   { title: "Drizzle", icon: "drizzle", comingSoon: true },
 ];
 </script>

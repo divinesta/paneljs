@@ -19,14 +19,14 @@ await mount(app, admin);
 
 | Option             | Type                                                              | Default   | Role                                                                  |
 | ------------------ | ----------------------------------------------------------------- | --------- | --------------------------------------------------------------------- |
-| `adapter`          | `DataAdapter`                                                     | required  | `prismaAdapter({ prisma })` or `typeormAdapter({ dataSource })`.      |
+| `adapter`          | `DataAdapter`                                                     | required  | Prisma, TypeORM, or MikroORM adapter.                                 |
 | `auth`             | built-in or external auth config                                  | required  | Built-in admin credentials/sessions, or an external identity adapter. |
 | `basePath`         | `string`                                                          | `/admin`  | Where UI and API are mounted.                                         |
 | `siteName`         | `string`                                                          | `PanelJS` | Header label in the UI.                                               |
 | `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset     | **Deprecated, ignored.** Each adapter decides search sensitivity.     |
 | `audit.write`      | `(event) => Promise<void>`                                        | unset     | Called after successful mutations.                                    |
 
-Prisma `schemaPath` is passed to `prismaAdapter()`, not to `createAdmin()`. TypeORM does not take a schema path; the `DataSource` must already be initialized.
+Prisma `schemaPath` is passed to `prismaAdapter()`, not to `createAdmin()`. TypeORM and MikroORM read live metadata from an initialized instance instead of a schema path.
 
 ## `mount(app, admin)`
 

@@ -7,17 +7,17 @@ You register the models you want to operate on. At mount, the library asks your 
 - a React admin UI at `/admin`
 - a guarded JSON API at `/admin/api/*`
 
-You do not describe your tables twice. Prisma’s `schema.prisma` or TypeORM entities are the source of truth. `admin.register("User")` with no extra config still produces a list, search, filters, and a create/edit form.
+You do not describe your tables twice. Prisma’s `schema.prisma`, TypeORM entities, or MikroORM metadata are the source of truth. `admin.register("User")` with no extra config still produces a list, search, filters, and a create/edit form.
 
 ## Two choices, then the same product
 
-| You pick       | Package                                 | Job                                           |
-| -------------- | --------------------------------------- | --------------------------------------------- |
-| HTTP framework | `@paneljs/express` today                | `mount(app, admin)`                           |
-| ORM            | `@paneljs/prisma` or `@paneljs/typeorm` | Introspect models, run CRUD                   |
-| Core           | `paneljs`                               | Registry, schema JSON, UI, permissions, scope |
+| You pick       | Package                                                       | Job                                           |
+| -------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| HTTP framework | `@paneljs/express` today                                      | `mount(app, admin)`                           |
+| ORM            | `@paneljs/prisma`, `@paneljs/typeorm`, or `@paneljs/mikroorm` | Introspect models, run CRUD                   |
+| Core           | `paneljs`                                                     | Registry, schema JSON, UI, permissions, scope |
 
-Express and Fastify are how the admin hangs off the server. Prisma and TypeORM are how rows are discovered and written. After `mount`, `register("User")` is the same.
+Express is how the admin hangs off the server today. Prisma, TypeORM, and MikroORM are how rows are discovered and written. After `mount`, `register("User")` is the same.
 
 [Installation](/guide/installation/) is the chooser for those two. The rest of this guide is shared.
 
@@ -25,7 +25,7 @@ Express and Fastify are how the admin hangs off the server. Prisma and TypeORM a
 
 ```ts
 const admin = createAdmin({
-  adapter: prismaAdapter({ prisma }), // or typeormAdapter({ dataSource })
+  adapter: prismaAdapter({ prisma }), // or a TypeORM / MikroORM adapter
   auth: { getCurrentUser },
 });
 
@@ -40,13 +40,13 @@ Three calls. Everything else is optional configuration on those calls.
 
 ## What you bring
 
-| You own                                                 | The library owns                              |
-| ------------------------------------------------------- | --------------------------------------------- |
-| HTTP app (Express today)                                | Admin routes under `basePath`                 |
-| ORM client (`PrismaClient` or initialized `DataSource`) | Introspection through the adapter             |
-| Built-in admin credentials, or external authentication  | Creating an `AdminUser` request context       |
-| Tenancy rules, via `scope()`                            | Applying that scope on every record operation |
-| Optional audit destination                              | Emitting safe, append-only events             |
+| You own                                                | The library owns                              |
+| ------------------------------------------------------ | --------------------------------------------- |
+| HTTP app (Express today)                               | Admin routes under `basePath`                 |
+| ORM client or initialized ORM instance                 | Introspection through the adapter             |
+| Built-in admin credentials, or external authentication | Creating an `AdminUser` request context       |
+| Tenancy rules, via `scope()`                           | Applying that scope on every record operation |
+| Optional audit destination                             | Emitting safe, append-only events             |
 
 Built-in mode provides an admin-only login screen, `ExpressAdminUser` table, and
 session store. External mode still lets you map an existing identity onto an
@@ -63,7 +63,7 @@ Current writes are **scalar** plus a single `belongsTo` foreign key. Nested crea
 
 ## The people in these docs
 
-The [Prisma example](/example/basic) and [TypeORM example](/example/typeorm) seed two companies and operators. The Trust and Extend guides reuse them so the rules stay concrete.
+The [Prisma](/example/basic), [TypeORM](/example/typeorm), and [MikroORM](/example/mikroorm) examples run the same tenant and operator story. The Trust and Extend guides reuse it so the rules stay concrete.
 
 | Person         | Role          | Tenant    | What they see                      |
 | -------------- | ------------- | --------- | ---------------------------------- |

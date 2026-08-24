@@ -48,7 +48,11 @@ const dataSource = new DataSource({
 
 Then `auth: { mode: "built-in", identifier: "email" }`. Do not `register("ExpressAdminUser")`.
 
-The Prisma `createsuperuser` CLI does not read a TypeORM `DataSource`. Insert the first operator with `hashAdminPassword` from `paneljs`.
+Create the first operator with the shared CLI after exporting the initialized adapter and built-in auth settings from `paneljs.config.mjs`:
+
+```sh
+npx paneljs createsuperuser --config ./paneljs.config.mjs
+```
 
 ## Install
 

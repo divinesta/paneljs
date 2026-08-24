@@ -49,6 +49,30 @@ admin.register("Post", {
 });
 ```
 
+```ts [MikroORM]
+import { mikroormActionWhere } from "@paneljs/mikroorm";
+import type { MikroORM } from "@mikro-orm/core";
+
+admin.register("Post", {
+  actions: [
+    {
+      name: "publish_selected",
+      label: "Publish selected posts",
+      allowedRoles: ["SUPER_ADMIN", "ADMIN"],
+      handler: async ({ client, where }) => {
+        const orm = client as MikroORM;
+        const count = await orm.em
+          .fork()
+          .nativeUpdate("Post", mikroormActionWhere(orm, "Post", where), {
+            published: true,
+          });
+        return { message: `Published ${count} posts.` };
+      },
+    },
+  ],
+});
+```
+
 :::
 
 The UI shows `label`. The route is `POST /admin/api/posts/actions/publish_selected`.
@@ -59,7 +83,7 @@ The UI shows `label`. The route is `POST /admin/api/posts/actions/publish_select
 {
   ids: Array<string | number>; // only rows that passed scope
   adminUser: AdminUser;
-  client: unknown; // Prisma client or TypeORM DataSource
+  client: unknown; // Prisma client, TypeORM DataSource, or MikroORM instance
   where: {
     scope: Record<string, unknown>;
     ids: Array<string | number>;
@@ -93,7 +117,8 @@ The built-in delete action uses the model's `delete` permission; it cannot be ch
 
 ## Do the work safely
 
-Use `where.scope` and `ids` (or `where.ids`) in every mutation so the action stays tenant-safe. `where` is **not** a Prisma `where` object and not TypeORM criteria.
+Use `where.scope` and `ids` (or `where.ids`) in every mutation so the action stays tenant-safe. `where` is an adapter-neutral target, not an ORM-native query object.
 
 - Prisma: `prismaActionWhere("id", where)` from `@paneljs/prisma`
 - TypeORM: `typeormActionWhere("id", where)` from `@paneljs/typeorm`
+- MikroORM: `mikroormActionWhere(orm, "Post", where)` from `@paneljs/mikroorm`

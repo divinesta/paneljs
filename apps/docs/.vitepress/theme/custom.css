@@ -64,9 +64,17 @@ a.chooser-card:hover {
   color: var(--vp-c-text-1);
 }
 
-.chooser-icon svg {
+.chooser-icon svg,
+.chooser-icon img {
   width: 48px;
   height: 48px;
+  object-fit: contain;
+}
+
+.dark .chooser-icon img[src$="express.svg"],
+.dark .chooser-icon img[src$="prisma.svg"],
+.dark .chooser-icon img[src$="mikroorm.svg"] {
+  filter: invert(1);
 }
 
 .chooser-title {

@@ -1,6 +1,6 @@
 # Prisma versions
 
-This page is Prisma-only. TypeORM has [its own notes](/limits/typeorm).
+This page is Prisma-only. See the separate [TypeORM](/limits/typeorm) and [MikroORM](/limits/mikroorm) notes.
 
 The Prisma adapter supports **Prisma 7.5.x only**.
 

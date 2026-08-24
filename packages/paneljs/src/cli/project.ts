@@ -27,6 +27,11 @@ const TYPEORM_PEERS: PeerNeed[] = [
   { name: "typeorm", installAs: "dep", spec: "^0.3.20" },
 ];
 
+const MIKROORM_PEERS: PeerNeed[] = [
+  { name: "express", installAs: "dep" },
+  { name: "@mikro-orm/core", installAs: "dep", spec: "^6.4.0" },
+];
+
 export function readManifest(cwd: string): PackageManifest {
   const path = join(cwd, "package.json");
   if (!existsSync(path)) {
@@ -103,6 +108,7 @@ export function packageManagerFromUserAgent(
 export function peersFor(orm: OrmId): PeerNeed[] {
   if (orm === "prisma") return PRISMA_PEERS;
   if (orm === "typeorm") return TYPEORM_PEERS;
+  if (orm === "mikroorm") return MIKROORM_PEERS;
   return [{ name: "express", installAs: "dep" }];
 }
 
@@ -134,6 +140,12 @@ export function incompatiblePeer(
       (version.minor === 3 && version.patch < 20)
     ) {
       return `${name}@${spec} is below ^0.3.20.`;
+    }
+    return undefined;
+  }
+  if (name === "@mikro-orm/core") {
+    if (version.major !== 6 || version.minor < 4) {
+      return `${name}@${spec} is outside supported MikroORM ^6.4.0.`;
     }
     return undefined;
   }

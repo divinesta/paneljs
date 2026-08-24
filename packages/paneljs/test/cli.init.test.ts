@@ -14,6 +14,7 @@ import {
   detectPackageManager,
   incompatiblePeer,
   installArgs,
+  peersFor,
   planInstall,
 } from "../src/cli/project.js";
 import {
@@ -55,24 +56,43 @@ describe("init stack", () => {
     ]);
   });
 
+  it("maps Express + MikroORM to the published packages", () => {
+    expect(paneljsPackages("express", "mikroorm")).toEqual([
+      "paneljs",
+      "@paneljs/express",
+      "@paneljs/mikroorm",
+    ]);
+  });
+
   it("refuses coming-soon frameworks and ORMs", () => {
     expect(() => resolveFramework("fastify")).toThrow(/coming soon/);
     expect(() => resolveFramework("nestjs")).toThrow(/coming soon/);
     expect(() => resolveOrm("drizzle")).toThrow(/coming soon/);
     expect(parseFramework("nest.js")).toBe("nestjs");
     expect(parseOrm("typeorm")).toBe("typeorm");
+    expect(parseOrm("mikro-orm")).toBe("mikroorm");
   });
 
-  it("prints a Prisma snippet without TypeORM and a TypeORM snippet without Prisma", () => {
+  it("prints an ORM-specific setup snippet", () => {
     const prisma = setupSnippet("express", "prisma");
     const typeorm = setupSnippet("express", "typeorm");
+    const mikroorm = setupSnippet("express", "mikroorm");
     expect(prisma).toContain("prismaAdapter");
     expect(prisma).not.toContain("typeormAdapter");
+    expect(prisma).not.toContain("mikroormAdapter");
     expect(typeorm).toContain("typeormAdapter");
     expect(typeorm).toContain("dataSource.initialize()");
     expect(typeorm).not.toContain("prismaAdapter");
+    expect(typeorm).not.toContain("mikroormAdapter");
+    expect(mikroorm).toContain("mikroormAdapter");
+    expect(mikroorm).toContain('from "./orm.js"');
+    expect(mikroorm).not.toContain("prismaAdapter");
+    expect(mikroorm).not.toContain("typeormAdapter");
     expect(docsUrl("express", "typeorm")).toContain(
       "/guide/installation/express/typeorm",
+    );
+    expect(docsUrl("express", "mikroorm")).toContain(
+      "/guide/installation/express/mikroorm",
     );
   });
 });
@@ -122,13 +142,17 @@ describe("package manager and peers", () => {
     expect(detectPackageManager(cwd, {}, {})).toBe("pnpm");
   });
 
-  it("flags Prisma 6 and TypeORM 0.2 as incompatible", () => {
+  it("flags incompatible Prisma, TypeORM, and MikroORM versions", () => {
     expect(incompatiblePeer("prisma", "^6.16.0")).toMatch(/7\.5/);
     expect(incompatiblePeer("@prisma/client", "8.0.0")).toMatch(/7\.5/);
     expect(incompatiblePeer("typeorm", "^0.2.45")).toMatch(/0\.3\.20/);
+    expect(incompatiblePeer("@mikro-orm/core", "^5.9.0")).toMatch(/\^6\.4/);
+    expect(incompatiblePeer("@mikro-orm/core", "^7.0.0")).toMatch(/\^6\.4/);
     expect(incompatiblePeer("express", "^3.0.0")).toMatch(/4\.18/);
     expect(incompatiblePeer("prisma", "~7.5.2")).toBeUndefined();
     expect(incompatiblePeer("typeorm", "^0.3.20")).toBeUndefined();
+    expect(incompatiblePeer("@mikro-orm/core", "^6.4.0")).toBeUndefined();
+    expect(incompatiblePeer("@mikro-orm/core", "^6.6.0")).toBeUndefined();
     expect(incompatiblePeer("express", "^5.0.0")).toBeUndefined();
   });
 
@@ -177,6 +201,23 @@ describe("package manager and peers", () => {
     expect(plan.alreadyPresent).toEqual(
       expect.arrayContaining(["paneljs", "express", "prisma"]),
     );
+  });
+
+  it("plans the MikroORM adapter and v6 core peer", () => {
+    const plan = planInstall(
+      { dependencies: { express: "^5.0.0" } },
+      paneljsPackages("express", "mikroorm"),
+      peersFor("mikroorm"),
+      PACKAGE_INSTALL_SPEC,
+    );
+    expect(plan.dependencies).toEqual([
+      "paneljs@^0.3.3",
+      "@paneljs/express@^0.3.1",
+      "@paneljs/mikroorm@^0.1.0",
+      "@mikro-orm/core@^6.4.0",
+    ]);
+    expect(plan.devDependencies).toEqual([]);
+    expect(plan.incompatible).toEqual([]);
   });
 
   it("builds package-manager argv without a shell string", () => {
@@ -314,6 +355,34 @@ describe("runInit", () => {
     expect(fake.install.mock.calls[0][3]).toEqual([]);
     expect(fake.output).toMatch(/typeormAdapter/);
     expect(fake.output).not.toMatch(/prismaAdapter/);
+  });
+
+  it("installs MikroORM packages and prints its snippet", async () => {
+    const cwd = mkdtempSync(join(tmpdir(), "paneljs-init-"));
+    writeFileSync(
+      join(cwd, "package.json"),
+      JSON.stringify({
+        name: "app",
+        dependencies: { express: "^5.0.0" },
+      }),
+    );
+    const fake = io();
+    await runInit({
+      cwd,
+      argv: ["--framework", "express", "--orm", "mikroorm", "--yes"],
+      io: fake,
+    });
+    expect(fake.install).toHaveBeenCalledTimes(1);
+    expect(fake.install.mock.calls[0][2]).toEqual([
+      "paneljs@^0.3.3",
+      "@paneljs/express@^0.3.1",
+      "@paneljs/mikroorm@^0.1.0",
+      "@mikro-orm/core@^6.4.0",
+    ]);
+    expect(fake.install.mock.calls[0][3]).toEqual([]);
+    expect(fake.output).toMatch(/mikroormAdapter/);
+    expect(fake.output).toMatch(/installation\/express\/mikroorm/);
+    expect(fake.output).not.toMatch(/prismaAdapter|typeormAdapter/);
   });
 
   it("does not spawn when every package is already listed", async () => {

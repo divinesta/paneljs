@@ -540,7 +540,7 @@ html[data-theme="light"] .stack-token img {
   transform: rotate(5deg);
 }
 
-.stack-token-typescript {
+.stack-token-mikroorm {
   top: 60%;
   right: clamp(1.25rem, 5vw, 5.5rem);
   transform: rotate(-6deg);
@@ -731,6 +731,12 @@ html[data-theme="light"] .stack-token img {
   align-self: center;
   width: 28px;
   height: 28px;
+}
+
+html[data-theme="dark"] .stack-row img[src$="express.svg"],
+html[data-theme="dark"] .stack-row img[src$="prisma.svg"],
+html[data-theme="dark"] .stack-row img[src$="mikroorm.svg"] {
+  filter: invert(1);
 }
 
 .stack-row strong {

@@ -11,6 +11,7 @@
 
 - `createsuperuser` now provisions built-in administrators through Prisma, TypeORM, or MikroORM adapters.
 - `DataAdapter.dispose()` lets short-lived CLI commands close ORM connections cleanly.
+- `paneljs init --framework express --orm mikroorm` installs the MikroORM adapter and required v6 core peer, then prints the matching mount snippet.
 
 ## [0.3.2] - 2026-08-23
 

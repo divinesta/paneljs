@@ -22,9 +22,25 @@ Coming-soon cards are listed so you can see what is next. They are not installab
 
 From the root of **your** app:
 
-```sh
+::: code-group
+
+```sh [npm]
 npx paneljs@latest init
 ```
+
+```sh [pnpm]
+pnpm dlx paneljs@latest init
+```
+
+```sh [yarn]
+yarn dlx paneljs@latest init
+```
+
+```sh [bun]
+bunx paneljs@latest init
+```
+
+:::
 
 The prompt asks for a framework, then an ORM. Fastify, Nest.js, and Drizzle are listed and cannot be selected yet.
 
@@ -40,6 +56,10 @@ npx paneljs init --framework express --orm prisma --yes
 
 ```sh [TypeORM]
 npx paneljs init --framework express --orm typeorm --yes
+```
+
+```sh [MikroORM]
+npx paneljs init --framework express --orm mikroorm --yes
 ```
 
 :::
