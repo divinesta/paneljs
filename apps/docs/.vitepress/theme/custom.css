@@ -72,6 +72,7 @@ a.chooser-card:hover {
 }
 
 .dark .chooser-icon img[src$="express.svg"],
+.dark .chooser-icon img[src$="fastify.svg"],
 .dark .chooser-icon img[src$="prisma.svg"],
 .dark .chooser-icon img[src$="mikroorm.svg"] {
   filter: invert(1);
