@@ -145,9 +145,9 @@ describe("package manager and peers", () => {
     );
     expect(plan.alreadyPresent).toEqual(["express"]);
     expect(plan.dependencies).toEqual([
-      "paneljs@^0.3.2",
+      "paneljs@^0.3.3",
       "@paneljs/express@^0.3.1",
-      "@paneljs/prisma@^0.3.2",
+      "@paneljs/prisma@^0.3.3",
       "@prisma/client@~7.5.0",
     ]);
     expect(plan.devDependencies).toEqual(["prisma@~7.5.0"]);
@@ -307,9 +307,9 @@ describe("runInit", () => {
     });
     expect(fake.install).toHaveBeenCalledTimes(1);
     expect(fake.install.mock.calls[0][2]).toEqual([
-      "paneljs@^0.3.2",
+      "paneljs@^0.3.3",
       "@paneljs/express@^0.3.1",
-      "@paneljs/typeorm@^0.1.6",
+      "@paneljs/typeorm@^0.1.7",
     ]);
     expect(fake.install.mock.calls[0][3]).toEqual([]);
     expect(fake.output).toMatch(/typeormAdapter/);

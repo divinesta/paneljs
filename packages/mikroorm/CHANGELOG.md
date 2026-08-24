@@ -1,16 +1,11 @@
 # Changelog
 
-## Unreleased
+## [0.1.0] - 2026-08-24
 
 ### Added
 
 - The auth store implements administrator creation for the shared `createsuperuser` command.
 - `mikroormAdapter` closes its ORM connection when a short-lived CLI command finishes.
-
-## [0.1.0] - 2026-08-22
-
-### Added
-
 - Package scaffold: `mikroormAdapter({ orm })`.
 - Requires an initialized MikroORM instance.
 - `client` is the ORM (for custom actions).

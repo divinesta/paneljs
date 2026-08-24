@@ -217,7 +217,7 @@ importers:
   packages/mikroorm:
     dependencies:
       paneljs:
-        specifier: ^0.3.2
+        specifier: ^0.3.3
         version: link:../paneljs
     devDependencies:
       "@mikro-orm/core":
@@ -288,7 +288,7 @@ importers:
         specifier: ~7.5.0
         version: 7.5.0(typescript@5.9.2)
       paneljs:
-        specifier: ^0.3.2
+        specifier: ^0.3.3
         version: link:../paneljs
     devDependencies:
       "@paneljs/testkit":
@@ -338,7 +338,7 @@ importers:
   packages/typeorm:
     dependencies:
       paneljs:
-        specifier: ^0.3.2
+        specifier: ^0.3.3
         version: link:../paneljs
     devDependencies:
       "@paneljs/testkit":

@@ -1,6 +1,6 @@
 {
   "name": "@paneljs/typeorm",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "TypeORM adapter for PanelJS, a Django-style admin panel for Express and Node.js applications.",
   "license": "MIT",
   "type": "module",
@@ -51,7 +51,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "paneljs": "^0.3.2"
+    "paneljs": "^0.3.3"
   },
   "peerDependencies": {
     "typeorm": "^0.3.20"
