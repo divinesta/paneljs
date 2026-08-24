@@ -70,11 +70,17 @@
   --grid-line: rgba(255, 255, 255, 0.055);
   --header-bg: rgba(12, 12, 14, 0.82);
   --header-solid: #111113;
-  --token-bg: linear-gradient(145deg, rgba(34, 34, 38, 0.94), rgba(16, 16, 18, 0.9));
+  --token-bg: linear-gradient(
+    145deg,
+    rgba(34, 34, 38, 0.94),
+    rgba(16, 16, 18, 0.9)
+  );
   --token-line: rgba(255, 255, 255, 0.11);
-  --token-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 20px 40px rgba(0, 0, 0, 0.27);
+  --token-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 20px 40px rgba(0, 0, 0, 0.27);
   --preview-bg: #eef0f2;
-  --preview-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 28px 80px -28px rgba(0, 0, 0, 0.72);
+  --preview-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06), 0 28px 80px -28px rgba(0, 0, 0, 0.72);
   --dot-bg: rgba(255, 255, 255, 0.4);
   --button-hover-surface: rgba(255, 255, 255, 0.03);
   --code-bg: #141416;
@@ -110,11 +116,17 @@ html[data-theme="light"] {
   --grid-line: rgba(22, 31, 39, 0.085);
   --header-bg: rgba(247, 249, 252, 0.84);
   --header-solid: #f7f9fc;
-  --token-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(236, 241, 246, 0.96));
+  --token-bg: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(236, 241, 246, 0.96)
+  );
   --token-line: rgba(22, 31, 39, 0.13);
-  --token-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 18px 38px rgba(27, 40, 50, 0.1);
+  --token-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 18px 38px rgba(27, 40, 50, 0.1);
   --preview-bg: #ffffff;
-  --preview-shadow: 0 0 0 1px rgba(22, 31, 39, 0.1), 0 28px 80px -28px rgba(27, 40, 50, 0.2);
+  --preview-shadow:
+    0 0 0 1px rgba(22, 31, 39, 0.1), 0 28px 80px -28px rgba(27, 40, 50, 0.2);
   --dot-bg: rgba(22, 31, 39, 0.28);
   --button-hover-surface: rgba(22, 31, 39, 0.04);
   --code-bg: #ffffff;
@@ -164,7 +176,11 @@ body::before {
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 54px 54px;
-  mask-image: radial-gradient(ellipse 100% 78% at 50% 14%, #000 22%, transparent 82%);
+  mask-image: radial-gradient(
+    ellipse 100% 78% at 50% 14%,
+    #000 22%,
+    transparent 82%
+  );
 }
 
 a {
@@ -234,7 +250,9 @@ code {
   z-index: var(--z-header);
   height: var(--header);
   border-bottom: 1px solid transparent;
-  transition: background-color 220ms var(--ease-out), border-color 220ms var(--ease-out);
+  transition:
+    background-color 220ms var(--ease-out),
+    border-color 220ms var(--ease-out);
 }
 
 .header.scrolled {
@@ -301,7 +319,11 @@ code {
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--muted);
-  transition: transform 140ms var(--ease-out), color 160ms var(--ease-out), background-color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  transition:
+    transform 140ms var(--ease-out),
+    color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out);
 }
 
 .theme-toggle:active {
@@ -337,7 +359,11 @@ html[data-theme="light"] .theme-icon-moon {
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
-  transition: transform 140ms var(--ease-out), background-color 180ms var(--ease-out), border-color 180ms var(--ease-out), color 180ms var(--ease-out);
+  transition:
+    transform 140ms var(--ease-out),
+    background-color 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    color 180ms var(--ease-out);
 }
 
 .btn:focus-visible {
@@ -378,7 +404,9 @@ html[data-theme="light"] .theme-icon-moon {
   flex: 0 0 auto;
   border-radius: 999px;
   color: var(--muted);
-  transition: color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+  transition:
+    color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out);
 }
 
 .btn-github:focus-visible {
@@ -586,7 +614,9 @@ html[data-theme="light"] .stack-token img {
   min-width: 44px;
   border-radius: 999px;
   color: var(--muted);
-  transition: color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+  transition:
+    color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out);
 }
 
 .slider-toggle {
@@ -627,7 +657,9 @@ html[data-theme="light"] .stack-token img {
   border-radius: 999px;
   background: var(--dot-bg);
   transform: translate(-50%, -50%);
-  transition: transform 180ms var(--ease-out), background-color 180ms var(--ease-out);
+  transition:
+    transform 180ms var(--ease-out),
+    background-color 180ms var(--ease-out);
 }
 
 .slider-dots button[aria-current="true"]::after {
@@ -873,7 +905,9 @@ html[data-theme="light"] .stack-token img {
   border: 1px solid var(--line);
   color: var(--muted);
   font-size: 0.75rem;
-  transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  transition:
+    color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out);
 }
 
 .copy-btn.copied {
@@ -895,9 +929,15 @@ html[data-theme="light"] .stack-token img {
   color: var(--code-text);
 }
 
-.tok-k { color: var(--tok-keyword); }
-.tok-s { color: var(--tok-string); }
-.tok-n { color: var(--tok-number); }
+.tok-k {
+  color: var(--tok-keyword);
+}
+.tok-s {
+  color: var(--tok-string);
+}
+.tok-n {
+  color: var(--tok-number);
+}
 
 .blog-page {
   padding: calc(var(--header) + 4rem) 0 5rem;
@@ -1083,7 +1123,9 @@ html[data-theme="light"] .stack-token img {
 .js .reveal {
   opacity: 0;
   transform: translateY(14px);
-  transition: opacity 520ms var(--ease-out), transform 520ms var(--ease-out);
+  transition:
+    opacity 520ms var(--ease-out),
+    transform 520ms var(--ease-out);
 }
 
 .js .reveal.revealed {
@@ -1091,11 +1133,21 @@ html[data-theme="light"] .stack-token img {
   transform: none;
 }
 
-.feature-list .reveal:nth-child(2) { transition-delay: 50ms; }
-.feature-list .reveal:nth-child(3) { transition-delay: 100ms; }
-.feature-list .reveal:nth-child(4) { transition-delay: 150ms; }
-.calls .reveal:nth-child(2) { transition-delay: 50ms; }
-.calls .reveal:nth-child(3) { transition-delay: 100ms; }
+.feature-list .reveal:nth-child(2) {
+  transition-delay: 50ms;
+}
+.feature-list .reveal:nth-child(3) {
+  transition-delay: 100ms;
+}
+.feature-list .reveal:nth-child(4) {
+  transition-delay: 150ms;
+}
+.calls .reveal:nth-child(2) {
+  transition-delay: 50ms;
+}
+.calls .reveal:nth-child(3) {
+  transition-delay: 100ms;
+}
 
 @media (hover: hover) and (pointer: fine) {
   .header-nav a:hover,

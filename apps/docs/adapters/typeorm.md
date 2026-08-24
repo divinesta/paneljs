@@ -56,10 +56,9 @@ import { typeormActionWhere } from "@paneljs/typeorm";
 import type { DataSource } from "typeorm";
 
 handler: async ({ client, where }) => {
-  const result = await (client as DataSource).getRepository("Post").update(
-    typeormActionWhere("id", where),
-    { published: true },
-  );
+  const result = await (client as DataSource)
+    .getRepository("Post")
+    .update(typeormActionWhere("id", where), { published: true });
   const count = result.affected ?? 0;
   return { message: `Published ${count} posts.` };
 };

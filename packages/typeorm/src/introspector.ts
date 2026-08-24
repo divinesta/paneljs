@@ -135,11 +135,7 @@ function uniqueColumnNames(entity: EntityMetadata): Set<string> {
     }
   }
   for (const index of entity.indices) {
-    if (
-      index.isUnique &&
-      index.columns.length === 1 &&
-      index.columns[0]
-    ) {
+    if (index.isUnique && index.columns.length === 1 && index.columns[0]) {
       names.add(index.columns[0].propertyName);
     }
   }
@@ -183,10 +179,7 @@ function relationKind(relation: TypeormRelation): RelationKind {
   return "hasOne";
 }
 
-function detectDisplayField(
-  fields: AdminFieldMeta[],
-  idField: string,
-): string {
+function detectDisplayField(fields: AdminFieldMeta[], idField: string): string {
   for (const preferred of PREFERRED_DISPLAY_NAMES) {
     const field = fields.find(
       (candidate) =>
@@ -199,8 +192,7 @@ function detectDisplayField(
   }
 
   const uniqueString = fields.find(
-    (field) =>
-      field.type === "string" && field.isUnique && !field.isId,
+    (field) => field.type === "string" && field.isUnique && !field.isId,
   );
   if (uniqueString) return uniqueString.name;
 
@@ -348,9 +340,7 @@ function introspectEntity(entity: EntityMetadata): AdminModelMeta | null {
   };
 }
 
-function patchRelationDisplayFields(
-  models: Map<string, AdminModelMeta>,
-): void {
+function patchRelationDisplayFields(models: Map<string, AdminModelMeta>): void {
   for (const model of models.values()) {
     for (const field of model.fields) {
       if (field.type !== "relation" || !field.relation) continue;
@@ -361,7 +351,9 @@ function patchRelationDisplayFields(
 }
 
 /** Map live TypeORM entity metadata into PanelJS model meta. */
-export function introspect(dataSource: DataSource): Map<string, AdminModelMeta> {
+export function introspect(
+  dataSource: DataSource,
+): Map<string, AdminModelMeta> {
   if (!dataSource.isInitialized) {
     throw new Error(
       "[paneljs] typeormAdapter requires an initialized DataSource. Call await dataSource.initialize() first.",

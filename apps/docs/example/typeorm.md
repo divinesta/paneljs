@@ -67,7 +67,9 @@ admin.register("Post", {
   listFilter: ["published", "createdAt"],
   searchFields: ["title", "content"],
   scope: tenantScope,
-  actions: [/* publish_selected, unpublish_selected */],
+  actions: [
+    /* publish_selected, unpublish_selected */
+  ],
 });
 
 await mount(app, admin);

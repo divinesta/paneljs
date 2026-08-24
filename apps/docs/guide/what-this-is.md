@@ -11,11 +11,11 @@ You do not describe your tables twice. Prisma’s `schema.prisma` or TypeORM ent
 
 ## Two choices, then the same product
 
-| You pick | Package | Job |
-| --- | --- | --- |
-| HTTP framework | `@paneljs/express` today | `mount(app, admin)` |
-| ORM | `@paneljs/prisma` or `@paneljs/typeorm` | Introspect models, run CRUD |
-| Core | `paneljs` | Registry, schema JSON, UI, permissions, scope |
+| You pick       | Package                                 | Job                                           |
+| -------------- | --------------------------------------- | --------------------------------------------- |
+| HTTP framework | `@paneljs/express` today                | `mount(app, admin)`                           |
+| ORM            | `@paneljs/prisma` or `@paneljs/typeorm` | Introspect models, run CRUD                   |
+| Core           | `paneljs`                               | Registry, schema JSON, UI, permissions, scope |
 
 Express and Fastify are how the admin hangs off the server. Prisma and TypeORM are how rows are discovered and written. After `mount`, `register("User")` is the same.
 
@@ -40,13 +40,13 @@ Three calls. Everything else is optional configuration on those calls.
 
 ## What you bring
 
-| You own | The library owns |
-| --- | --- |
-| HTTP app (Express today) | Admin routes under `basePath` |
-| ORM client (`PrismaClient` or initialized `DataSource`) | Introspection through the adapter |
-| Built-in admin credentials, or external authentication | Creating an `AdminUser` request context |
-| Tenancy rules, via `scope()` | Applying that scope on every record operation |
-| Optional audit destination | Emitting safe, append-only events |
+| You own                                                 | The library owns                              |
+| ------------------------------------------------------- | --------------------------------------------- |
+| HTTP app (Express today)                                | Admin routes under `basePath`                 |
+| ORM client (`PrismaClient` or initialized `DataSource`) | Introspection through the adapter             |
+| Built-in admin credentials, or external authentication  | Creating an `AdminUser` request context       |
+| Tenancy rules, via `scope()`                            | Applying that scope on every record operation |
+| Optional audit destination                              | Emitting safe, append-only events             |
 
 Built-in mode provides an admin-only login screen, `ExpressAdminUser` table, and
 session store. External mode still lets you map an existing identity onto an

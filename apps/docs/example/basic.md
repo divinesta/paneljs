@@ -49,7 +49,11 @@ const admin = createAdmin({
     identifier: "email",
     secureCookies: false,
   },
-  audit: { write: async (event) => { /* AdminAuditLog.create */ } },
+  audit: {
+    write: async (event) => {
+      /* AdminAuditLog.create */
+    },
+  },
 });
 
 admin.register("User", {
@@ -57,7 +61,9 @@ admin.register("User", {
   listFilter: ["role", "isActive"],
   searchFields: ["email", "fullName"],
   scope: async (adminUser) =>
-    adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
+    adminUser.isSuperAdmin
+      ? {}
+      : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
 });
 
 admin.register("Post", {
@@ -65,8 +71,12 @@ admin.register("Post", {
   listFilter: ["published", "createdAt"],
   searchFields: ["title", "content"],
   scope: async (adminUser) =>
-    adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
-  actions: [/* publish_selected, unpublish_selected */],
+    adminUser.isSuperAdmin
+      ? {}
+      : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
+  actions: [
+    /* publish_selected, unpublish_selected */
+  ],
 });
 ```
 

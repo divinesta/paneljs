@@ -2,13 +2,13 @@
 
 A Django-style admin panel. One git repo, four packages:
 
-| Package            | npm name           | Role                                  |
-| ------------------ | ------------------ | ------------------------------------- |
-| `packages/paneljs` | `paneljs`          | Core: registry, schema JSON, admin UI |
-| `packages/express` | `@paneljs/express` | `mount(app, admin)`                   |
-| `packages/prisma`   | `@paneljs/prisma`    | `prismaAdapter()`, DMMF introspector |
-| `packages/typeorm`  | `@paneljs/typeorm`   | `typeormAdapter()`                   |
-| `packages/mikroorm` | `@paneljs/mikroorm`  | `mikroormAdapter()`                  |
+| Package             | npm name            | Role                                  |
+| ------------------- | ------------------- | ------------------------------------- |
+| `packages/paneljs`  | `paneljs`           | Core: registry, schema JSON, admin UI |
+| `packages/express`  | `@paneljs/express`  | `mount(app, admin)`                   |
+| `packages/prisma`   | `@paneljs/prisma`   | `prismaAdapter()`, DMMF introspector  |
+| `packages/typeorm`  | `@paneljs/typeorm`  | `typeormAdapter()`                    |
+| `packages/mikroorm` | `@paneljs/mikroorm` | `mikroormAdapter()`                   |
 
 Apps:
 

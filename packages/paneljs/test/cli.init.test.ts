@@ -109,7 +109,12 @@ describe("package manager and peers", () => {
     const cwd = mkdtempSync(join(tmpdir(), "paneljs-init-"));
     writeFileSync(join(cwd, "pnpm-lock.yaml"), "");
     expect(
-      detectPackageManager(cwd, {}, { npm_config_user_agent: "yarn/1.22.0" }, "bun"),
+      detectPackageManager(
+        cwd,
+        {},
+        { npm_config_user_agent: "yarn/1.22.0" },
+        "bun",
+      ),
     ).toBe("bun");
     expect(
       detectPackageManager(cwd, {}, { npm_config_user_agent: "yarn/1.22.0" }),
@@ -182,12 +187,18 @@ describe("package manager and peers", () => {
       "-D",
       "prisma@~7.5.0",
     ]);
-    expect(installArgs("bun", ["typeorm"], true)).toEqual(["add", "-d", "typeorm"]);
+    expect(installArgs("bun", ["typeorm"], true)).toEqual([
+      "add",
+      "-d",
+      "typeorm",
+    ]);
   });
 });
 
 describe("runInit", () => {
-  const io = (install = vi.fn(async () => {})): InitIo & {
+  const io = (
+    install = vi.fn(async () => {}),
+  ): InitIo & {
     install: ReturnType<typeof vi.fn>;
     output: string;
   } => {
@@ -258,19 +269,16 @@ describe("runInit", () => {
     const cwd = mkdtempSync(join(tmpdir(), "paneljs-init-"));
     writeFileSync(
       join(cwd, "package.json"),
-      JSON.stringify({ name: "app", dependencies: prismaManifest.dependencies, devDependencies: prismaManifest.devDependencies }),
+      JSON.stringify({
+        name: "app",
+        dependencies: prismaManifest.dependencies,
+        devDependencies: prismaManifest.devDependencies,
+      }),
     );
     const fake = io();
     await runInit({
       cwd,
-      argv: [
-        "--framework",
-        "express",
-        "--orm",
-        "prisma",
-        "--yes",
-        "--dry-run",
-      ],
+      argv: ["--framework", "express", "--orm", "prisma", "--yes", "--dry-run"],
       io: fake,
     });
     expect(fake.install).not.toHaveBeenCalled();
@@ -336,7 +344,9 @@ describe("runInit", () => {
 
 describe("auth:schema", () => {
   it("prints email or username Prisma models", () => {
-    expect(authSchema("email")).toContain("email        String           @unique");
+    expect(authSchema("email")).toContain(
+      "email        String           @unique",
+    );
     expect(authSchema("username")).toContain(
       "username     String           @unique",
     );

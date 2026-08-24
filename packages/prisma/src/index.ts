@@ -1,17 +1,11 @@
-import type {
-  AdminModelMeta,
-  DataAdapter,
-} from "paneljs";
+import type { AdminModelMeta, DataAdapter } from "paneljs";
 import {
   getSchemaProvider,
   introspect,
   usesInsensitiveSearch,
   type IntrospectOptions,
 } from "./introspector.js";
-import {
-  prismaResource,
-  type PrismaDelegate,
-} from "./resource.js";
+import { prismaResource, type PrismaDelegate } from "./resource.js";
 import { prismaAuthStore } from "./authStore.js";
 
 export type PrismaClientLike = object;

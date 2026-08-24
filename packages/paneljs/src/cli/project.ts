@@ -72,7 +72,12 @@ export function detectPackageManager(
   if (fromAgent) return fromAgent;
 
   const field = manifest.packageManager?.split("@")[0];
-  if (field === "npm" || field === "pnpm" || field === "yarn" || field === "bun") {
+  if (
+    field === "npm" ||
+    field === "pnpm" ||
+    field === "yarn" ||
+    field === "bun"
+  ) {
     return field;
   }
 
@@ -199,12 +204,7 @@ export function installArgs(
 ): string[] {
   if (packages.length === 0) return [];
   if (pm === "npm")
-    return [
-      "install",
-      "--no-workspaces",
-      ...(dev ? ["-D"] : []),
-      ...packages,
-    ];
+    return ["install", "--no-workspaces", ...(dev ? ["-D"] : []), ...packages];
   if (pm === "bun") return ["add", ...(dev ? ["-d"] : []), ...packages];
   return ["add", ...(dev ? ["-D"] : []), ...packages];
 }

@@ -7,7 +7,9 @@ Scope is the reason this library exists as more than “CRUD from schema metadat
 ```ts
 admin.register("Post", {
   scope: async (adminUser) =>
-    adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
+    adminUser.isSuperAdmin
+      ? {}
+      : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
 });
 ```
 
@@ -17,11 +19,11 @@ admin.register("Post", {
 
 The [examples](/example/basic) seed this:
 
-| Person | Email | Role | Tenant |
-| --- | --- | --- | --- |
-| Ada | `ada@example.test` | `ADMIN` | Northwind |
-| Grace | `grace@example.test` | `ADMIN` | Contoso |
-| Linus | `linus@example.test` | `SUPER_ADMIN` | Northwind |
+| Person | Email                | Role          | Tenant    |
+| ------ | -------------------- | ------------- | --------- |
+| Ada    | `ada@example.test`   | `ADMIN`       | Northwind |
+| Grace  | `grace@example.test` | `ADMIN`       | Contoso   |
+| Linus  | `linus@example.test` | `SUPER_ADMIN` | Northwind |
 
 Ada opens `/admin/posts` and sees “Welcome to PanelJS.” She does not see Grace’s Contoso draft. Changing the id in the URL does not help: detail, update, and delete use `AND: [scope, { id }]`. A foreign id is `404 RECORD_NOT_FOUND`, not a leaked row.
 

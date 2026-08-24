@@ -256,16 +256,21 @@ export function mikroormResource(
   return {
     async findMany(query: FindManyQuery) {
       const em = orm.em.fork();
-      const records = await em.find(name, toMikroormWhere(meta, query, caseInsensitive), {
-        populate: relationNames(query.select) as never,
-        orderBy: query.sort
-          ? {
-              [rewriteFieldName(fkMap, query.sort.field)]: query.sort.direction,
-            }
-          : undefined,
-        offset: query.skip,
-        limit: query.take,
-      });
+      const records = await em.find(
+        name,
+        toMikroormWhere(meta, query, caseInsensitive),
+        {
+          populate: relationNames(query.select) as never,
+          orderBy: query.sort
+            ? {
+                [rewriteFieldName(fkMap, query.sort.field)]:
+                  query.sort.direction,
+              }
+            : undefined,
+          offset: query.skip,
+          limit: query.take,
+        },
+      );
       return records.map((record) =>
         projectRecord(record as object, query.select, meta),
       );
@@ -282,10 +287,9 @@ export function mikroormResource(
         : null;
     },
     count(query: CountQuery) {
-      return orm.em.fork().count(
-        name,
-        toMikroormWhere(meta, query, caseInsensitive),
-      );
+      return orm.em
+        .fork()
+        .count(name, toMikroormWhere(meta, query, caseInsensitive));
     },
     async create(query: CreateQuery) {
       const em = orm.em.fork();
@@ -299,8 +303,13 @@ export function mikroormResource(
           { [meta.idField]: id } as Where,
           { populate: relationNames(query.select) as never },
         );
-        if (reloaded) return projectRecord(reloaded as object, query.select, meta);
-        return projectRecord({ ...data, [meta.idField]: id }, query.select, meta);
+        if (reloaded)
+          return projectRecord(reloaded as object, query.select, meta);
+        return projectRecord(
+          { ...data, [meta.idField]: id },
+          query.select,
+          meta,
+        );
       } catch (error) {
         rethrowWriteError(error);
       }

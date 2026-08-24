@@ -17,20 +17,21 @@ admin.register("User", {
   beforeUpdate: async (id, data) => data,
   afterUpdate: async (record) => {},
   beforeDelete: async (id) => {
-    if (id === SUPER_ADMIN_ID) throw new Error("Cannot delete the root operator.");
+    if (id === SUPER_ADMIN_ID)
+      throw new Error("Cannot delete the root operator.");
   },
   afterDelete: async (id) => {},
 });
 ```
 
-| Hook | When | Can change data |
-| --- | --- | --- |
-| `beforeCreate` | After validate + create-scope, before `create` | yes, return the object |
-| `afterCreate` | After insert | no |
-| `beforeUpdate` | After the scoped row is found + validate + scope-field lock, before `updateMany` | yes |
-| `afterUpdate` | After reload | no |
-| `beforeDelete` | After the scoped row is found, before `deleteMany` | throw to abort |
-| `afterDelete` | After delete | no |
+| Hook           | When                                                                             | Can change data        |
+| -------------- | -------------------------------------------------------------------------------- | ---------------------- |
+| `beforeCreate` | After validate + create-scope, before `create`                                   | yes, return the object |
+| `afterCreate`  | After insert                                                                     | no                     |
+| `beforeUpdate` | After the scoped row is found + validate + scope-field lock, before `updateMany` | yes                    |
+| `afterUpdate`  | After reload                                                                     | no                     |
+| `beforeDelete` | After the scoped row is found, before `deleteMany`                               | throw to abort         |
+| `afterDelete`  | After delete                                                                     | no                     |
 
 ## Useful jobs
 

@@ -79,11 +79,13 @@ admin.register("Post", {
       label: "Publish selected posts",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
       handler: async ({ client, where }) => {
-        const count = await (client as MikroORM).em.fork().nativeUpdate(
-          "Post",
-          mikroormActionWhere(client as MikroORM, "Post", where),
-          { published: true },
-        );
+        const count = await (client as MikroORM).em
+          .fork()
+          .nativeUpdate(
+            "Post",
+            mikroormActionWhere(client as MikroORM, "Post", where),
+            { published: true },
+          );
         return {
           message: `Published ${count} ${count === 1 ? "post" : "posts"}.`,
         };
@@ -94,11 +96,13 @@ admin.register("Post", {
       label: "Move selected posts to draft",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
       handler: async ({ client, where }) => {
-        const count = await (client as MikroORM).em.fork().nativeUpdate(
-          "Post",
-          mikroormActionWhere(client as MikroORM, "Post", where),
-          { published: false },
-        );
+        const count = await (client as MikroORM).em
+          .fork()
+          .nativeUpdate(
+            "Post",
+            mikroormActionWhere(client as MikroORM, "Post", where),
+            { published: false },
+          );
         return {
           message: `Moved ${count} ${count === 1 ? "post" : "posts"} to draft.`,
         };

@@ -1,7 +1,4 @@
-export function argument(
-  argv: string[],
-  name: string,
-): string | undefined {
+export function argument(argv: string[], name: string): string | undefined {
   const equals = argv.find((item) => item.startsWith(`${name}=`));
   if (equals) return equals.slice(name.length + 1) || undefined;
   const index = argv.indexOf(name);

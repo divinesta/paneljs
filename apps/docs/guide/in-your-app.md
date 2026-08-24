@@ -144,12 +144,12 @@ const admin = createAdmin({
 
 :::
 
-| Option                | Why you set it                                                           |
-| --------------------- | ------------------------------------------------------------------------ |
-| `adapter`             | Required. `prismaAdapter({ prisma })` or `typeormAdapter({ dataSource })`. |
-| `siteName`            | Header label in the UI.                                                  |
+| Option                | Why you set it                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| `adapter`             | Required. `prismaAdapter({ prisma })` or `typeormAdapter({ dataSource })`.          |
+| `siteName`            | Header label in the UI.                                                             |
 | `auth.getCurrentUser` | Required in external mode. Your session/JWT → [`AdminUser`](/reference/admin-user). |
-| `audit.write`         | Optional. Called after successful writes. You own the table.             |
+| `audit.write`         | Optional. Called after successful writes. You own the table.                        |
 
 Prisma-only: pass `schemaPath` to `prismaAdapter()` if `schema.prisma` is not at `prisma/schema.prisma`. TypeORM-only: the `DataSource` must already be initialized.
 

@@ -39,11 +39,11 @@ admin.register("User", {
 });
 ```
 
-| Flag | Effect |
-| --- | --- |
-| `exclude` | Hidden from schema JSON, lists, and forms |
-| `expose` | Required to show a sensitive name |
-| `readOnly` | Visible, not writable |
+| Flag       | Effect                                    |
+| ---------- | ----------------------------------------- |
+| `exclude`  | Hidden from schema JSON, lists, and forms |
+| `expose`   | Required to show a sensitive name         |
+| `readOnly` | Visible, not writable                     |
 
 There is no `widget: "richtext"` in this release. Types map to a small built-in set: text, number, toggle, datetime, enum select, JSON text, relation select.
 

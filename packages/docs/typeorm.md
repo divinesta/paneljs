@@ -35,13 +35,13 @@ Prisma answered those with a schema file, DMMF, and `prisma.user`. TypeORM answe
 @Entity()
 class User {
   @PrimaryGeneratedColumn("uuid")
-  id: string
+  id: string;
 
   @Column({ unique: true })
-  email: string
+  email: string;
 
   @Column()
-  name: string
+  name: string;
 }
 ```
 
@@ -65,9 +65,9 @@ It still does **not** load rows. It only describes shape.
 ### Gift 3: repositories (replaces `prisma.user`)
 
 ```ts
-const users = dataSource.getRepository(User)
-await users.find({ where: { email: "a@b.com" } })
-await users.save({ email: "a@b.com", name: "Ada" })
+const users = dataSource.getRepository(User);
+await users.find({ where: { email: "a@b.com" } });
+await users.save({ email: "a@b.com", name: "Ada" });
 ```
 
 Different method names. Different `where` shape. No Prisma `contains` + `mode: "insensitive"`. You use `Like` or `ILike`.
@@ -81,15 +81,15 @@ Gift 2 fills `introspect()`. Gift 3 fills `resource()`. Auth store (if you want 
 Same PanelJS steps as Prisma. Only gift 2 changes.
 
 ```ts
-await dataSource.initialize()
+await dataSource.initialize();
 
 const admin = createAdmin({
   adapter: typeormAdapter({ dataSource }),
   auth: { getCurrentUser }, // or built-in, if auth entities are on the DataSource
-})
+});
 
-admin.register("User")
-await mount(app, admin)
+admin.register("User");
+await mount(app, admin);
 ```
 
 What happens:
@@ -172,14 +172,14 @@ Custom actions still get `client`. For TypeORM that is the `DataSource`. Host co
 
 ## Block 5 — How each part fits
 
-| PanelJS slot | Prisma | TypeORM |
-| --- | --- | --- |
-| `introspect()` | `schema.prisma` → DMMF → `AdminModelMeta` | `entityMetadatas` → **same** `AdminModelMeta` |
-| `resource()` | PanelJS query → Prisma `findMany` / `create` / … | PanelJS query → repository `find` / `update` / `delete` |
-| Search folding | `mode: "insensitive"` if Postgres | `ILike` if Postgres |
-| `createAuthStore()` | `prismaAuthStore` | `typeormAuthStore` |
-| `client` for actions | Prisma Client | `DataSource` |
-| Express / UI | Unchanged | Unchanged |
+| PanelJS slot         | Prisma                                           | TypeORM                                                 |
+| -------------------- | ------------------------------------------------ | ------------------------------------------------------- |
+| `introspect()`       | `schema.prisma` → DMMF → `AdminModelMeta`        | `entityMetadatas` → **same** `AdminModelMeta`           |
+| `resource()`         | PanelJS query → Prisma `findMany` / `create` / … | PanelJS query → repository `find` / `update` / `delete` |
+| Search folding       | `mode: "insensitive"` if Postgres                | `ILike` if Postgres                                     |
+| `createAuthStore()`  | `prismaAuthStore`                                | `typeormAuthStore`                                      |
+| `client` for actions | Prisma Client                                    | `DataSource`                                            |
+| Express / UI         | Unchanged                                        | Unchanged                                               |
 
 Reuse the display / searchable / filterable guesses (`name`, `title`, `email`, …). Do not copy `getDMMF`.
 

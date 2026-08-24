@@ -1,8 +1,8 @@
 # Register a model
 
 ```ts
-admin.register("User")
-admin.register("Post", { listDisplay: ["title", "author", "published"] })
+admin.register("User");
+admin.register("Post", { listDisplay: ["title", "author", "published"] });
 ```
 
 The first argument is the model name in your ORM — Prisma model or TypeORM entity — **PascalCase, exact**. The second argument is optional. Every key on it is optional.
@@ -13,16 +13,16 @@ The first argument is the model name in your ORM — Prisma model or TypeORM ent
 
 `admin.register("User")` still works. At mount the library picks:
 
-| Concern | Default |
-| --- | --- |
+| Concern       | Default                                                                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | Display label | First unique string among `name`, `title`, `label`, `username`, `slug`, `email`; else any unique string; else first string; else the id |
-| List columns | Display field first, then other non-id scalars, up to 6, then `createdAt` if present |
-| Search | Non-id string scalars (not FK scalars) |
-| Filters | None — configure `listFilter` explicitly |
-| Sort | `createdAt` descending, or the id |
-| Page size | 50 |
-| Permissions | Any authenticated admin |
-| URL slug | Simple English plural (`User` → `users`, `Category` → `categories`) |
+| List columns  | Display field first, then other non-id scalars, up to 6, then `createdAt` if present                                                    |
+| Search        | Non-id string scalars (not FK scalars)                                                                                                  |
+| Filters       | None — configure `listFilter` explicitly                                                                                                |
+| Sort          | `createdAt` descending, or the id                                                                                                       |
+| Page size     | 50                                                                                                                                      |
+| Permissions   | Any authenticated admin                                                                                                                 |
+| URL slug      | Simple English plural (`User` → `users`, `Category` → `categories`)                                                                     |
 
 Reach for the second argument when those defaults are wrong — not before.
 
@@ -46,7 +46,9 @@ admin.register("Post", {
     delete: ["SUPER_ADMIN"],
   },
   scope: async (adminUser) =>
-    adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
+    adminUser.isSuperAdmin
+      ? {}
+      : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
 });
 ```
 

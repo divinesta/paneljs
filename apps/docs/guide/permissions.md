@@ -37,7 +37,13 @@ Operations: `list`, `view`, `create`, `update`, `delete`, plus named actions.
 admin.register("User");
 
 // Allow ADMIN to create and update, but reserve deletion for SUPER_ADMIN.
-admin.register("User", { permissions: { create: ["ADMIN"], update: ["ADMIN"], delete: ["SUPER_ADMIN"] } });
+admin.register("User", {
+  permissions: {
+    create: ["ADMIN"],
+    update: ["ADMIN"],
+    delete: ["SUPER_ADMIN"],
+  },
+});
 ```
 
 Be explicit about every write operation you want enabled. Partial objects deny omitted writes.

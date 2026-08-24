@@ -25,7 +25,11 @@ The select is not a nested create. You cannot spawn a User from the Post form.
 ## What the API accepts
 
 ```json
-{ "title": "Quarterly review", "authorId": "example-user-ada", "published": false }
+{
+  "title": "Quarterly review",
+  "authorId": "example-user-ada",
+  "published": false
+}
 ```
 
 Not accepted:

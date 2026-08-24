@@ -106,7 +106,8 @@ export const createBuiltInAuthRouter = (
           { identifier, password },
           basePath,
         );
-        if (result.ok) res.setHeader("Set-Cookie", serializeCookie(result.cookie));
+        if (result.ok)
+          res.setHeader("Set-Cookie", serializeCookie(result.cookie));
         res.status(result.status).json(result.body);
         return;
       } catch (error) {

@@ -4,11 +4,13 @@ import type { Schema } from "../types";
 import { formatDate } from "../utils/format";
 
 export const Dashboard = ({ schema }: { schema: Schema }) => {
-   const visibleModels = schema.models.filter((model) => model.config.permissions.list);
-   return (
-      <section className="page-section">
-         <div className="eyebrow dashboard-date">{formatDate(new Date())}</div>
-         {/* <div className="page-heading">
+  const visibleModels = schema.models.filter(
+    (model) => model.config.permissions.list,
+  );
+  return (
+    <section className="page-section">
+      <div className="eyebrow dashboard-date">{formatDate(new Date())}</div>
+      {/* <div className="page-heading">
             <div>
                <h1>Good to see you.</h1>
                <p>Choose a model to start managing your data.</p>
@@ -35,26 +37,38 @@ export const Dashboard = ({ schema }: { schema: Schema }) => {
                <span className="metric-foot">Visible to your account</span>
             </div>
          </div> */}
-         <div className="section-heading">
-            <div>
-               <h2>Available models</h2>
-               <p>Open a model to view its records and controls.</p>
-            </div>
-         </div>
-         <div className="model-cards">
-            {visibleModels.map((model) => (
-               <NavLink className="model-card" key={model.meta.name} to={`/${model.meta.pluralName}`}>
-                  <span className="model-card-icon">{model.meta.name.slice(0, 1)}</span>
-                  <span className="model-card-copy">
-                     <strong>{model.meta.name}</strong>
-                     <small>
-                        {model.meta.fields.length} fields · {model.config.permissions.create ? "Can create" : "Read only"}
-                     </small>
-                  </span>
-                  <ArrowUpRight className="arrow" size={20} strokeWidth={1.75} aria-hidden />
-               </NavLink>
-            ))}
-         </div>
-      </section>
-   );
+      <div className="section-heading">
+        <div>
+          <h2>Available models</h2>
+          <p>Open a model to view its records and controls.</p>
+        </div>
+      </div>
+      <div className="model-cards">
+        {visibleModels.map((model) => (
+          <NavLink
+            className="model-card"
+            key={model.meta.name}
+            to={`/${model.meta.pluralName}`}
+          >
+            <span className="model-card-icon">
+              {model.meta.name.slice(0, 1)}
+            </span>
+            <span className="model-card-copy">
+              <strong>{model.meta.name}</strong>
+              <small>
+                {model.meta.fields.length} fields ·{" "}
+                {model.config.permissions.create ? "Can create" : "Read only"}
+              </small>
+            </span>
+            <ArrowUpRight
+              className="arrow"
+              size={20}
+              strokeWidth={1.75}
+              aria-hidden
+            />
+          </NavLink>
+        ))}
+      </div>
+    </section>
+  );
 };

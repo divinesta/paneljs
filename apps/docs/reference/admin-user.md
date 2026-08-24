@@ -20,11 +20,11 @@ interface AdminUser {
 
 ## Optional
 
-| Field | Typical use |
-| --- | --- |
-| `tenantId` | `scope: () => ({ tenantId: adminUser.tenantId ?? "__no_tenant__" })` |
-| `institutionId` | Same idea, older name — both exist |
-| `metadata` | Anything else `scope` or hooks need |
+| Field           | Typical use                                                          |
+| --------------- | -------------------------------------------------------------------- |
+| `tenantId`      | `scope: () => ({ tenantId: adminUser.tenantId ?? "__no_tenant__" })` |
+| `institutionId` | Same idea, older name — both exist                                   |
+| `metadata`      | Anything else `scope` or hooks need                                  |
 
 The library never reads `metadata` itself. You put it there in `getCurrentUser` and consume it in `scope` / hooks / actions.
 

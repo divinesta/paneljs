@@ -79,10 +79,9 @@ admin.register("Post", {
       label: "Publish selected posts",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
       handler: async ({ client, where }) => {
-        const result = await (client as DataSource).getRepository("Post").update(
-          typeormActionWhere("id", where),
-          { published: true },
-        );
+        const result = await (client as DataSource)
+          .getRepository("Post")
+          .update(typeormActionWhere("id", where), { published: true });
         const count = result.affected ?? 0;
         return {
           message: `Published ${count} ${count === 1 ? "post" : "posts"}.`,
@@ -94,10 +93,9 @@ admin.register("Post", {
       label: "Move selected posts to draft",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
       handler: async ({ client, where }) => {
-        const result = await (client as DataSource).getRepository("Post").update(
-          typeormActionWhere("id", where),
-          { published: false },
-        );
+        const result = await (client as DataSource)
+          .getRepository("Post")
+          .update(typeormActionWhere("id", where), { published: false });
         const count = result.affected ?? 0;
         return {
           message: `Moved ${count} ${count === 1 ? "post" : "posts"} to draft.`,

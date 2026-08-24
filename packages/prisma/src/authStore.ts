@@ -4,10 +4,7 @@ import type {
   BuiltInSessionRecord,
   BuiltInUserRecord,
 } from "paneljs";
-import {
-  DEFAULT_AUTH_SESSION_MODEL,
-  DEFAULT_AUTH_USER_MODEL,
-} from "paneljs";
+import { DEFAULT_AUTH_SESSION_MODEL, DEFAULT_AUTH_USER_MODEL } from "paneljs";
 type PrismaClientLike = object;
 
 type UserDelegate = {
@@ -67,7 +64,8 @@ function asSession(value: unknown): BuiltInSessionRecord | null {
   const expiresAt =
     session.expiresAt instanceof Date
       ? session.expiresAt
-      : typeof session.expiresAt === "string" || typeof session.expiresAt === "number"
+      : typeof session.expiresAt === "string" ||
+          typeof session.expiresAt === "number"
         ? new Date(session.expiresAt)
         : null;
   if (!expiresAt || Number.isNaN(expiresAt.getTime())) return null;

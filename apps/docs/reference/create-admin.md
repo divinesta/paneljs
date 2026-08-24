@@ -17,14 +17,14 @@ await mount(app, admin);
 
 ## `AdminConfig`
 
-| Option             | Type                                                              | Default   | Role                                                                   |
-| ------------------ | ----------------------------------------------------------------- | --------- | ---------------------------------------------------------------------- |
-| `adapter`          | `DataAdapter`                                                     | required  | `prismaAdapter({ prisma })` or `typeormAdapter({ dataSource })`.       |
-| `auth`             | built-in or external auth config                                  | required  | Built-in admin credentials/sessions, or an external identity adapter.  |
-| `basePath`         | `string`                                                          | `/admin`  | Where UI and API are mounted.                                          |
-| `siteName`         | `string`                                                          | `PanelJS` | Header label in the UI.                                                |
-| `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset     | **Deprecated, ignored.** Each adapter decides search sensitivity.      |
-| `audit.write`      | `(event) => Promise<void>`                                        | unset     | Called after successful mutations.                                     |
+| Option             | Type                                                              | Default   | Role                                                                  |
+| ------------------ | ----------------------------------------------------------------- | --------- | --------------------------------------------------------------------- |
+| `adapter`          | `DataAdapter`                                                     | required  | `prismaAdapter({ prisma })` or `typeormAdapter({ dataSource })`.      |
+| `auth`             | built-in or external auth config                                  | required  | Built-in admin credentials/sessions, or an external identity adapter. |
+| `basePath`         | `string`                                                          | `/admin`  | Where UI and API are mounted.                                         |
+| `siteName`         | `string`                                                          | `PanelJS` | Header label in the UI.                                               |
+| `databaseProvider` | `"postgresql" \| "mysql" \| "sqlite" \| "sqlserver" \| "mongodb"` | unset     | **Deprecated, ignored.** Each adapter decides search sensitivity.     |
+| `audit.write`      | `(event) => Promise<void>`                                        | unset     | Called after successful mutations.                                    |
 
 Prisma `schemaPath` is passed to `prismaAdapter()`, not to `createAdmin()`. TypeORM does not take a schema path; the `DataSource` must already be initialized.
 

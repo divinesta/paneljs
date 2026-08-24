@@ -1,9 +1,5 @@
 import type { RequestHandler } from "express";
-import {
-  AuthenticationError,
-  type AdminUser,
-  type AuthConfig,
-} from "paneljs";
+import { AuthenticationError, type AdminUser, type AuthConfig } from "paneljs";
 import { sendApiError } from "./httpErrors.js";
 
 function isAdminUser(value: unknown): value is AdminUser {

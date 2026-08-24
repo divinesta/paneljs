@@ -18,11 +18,11 @@ admin.register("Post", {
 
 What you type is what the table shows, left to right.
 
-| Value | What appears |
-| --- | --- |
-| `"email"`, `"title"`, `"published"` | That scalar |
-| `"author"` (a `belongsTo` on Post) | Related User’s display field (`author.email`) |
-| `"posts"` (a `hasMany` on User) | Not loaded — do not use as a column |
+| Value                               | What appears                                  |
+| ----------------------------------- | --------------------------------------------- |
+| `"email"`, `"title"`, `"published"` | That scalar                                   |
+| `"author"` (a `belongsTo` on Post)  | Related User’s display field (`author.email`) |
+| `"posts"` (a `hasMany` on User)     | Not loaded — do not use as a column           |
 
 Omit `listDisplay` and the library picks the display field, other scalars (up to 6), then `createdAt`.
 
@@ -46,12 +46,12 @@ Only **String** fields. The box on `/admin/users` becomes:
 WHERE email CONTAINS ? OR fullName CONTAINS ?
 ```
 
-| If you… | Result |
-| --- | --- |
-| Omit `searchFields` | All non-id string scalars |
-| Pass a non-string (`"isActive"`) | `mount` throws |
-| Use PostgreSQL | Search is case-insensitive (Prisma reads the schema `provider`; TypeORM reads the driver) |
-| Type more than 200 characters | `400 VALIDATION_ERROR` |
+| If you…                          | Result                                                                                    |
+| -------------------------------- | ----------------------------------------------------------------------------------------- |
+| Omit `searchFields`              | All non-id string scalars                                                                 |
+| Pass a non-string (`"isActive"`) | `mount` throws                                                                            |
+| Use PostgreSQL                   | Search is case-insensitive (Prisma reads the schema `provider`; TypeORM reads the driver) |
+| Type more than 200 characters    | `400 VALIDATION_ERROR`                                                                    |
 
 ## `listFilter` — filters
 
@@ -67,12 +67,12 @@ admin.register("Post", {
 
 **Opt-in.** No `listFilter` means no filter UI and no filter query params.
 
-| Field | Control |
-| --- | --- |
-| enum (`role`) | Select of enum values |
-| boolean (`isActive`, `published`) | True / false |
-| date-time (`createdAt`) | From / to (`_gte` / `_lte`) |
-| number / string | Exact value |
+| Field                             | Control                     |
+| --------------------------------- | --------------------------- |
+| enum (`role`)                     | Select of enum values       |
+| boolean (`isActive`, `published`) | True / false                |
+| date-time (`createdAt`)           | From / to (`_gte` / `_lte`) |
+| number / string                   | Exact value                 |
 
 A filter that is not allowed is `400`, not silently ignored. Scope is always `AND`-ed in — Ada cannot filter her way into Contoso.
 
@@ -85,10 +85,10 @@ admin.register("Post", {
 });
 ```
 
-| Option | Default if omitted |
-| --- | --- |
+| Option        | Default if omitted            |
+| ------------- | ----------------------------- |
 | `defaultSort` | `createdAt desc`, else the id |
-| `perPage` | `50` |
+| `perPage`     | `50`                          |
 
 Operators can still change sort in the table. `?sort=` must be a visible scalar.
 

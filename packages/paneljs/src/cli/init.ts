@@ -115,7 +115,13 @@ export function resolveInitPlan(
     throw new Error(plan.incompatible.join("\n"));
   }
   const pm = detectPackageManager(cwd, manifest, env, flags.pm);
-  return { framework: frameworkChoice.id, orm: ormChoice.id, pm, plan, packages };
+  return {
+    framework: frameworkChoice.id,
+    orm: ormChoice.id,
+    pm,
+    plan,
+    packages,
+  };
 }
 
 export async function runInit(input: {
@@ -178,9 +184,7 @@ export async function runInit(input: {
     for (const name of plan.dependencies)
       input.io.stdout.write(`  ${color.cyan(name)}\n`);
     for (const name of plan.devDependencies)
-      input.io.stdout.write(
-        `  ${color.cyan(name)} ${color.dim("(dev)")}\n`,
-      );
+      input.io.stdout.write(`  ${color.cyan(name)} ${color.dim("(dev)")}\n`);
   }
   if (plan.alreadyPresent.length > 0) {
     input.io.stdout.write(
@@ -222,7 +226,9 @@ export async function runInit(input: {
 
 function writeSnippet(io: InitIo, framework: FrameworkId, orm: OrmId): void {
   io.stdout.write(`${setupSnippet(framework, orm)}\n\n`);
-  io.stdout.write(`${color.bold("Docs")} ${color.link(docsUrl(framework, orm))}\n`);
+  io.stdout.write(
+    `${color.bold("Docs")} ${color.link(docsUrl(framework, orm))}\n`,
+  );
   io.stdout.write(
     `${color.bold("Auth")} ${color.link("https://www.paneljs.com/docs/guide/auth")}\n`,
   );
@@ -238,7 +244,9 @@ async function pick<T extends string>(
 ): Promise<T> {
   if (flagged) return parse(flagged);
   if (flags.yes === true || !io.isTTY) {
-    throw new Error(`${label} Pass the matching flag with --yes, or run in a terminal.`);
+    throw new Error(
+      `${label} Pass the matching flag with --yes, or run in a terminal.`,
+    );
   }
   return parse(await io.select(label, items));
 }
@@ -266,9 +274,10 @@ function runCommand(
     child.on("error", reject);
     child.on("exit", (code) => {
       if (code === 0) resolve();
-      else reject(new Error(`${command} ${args.join(" ")} exited with code ${code}.`));
+      else
+        reject(
+          new Error(`${command} ${args.join(" ")} exited with code ${code}.`),
+        );
     });
   });
 }
-
-

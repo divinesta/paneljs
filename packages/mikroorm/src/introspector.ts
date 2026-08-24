@@ -4,11 +4,7 @@ import type {
   AdminModelMeta,
   RelationKind,
 } from "paneljs";
-import type {
-  EntityMetadata,
-  EntityProperty,
-  MikroORM,
-} from "@mikro-orm/core";
+import type { EntityMetadata, EntityProperty, MikroORM } from "@mikro-orm/core";
 
 const PREFERRED_DISPLAY_NAMES = [
   "name",
@@ -211,10 +207,7 @@ function isRelation(prop: EntityProperty): boolean {
   return RELATION_KINDS.has(String(prop.kind));
 }
 
-function detectDisplayField(
-  fields: AdminFieldMeta[],
-  idField: string,
-): string {
+function detectDisplayField(fields: AdminFieldMeta[], idField: string): string {
   for (const preferred of PREFERRED_DISPLAY_NAMES) {
     const field = fields.find(
       (candidate) =>
@@ -312,7 +305,9 @@ function introspectRelation(
   };
 }
 
-function syntheticFkField(relationField: AdminFieldMeta): AdminFieldMeta | null {
+function syntheticFkField(
+  relationField: AdminFieldMeta,
+): AdminFieldMeta | null {
   const relation = relationField.relation;
   if (!relation || relation.kind !== "belongsTo") return null;
   const fk = relation.foreignKeyFields[0];
@@ -395,13 +390,16 @@ function introspectEntity(entity: EntityMetadata): AdminModelMeta | null {
 
   const createdAt =
     properties.find((prop) => prop.name === "createdAt")?.name ??
-    fields.find((field) => field.name === "createdAt" && field.type === "datetime")
-      ?.name;
+    fields.find(
+      (field) => field.name === "createdAt" && field.type === "datetime",
+    )?.name;
   const updatedAt =
-    properties.find((prop) => prop.name === "updatedAt" || Boolean(prop.onUpdate))
-      ?.name ??
-    fields.find((field) => field.name === "updatedAt" && field.type === "datetime")
-      ?.name;
+    properties.find(
+      (prop) => prop.name === "updatedAt" || Boolean(prop.onUpdate),
+    )?.name ??
+    fields.find(
+      (field) => field.name === "updatedAt" && field.type === "datetime",
+    )?.name;
 
   return {
     name: entity.className,
@@ -420,9 +418,7 @@ function introspectEntity(entity: EntityMetadata): AdminModelMeta | null {
   };
 }
 
-function patchRelationDisplayFields(
-  models: Map<string, AdminModelMeta>,
-): void {
+function patchRelationDisplayFields(models: Map<string, AdminModelMeta>): void {
   for (const model of models.values()) {
     for (const field of model.fields) {
       if (field.type !== "relation" || !field.relation) continue;

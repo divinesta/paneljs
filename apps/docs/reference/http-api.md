@@ -4,28 +4,28 @@ All routes sit under `basePath` (default `/admin`) and require a valid `AdminUse
 
 `:model` is the **plural** admin name (`posts` for `Post`).
 
-| Method | Route | Permission | Description |
-| --- | --- | --- | --- |
-| `GET` | `/api/schema` | authenticated | Models, visible fields, this user's permissions |
-| `GET` | `/api/:model` | `list` | Paginated, scoped list |
-| `GET` | `/api/:model/:id` | `view` | One scoped record. 404 if missing or out of scope |
-| `POST` | `/api/:model` | `create` | Scalar create (+ `belongsTo` FK) |
-| `PUT` | `/api/:model/:id` | `update` | Scalar update on a scoped row |
-| `DELETE` | `/api/:model/:id` | `delete` | Delete a scoped row. `204` |
-| `POST` | `/api/:model/actions/:action` | list + action | Bulk action on 1–100 scoped ids |
+| Method   | Route                         | Permission    | Description                                       |
+| -------- | ----------------------------- | ------------- | ------------------------------------------------- |
+| `GET`    | `/api/schema`                 | authenticated | Models, visible fields, this user's permissions   |
+| `GET`    | `/api/:model`                 | `list`        | Paginated, scoped list                            |
+| `GET`    | `/api/:model/:id`             | `view`        | One scoped record. 404 if missing or out of scope |
+| `POST`   | `/api/:model`                 | `create`      | Scalar create (+ `belongsTo` FK)                  |
+| `PUT`    | `/api/:model/:id`             | `update`      | Scalar update on a scoped row                     |
+| `DELETE` | `/api/:model/:id`             | `delete`      | Delete a scoped row. `204`                        |
+| `POST`   | `/api/:model/actions/:action` | list + action | Bulk action on 1–100 scoped ids                   |
 
 Pipeline on every call: authenticate → resolve model → permission → scope → validate → `adapter.resource()`.
 
 ## List query
 
-| Parameter | Example | Rule |
-| --- | --- | --- |
-| `page` | `?page=2` | Positive integer |
-| `sort` | `?sort=title` | Visible scalar |
-| `dir` | `?dir=asc` | `asc` or `desc` |
-| `search` | `?search=quarterly` | `searchFields` only; max 200 chars |
-| filter | `?published=true` | Must be in `listFilter` |
-| range | `?createdAt_gte=` / `_lte=` | Date-time fields only |
+| Parameter | Example                     | Rule                               |
+| --------- | --------------------------- | ---------------------------------- |
+| `page`    | `?page=2`                   | Positive integer                   |
+| `sort`    | `?sort=title`               | Visible scalar                     |
+| `dir`     | `?dir=asc`                  | `asc` or `desc`                    |
+| `search`  | `?search=quarterly`         | `searchFields` only; max 200 chars |
+| filter    | `?published=true`           | Must be in `listFilter`            |
+| range     | `?createdAt_gte=` / `_lte=` | Date-time fields only              |
 
 List body:
 

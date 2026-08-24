@@ -3,7 +3,7 @@ import { blogPaths } from "./blog/posts";
 import { Site } from "./Site";
 
 export function render(url = "/") {
-   return renderToStaticMarkup(<Site path={url} />);
+  return renderToStaticMarkup(<Site path={url} />);
 }
 
 export { blogPaths };

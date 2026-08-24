@@ -19,11 +19,14 @@ export async function question(label: string): Promise<string> {
   }
 }
 
-export async function confirm(label: string, defaultYes = true): Promise<boolean> {
-  const suffix = defaultYes
-    ? color.dim(" [Y/n]: ")
-    : color.dim(" [y/N]: ");
-  const answer = (await question(`${color.question(label)}${suffix}`)).toLowerCase();
+export async function confirm(
+  label: string,
+  defaultYes = true,
+): Promise<boolean> {
+  const suffix = defaultYes ? color.dim(" [Y/n]: ") : color.dim(" [y/N]: ");
+  const answer = (
+    await question(`${color.question(label)}${suffix}`)
+  ).toLowerCase();
   if (!answer) return defaultYes;
   return answer === "y" || answer === "yes";
 }
@@ -78,7 +81,8 @@ export async function select(
   const enabled = items
     .map((item, index) => ({ item, index }))
     .filter(({ item }) => !item.disabled);
-  if (enabled.length === 0) throw new Error(`No available options for ${label}`);
+  if (enabled.length === 0)
+    throw new Error(`No available options for ${label}`);
   if (!stdin.isTTY || typeof stdin.setRawMode !== "function") {
     throw new Error(
       `${label} requires a terminal, or pass the matching flag (--framework / --orm).`,
@@ -119,7 +123,8 @@ export async function select(
     };
     const move = (direction: 1 | -1) => {
       const position = enabled.findIndex(({ index }) => index === current);
-      const next = enabled[(position + direction + enabled.length) % enabled.length];
+      const next =
+        enabled[(position + direction + enabled.length) % enabled.length];
       current = next.index;
       render(false);
     };

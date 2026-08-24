@@ -12,10 +12,10 @@ Internal engineering notes stay in this `docs/` folder (`CORE_CONTRACT.md`, `MUL
 
 PanelJS has two independent install choices. They are not flavors of the same page.
 
-| Axis | What the reader already has | Package | Today | Next |
-| --- | --- | --- | --- | --- |
-| **Framework** | HTTP server | `@paneljs/express` | Express | Fastify, Nest.js |
-| **ORM** | Data layer | `@paneljs/prisma`, `@paneljs/typeorm` | Prisma, TypeORM | Drizzle |
+| Axis          | What the reader already has | Package                               | Today           | Next             |
+| ------------- | --------------------------- | ------------------------------------- | --------------- | ---------------- |
+| **Framework** | HTTP server                 | `@paneljs/express`                    | Express         | Fastify, Nest.js |
+| **ORM**       | Data layer                  | `@paneljs/prisma`, `@paneljs/typeorm` | Prisma, TypeORM | Drizzle          |
 
 Core (`paneljs`) does not change between cells. `register("User")`, lists, forms, permissions, `scope`, hooks, audit, the UI, and the HTTP API are shared.
 
@@ -29,13 +29,13 @@ Do not write a full getting-started for every pair (`Express+Prisma`, `Express+T
 
 Fork **only** what is actually different:
 
-| Shared (write once under `guide/`) | Per framework | Per ORM |
-| --- | --- | --- |
-| What this is | `mount(...)` signature | Adapter constructor |
-| Register, lists, forms, relations | Where the router lives | How models are discovered |
-| Permissions, scope, sensitive fields | Request / cookie shape | Built-in auth tables |
-| Hooks, actions *contract*, audit *contract* | | Version pin, action `client` type |
-| HTTP API, errors | | |
+| Shared (write once under `guide/`)          | Per framework          | Per ORM                           |
+| ------------------------------------------- | ---------------------- | --------------------------------- |
+| What this is                                | `mount(...)` signature | Adapter constructor               |
+| Register, lists, forms, relations           | Where the router lives | How models are discovered         |
+| Permissions, scope, sensitive fields        | Request / cookie shape | Built-in auth tables              |
+| Hooks, actions _contract_, audit _contract_ |                        | Version pin, action `client` type |
+| HTTP API, errors                            |                        |                                   |
 
 Per-framework pages live in `apps/docs/frameworks/` and `apps/docs/guide/installation/<framework>/`.
 
@@ -105,13 +105,13 @@ Do not build a global “stack switcher.” Code-groups are enough until there a
 
 Do not teach Prisma habits as if they were the product:
 
-| Forbidden in shared pages | Use instead |
-| --- | --- |
-| `createAdmin({ prisma })` | `createAdmin({ adapter })` |
-| `await admin.mount(app)` | `await mount(app, admin)` from `@paneljs/express` |
-| Action handler `{ prisma }` | `{ client, where }` |
-| “`scope` returns a Prisma `where`” | Equality filter, usually `{ tenantId }` |
-| “Not a multi-ORM tool” | Two adapters, same `register` |
+| Forbidden in shared pages                    | Use instead                                        |
+| -------------------------------------------- | -------------------------------------------------- |
+| `createAdmin({ prisma })`                    | `createAdmin({ adapter })`                         |
+| `await admin.mount(app)`                     | `await mount(app, admin)` from `@paneljs/express`  |
+| Action handler `{ prisma }`                  | `{ client, where }`                                |
+| “`scope` returns a Prisma `where`”           | Equality filter, usually `{ tenantId }`            |
+| “Not a multi-ORM tool”                       | Two adapters, same `register`                      |
 | “Mount calls `getDMMF()`” as the whole story | `adapter.introspect()`; Prisma happens to use DMMF |
 
 Prisma-specific facts belong on `/adapters/prisma` and `/limits/prisma`. TypeORM-specific facts belong on `/adapters/typeorm` and `/limits/typeorm`.
@@ -122,11 +122,11 @@ Prisma-specific facts belong on `/adapters/prisma` and `/limits/prisma`. TypeORM
 
 Built-in login is one product story (`ExpressAdminUser`, `/admin/login`, roles, throttling, external mode). Creating the tables is not:
 
-| | Prisma | TypeORM |
-| --- | --- | --- |
-| Tables | `npx paneljs auth:schema` → paste into `schema.prisma` | `builtInAuthEntities()` on the `DataSource` |
-| First user | `createsuperuser --config` | `hashAdminPassword` + repository insert |
-| Do not register | `ExpressAdminUser` | same |
+|                 | Prisma                                                 | TypeORM                                     |
+| --------------- | ------------------------------------------------------ | ------------------------------------------- |
+| Tables          | `npx paneljs auth:schema` → paste into `schema.prisma` | `builtInAuthEntities()` on the `DataSource` |
+| First user      | `createsuperuser --config`                             | `hashAdminPassword` + repository insert     |
+| Do not register | `ExpressAdminUser`                                     | same                                        |
 
 Keep **one** `/guide/auth` page. Put table-creation and first-user steps in `code-group`s. Do not write “Authentication (Prisma)” and “Authentication (TypeORM).”
 

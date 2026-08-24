@@ -30,7 +30,9 @@ import {
   type Repository,
 } from "typeorm";
 
-type Where = FindOptionsWhere<ObjectLiteral> | FindOptionsWhere<ObjectLiteral>[];
+type Where =
+  | FindOptionsWhere<ObjectLiteral>
+  | FindOptionsWhere<ObjectLiteral>[];
 
 function usesInsensitiveSearch(driverType: string): boolean {
   return (
@@ -154,7 +156,10 @@ function getRepository(
   return dataSource.getRepository(entity.target);
 }
 
-function assertWriteTarget(query: { id?: string | number; ids?: Array<string | number> }): void {
+function assertWriteTarget(query: {
+  id?: string | number;
+  ids?: Array<string | number>;
+}): void {
   if (query.id === undefined && query.ids === undefined) {
     throw new Error(
       "[paneljs] TypeORM update/delete requires id or ids so a full-table write cannot happen.",
@@ -200,7 +205,9 @@ function rethrowWriteError(error: unknown): never {
   if (isNotNullViolation(error)) {
     const column = driverColumn(error);
     throw new RequestValidationError(
-      column ? `Field "${column}" is required.` : "A required field was missing.",
+      column
+        ? `Field "${column}" is required.`
+        : "A required field was missing.",
     );
   }
   throw error;
@@ -280,7 +287,11 @@ export function typeormResource(
     async updateMany(query: UpdateManyQuery) {
       assertWriteTarget(query);
       const result = await repo.update(
-        toTypeormWhere(meta, query, caseInsensitive) as FindOptionsWhere<ObjectLiteral>,
+        toTypeormWhere(
+          meta,
+          query,
+          caseInsensitive,
+        ) as FindOptionsWhere<ObjectLiteral>,
         query.data,
       );
       return { count: result.affected ?? 0 };
@@ -289,7 +300,11 @@ export function typeormResource(
       assertWriteTarget(query);
       try {
         const result = await repo.delete(
-          toTypeormWhere(meta, query, caseInsensitive) as FindOptionsWhere<ObjectLiteral>,
+          toTypeormWhere(
+            meta,
+            query,
+            caseInsensitive,
+          ) as FindOptionsWhere<ObjectLiteral>,
         );
         return { count: result.affected ?? 0 };
       } catch (error) {

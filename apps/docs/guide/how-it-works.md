@@ -40,14 +40,14 @@ Every `/admin/api/*` call runs this pipeline:
 getCurrentUser → permission → scope → validate → adapter.resource() → audit?
 ```
 
-| Step | What it decides |
-| --- | --- |
-| `getCurrentUser` | Who is this? `null` → 401 |
-| Permission | May this role list / view / create / update / delete / run the action? |
-| `scope()` | Which rows? Combined with the id so guessing another tenant's id is 404 |
-| Validate | Only known, visible, writable fields. No nested writes. |
-| Adapter | PanelJS list/get/create/update/delete. Prisma or TypeORM translates that into `findMany` / `save` / … |
-| `audit.write` | Optional. After success only. No field values. |
+| Step             | What it decides                                                                                       |
+| ---------------- | ----------------------------------------------------------------------------------------------------- |
+| `getCurrentUser` | Who is this? `null` → 401                                                                             |
+| Permission       | May this role list / view / create / update / delete / run the action?                                |
+| `scope()`        | Which rows? Combined with the id so guessing another tenant's id is 404                               |
+| Validate         | Only known, visible, writable fields. No nested writes.                                               |
+| Adapter          | PanelJS list/get/create/update/delete. Prisma or TypeORM translates that into `findMany` / `save` / … |
+| `audit.write`    | Optional. After success only. No field values.                                                        |
 
 The UI never talks to the ORM. It fetches `/admin/api/schema` once and renders lists and forms from that JSON.
 

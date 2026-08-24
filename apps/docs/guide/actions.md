@@ -60,7 +60,10 @@ The UI shows `label`. The route is `POST /admin/api/posts/actions/publish_select
   ids: Array<string | number>; // only rows that passed scope
   adminUser: AdminUser;
   client: unknown; // Prisma client or TypeORM DataSource
-  where: { scope: Record<string, unknown>; ids: Array<string | number> };
+  where: {
+    scope: Record<string, unknown>;
+    ids: Array<string | number>;
+  }
 }
 ```
 

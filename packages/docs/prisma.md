@@ -21,11 +21,11 @@ Prisma is the first adapter that answers both. The UI never talks to Prisma. It 
 
 Think of three rooms:
 
-| Room | Package | Job |
-| --- | --- | --- |
-| Core | `paneljs` | Remembers which models you registered. Stores field info. Checks permissions. Builds list/search objects. Does **not** talk to Prisma. |
-| HTTP | `@paneljs/express` | Puts the admin on your Express app at `/admin`. Serves the UI and the API. |
-| Prisma room | `@paneljs/prisma` | Reads `schema.prisma`. Translates PanelJS queries into Prisma `find` / `create` / `update` / `delete`. |
+| Room        | Package            | Job                                                                                                                                    |
+| ----------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Core        | `paneljs`          | Remembers which models you registered. Stores field info. Checks permissions. Builds list/search objects. Does **not** talk to Prisma. |
+| HTTP        | `@paneljs/express` | Puts the admin on your Express app at `/admin`. Serves the UI and the API.                                                             |
+| Prisma room | `@paneljs/prisma`  | Reads `schema.prisma`. Translates PanelJS queries into Prisma `find` / `create` / `update` / `delete`.                                 |
 
 ---
 
@@ -80,8 +80,8 @@ It does **not** load rows from the database. It only describes the shape.
 After you generate the client, you have:
 
 ```ts
-prisma.user.findMany()
-prisma.user.create({ data: { email: "a@b.com" } })
+prisma.user.findMany();
+prisma.user.create({ data: { email: "a@b.com" } });
 ```
 
 `user` is lowercase. Prisma always exposes `User` as `prisma.user`. PanelJS stores that lowercase name as `clientKey`.
@@ -98,10 +98,10 @@ Nothing talks to the database yet for listing users. This is setup.
 const admin = createAdmin({
   adapter: prismaAdapter({ prisma, schemaPath }),
   auth: { getCurrentUser },
-})
+});
 
-admin.register("User")
-await mount(app, admin)
+admin.register("User");
+await mount(app, admin);
 ```
 
 What that actually does, in order:
@@ -148,21 +148,21 @@ Every API call goes through the same pipeline:
 who are you? → are you allowed? → which rows? → is the payload safe? → adapter.resource() → maybe write an audit line
 ```
 
-| Step | Meaning | Does this need Prisma? |
-| --- | --- | --- |
-| Auth | Turn the request into an admin user, or 401 | Built-in login uses the **auth store** (Prisma implements it). Your own `getCurrentUser` does not need Prisma. |
-| Permissions | May this role list / edit this model? | No |
-| Scope | Only this tenant’s rows? | No (it only adds extra equality fields) |
-| Validate | Only known, writable fields | No |
-| Resource | `findMany` / `create` / … | **Yes** — inside `@paneljs/prisma` |
-| Audit | Log that it happened | No |
+| Step        | Meaning                                     | Does this need Prisma?                                                                                         |
+| ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Auth        | Turn the request into an admin user, or 401 | Built-in login uses the **auth store** (Prisma implements it). Your own `getCurrentUser` does not need Prisma. |
+| Permissions | May this role list / edit this model?       | No                                                                                                             |
+| Scope       | Only this tenant’s rows?                    | No (it only adds extra equality fields)                                                                        |
+| Validate    | Only known, writable fields                 | No                                                                                                             |
+| Resource    | `findMany` / `create` / …                   | **Yes** — inside `@paneljs/prisma`                                                                             |
+| Audit       | Log that it happened                        | No                                                                                                             |
 
 The Prisma-specific moment is the **resource** step.
 
 Express sends a **PanelJS** query, not a Prisma `where`:
 
 ```ts
-const resource = adapter.resource(model.meta)
+const resource = adapter.resource(model.meta);
 await resource.findMany({
   scope,
   filters,
@@ -171,7 +171,7 @@ await resource.findMany({
   skip: 0,
   take: 50,
   select,
-})
+});
 ```
 
 `@paneljs/prisma` turns that into Prisma’s shape (`contains`, `mode: "insensitive"` on PostgreSQL, `skip` / `take`, and so on). Express does not.

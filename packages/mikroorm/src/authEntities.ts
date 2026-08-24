@@ -1,8 +1,5 @@
 import { EntitySchema } from "@mikro-orm/core";
-import {
-  DEFAULT_AUTH_SESSION_MODEL,
-  DEFAULT_AUTH_USER_MODEL,
-} from "paneljs";
+import { DEFAULT_AUTH_SESSION_MODEL, DEFAULT_AUTH_USER_MODEL } from "paneljs";
 
 export type BuiltInAuthEntityOptions = {
   identifier?: "email" | "username";

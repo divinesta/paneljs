@@ -1,8 +1,5 @@
 import { EntitySchema } from "typeorm";
-import {
-  DEFAULT_AUTH_SESSION_MODEL,
-  DEFAULT_AUTH_USER_MODEL,
-} from "paneljs";
+import { DEFAULT_AUTH_SESSION_MODEL, DEFAULT_AUTH_USER_MODEL } from "paneljs";
 
 export type BuiltInAuthEntityOptions = {
   identifier?: "email" | "username";
@@ -66,10 +63,7 @@ export function builtInAuthEntities(
         onDelete: "CASCADE",
       },
     },
-    indices: [
-      { columns: ["userId"] },
-      { columns: ["expiresAt"] },
-    ],
+    indices: [{ columns: ["userId"] }, { columns: ["expiresAt"] }],
   });
 
   return [user, session];

@@ -37,13 +37,13 @@ Prisma answered those with a schema file, DMMF, and `prisma.user`. TypeORM answe
 @Entity()
 class User {
   @PrimaryKey()
-  id!: string
+  id!: string;
 
   @Property({ unique: true })
-  email!: string
+  email!: string;
 
   @Property()
-  name!: string
+  name!: string;
 }
 ```
 
@@ -67,9 +67,9 @@ It still does **not** load rows. It only describes shape.
 ### Gift 3: EntityManager (replaces `prisma.user`)
 
 ```ts
-const em = orm.em.fork()
-await em.find(User, { email: "a@b.com" })
-await em.insert(User, { email: "a@b.com", name: "Ada" })
+const em = orm.em.fork();
+await em.find(User, { email: "a@b.com" });
+await em.insert(User, { email: "a@b.com", name: "Ada" });
 ```
 
 Different method names. Different `where` shape. No Prisma `contains` + `mode: "insensitive"`. You use `$ilike` or `$like`.
@@ -85,15 +85,17 @@ The extra habit: MikroORM has a **to-do list** for writes (`persist` then `flush
 Same PanelJS steps as Prisma. Only gift 2 changes.
 
 ```ts
-const orm = await MikroORM.init({ /* entities, db */ })
+const orm = await MikroORM.init({
+  /* entities, db */
+});
 
 const admin = createAdmin({
   adapter: mikroormAdapter({ orm }),
   auth: { getCurrentUser }, // or built-in, if auth entities are on the ORM
-})
+});
 
-admin.register("User")
-await mount(app, admin)
+admin.register("User");
+await mount(app, admin);
 ```
 
 What happens:
@@ -178,14 +180,14 @@ Custom actions still get `client`. For MikroORM that is the ORM. Host code may c
 
 ## Block 5 — How each part fits
 
-| PanelJS slot | Prisma | TypeORM | MikroORM |
-| --- | --- | --- | --- |
-| `introspect()` | `schema.prisma` → DMMF | `entityMetadatas` | metadata after `init()` |
-| `resource()` | Prisma `findMany` / `create` / … | repository `find` / `update` / `delete` | `em.find` + immediate writes |
-| Search folding | `mode: "insensitive"` if Postgres | `ILike` if Postgres | `$ilike` if Postgres |
-| `createAuthStore()` | `prismaAuthStore` | `typeormAuthStore` | `mikroormAuthStore` |
-| `client` for actions | Prisma Client | `DataSource` | ORM / `em` |
-| Express / UI | Unchanged | Unchanged | Unchanged |
+| PanelJS slot         | Prisma                            | TypeORM                                 | MikroORM                     |
+| -------------------- | --------------------------------- | --------------------------------------- | ---------------------------- |
+| `introspect()`       | `schema.prisma` → DMMF            | `entityMetadatas`                       | metadata after `init()`      |
+| `resource()`         | Prisma `findMany` / `create` / …  | repository `find` / `update` / `delete` | `em.find` + immediate writes |
+| Search folding       | `mode: "insensitive"` if Postgres | `ILike` if Postgres                     | `$ilike` if Postgres         |
+| `createAuthStore()`  | `prismaAuthStore`                 | `typeormAuthStore`                      | `mikroormAuthStore`          |
+| `client` for actions | Prisma Client                     | `DataSource`                            | ORM / `em`                   |
+| Express / UI         | Unchanged                         | Unchanged                               | Unchanged                    |
 
 Reuse the display / searchable / filterable guesses (`name`, `title`, `email`, …). Do not copy `getDMMF`.
 

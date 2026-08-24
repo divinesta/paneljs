@@ -54,79 +54,85 @@ const DEFAULT_PER_PAGE = 50;
  * Default: authenticated admins may list and view. Create, update, delete,
  * and custom actions require an explicit role allowlist.
  */
-function resolveConfig(meta: AdminModelMeta, userConfig: ModelConfig): ResolvedModelConfig {
-   // ── listDisplay ────────────────────────────────────────────
-   let listDisplay: string[];
-   if (userConfig.listDisplay && userConfig.listDisplay.length > 0) {
-      // Developer explicitly specified which columns to show
-      listDisplay = userConfig.listDisplay;
-   } else {
-      // Auto-generate: pick scalar, non-id, non-relation fields up to the limit.
-      // We exclude the id field from the list because it's a UUID and clutters the table.
-      // We exclude relation fields because they require extra includes and joins.
-      const candidates = meta.fields
-         .filter(
-            (f) =>
-               f.type !== "relation" && // no relation fields in list
-               !f.isId && // no id field
-               !f.isReadOnly, // no auto-managed fields like createdAt/updatedAt
-            // (we add timestamps back below selectively)
-         )
-         .map((f) => f.name);
+function resolveConfig(
+  meta: AdminModelMeta,
+  userConfig: ModelConfig,
+): ResolvedModelConfig {
+  // ── listDisplay ────────────────────────────────────────────
+  let listDisplay: string[];
+  if (userConfig.listDisplay && userConfig.listDisplay.length > 0) {
+    // Developer explicitly specified which columns to show
+    listDisplay = userConfig.listDisplay;
+  } else {
+    // Auto-generate: pick scalar, non-id, non-relation fields up to the limit.
+    // We exclude the id field from the list because it's a UUID and clutters the table.
+    // We exclude relation fields because they require extra includes and joins.
+    const candidates = meta.fields
+      .filter(
+        (f) =>
+          f.type !== "relation" && // no relation fields in list
+          !f.isId && // no id field
+          !f.isReadOnly, // no auto-managed fields like createdAt/updatedAt
+        // (we add timestamps back below selectively)
+      )
+      .map((f) => f.name);
 
-      // Start with the displayField so the first column is always the human label
-      const result: string[] = [];
-      if (!result.includes(meta.displayField)) {
-         result.push(meta.displayField);
+    // Start with the displayField so the first column is always the human label
+    const result: string[] = [];
+    if (!result.includes(meta.displayField)) {
+      result.push(meta.displayField);
+    }
+
+    // Add up to the limit from the candidates
+    for (const name of candidates) {
+      if (result.length >= DEFAULT_LIST_DISPLAY_LIMIT) break;
+      if (!result.includes(name)) {
+        result.push(name);
       }
+    }
 
-      // Add up to the limit from the candidates
-      for (const name of candidates) {
-         if (result.length >= DEFAULT_LIST_DISPLAY_LIMIT) break;
-         if (!result.includes(name)) {
-            result.push(name);
-         }
-      }
+    // Always add createdAt at the end if it exists and we have room
+    if (
+      meta.timestamps.createdAt &&
+      !result.includes(meta.timestamps.createdAt)
+    ) {
+      result.push(meta.timestamps.createdAt);
+    }
 
-      // Always add createdAt at the end if it exists and we have room
-      if (meta.timestamps.createdAt && !result.includes(meta.timestamps.createdAt)) {
-         result.push(meta.timestamps.createdAt);
-      }
+    listDisplay = result;
+  }
 
-      listDisplay = result;
-   }
+  // ── listFilter ─────────────────────────────────────────────
+  const listFilter = userConfig.listFilter ?? [];
 
-   // ── listFilter ─────────────────────────────────────────────
-   const listFilter = userConfig.listFilter ?? [];
+  // ── searchFields ───────────────────────────────────────────
+  const searchFields = userConfig.searchFields ?? meta.searchableFields;
 
-   // ── searchFields ───────────────────────────────────────────
-   const searchFields = userConfig.searchFields ?? meta.searchableFields;
+  // ── defaultSort ────────────────────────────────────────────
+  let defaultSort: { field: string; direction: "asc" | "desc" };
+  if (userConfig.defaultSort) {
+    defaultSort = userConfig.defaultSort;
+  } else if (meta.timestamps.createdAt) {
+    // Most useful default: newest records first
+    defaultSort = { field: meta.timestamps.createdAt, direction: "desc" };
+  } else {
+    defaultSort = { field: meta.idField, direction: "desc" };
+  }
 
-   // ── defaultSort ────────────────────────────────────────────
-   let defaultSort: { field: string; direction: "asc" | "desc" };
-   if (userConfig.defaultSort) {
-      defaultSort = userConfig.defaultSort;
-   } else if (meta.timestamps.createdAt) {
-      // Most useful default: newest records first
-      defaultSort = { field: meta.timestamps.createdAt, direction: "desc" };
-   } else {
-      defaultSort = { field: meta.idField, direction: "desc" };
-   }
+  // ── perPage ────────────────────────────────────────────────
+  const perPage = userConfig.perPage ?? DEFAULT_PER_PAGE;
 
-   // ── perPage ────────────────────────────────────────────────
-   const perPage = userConfig.perPage ?? DEFAULT_PER_PAGE;
+  // ── permissions ────────────────────────────────────────────
+  const permissions: ModelPermissions = userConfig.permissions ?? {};
 
-   // ── permissions ────────────────────────────────────────────
-   const permissions: ModelPermissions = userConfig.permissions ?? {};
-
-   return {
-      listDisplay,
-      listFilter,
-      searchFields,
-      defaultSort,
-      perPage,
-      permissions,
-   };
+  return {
+    listDisplay,
+    listFilter,
+    searchFields,
+    defaultSort,
+    perPage,
+    permissions,
+  };
 }
 
 // ============================================================
@@ -142,12 +148,12 @@ function resolveConfig(meta: AdminModelMeta, userConfig: ModelConfig): ResolvedM
  * can enforce that consumers don't need to null-check these fields.
  */
 export interface ResolvedModelConfig {
-   listDisplay: string[];
-   listFilter: string[];
-   searchFields: string[];
-   defaultSort: { field: string; direction: "asc" | "desc" };
-   perPage: number;
-   permissions: ModelPermissions;
+  listDisplay: string[];
+  listFilter: string[];
+  searchFields: string[];
+  defaultSort: { field: string; direction: "asc" | "desc" };
+  perPage: number;
+  permissions: ModelPermissions;
 }
 
 /**
@@ -160,23 +166,23 @@ export interface ResolvedModelConfig {
  * and functions aren't serializable to JSON for the schema endpoint.)
  */
 export interface FullRegisteredModel {
-   /** DMMF-derived metadata — auto-generated from schema */
-   meta: AdminModelMeta;
+  /** DMMF-derived metadata — auto-generated from schema */
+  meta: AdminModelMeta;
 
-   /**
-    * Fully resolved config — all defaults filled in.
-    * Safe to access any property without null-checking.
-    * Used by: routerFactory, schemaEndpoint, filterParser, includeBuilder.
-    */
-   resolved: ResolvedModelConfig;
+  /**
+   * Fully resolved config — all defaults filled in.
+   * Safe to access any property without null-checking.
+   * Used by: routerFactory, schemaEndpoint, filterParser, includeBuilder.
+   */
+  resolved: ResolvedModelConfig;
 
-   /**
-    * The original developer-supplied config — kept for lifecycle hooks,
-    * scope functions, actions, and field overrides that can't be resolved
-    * at registration time.
-    * Used by: routerFactory (hooks, scope), auth/permissions middleware.
-    */
-   raw: ModelConfig;
+  /**
+   * The original developer-supplied config — kept for lifecycle hooks,
+   * scope functions, actions, and field overrides that can't be resolved
+   * at registration time.
+   * Used by: routerFactory (hooks, scope), auth/permissions middleware.
+   */
+  raw: ModelConfig;
 }
 
 // ============================================================
@@ -200,291 +206,360 @@ export interface FullRegisteredModel {
  * developer API synchronous and clean.
  */
 export class AdminRegistry {
-   /**
-    * Raw pending registrations: model name → user config.
-    * These are stored at admin.register() time but not yet resolved.
-    * Resolution happens during initialize() when we have DMMF data.
-    */
-   private pendingRegistrations = new Map<string, ModelConfig>();
+  /**
+   * Raw pending registrations: model name → user config.
+   * These are stored at admin.register() time but not yet resolved.
+   * Resolution happens during initialize() when we have DMMF data.
+   */
+  private pendingRegistrations = new Map<string, ModelConfig>();
 
-   /**
-    * Fully resolved registered models, populated by initialize().
-    * Map key is the model name exactly as defined in Prisma schema ("User", "Post").
-    */
-   private models = new Map<string, FullRegisteredModel>();
+  /**
+   * Fully resolved registered models, populated by initialize().
+   * Map key is the model name exactly as defined in Prisma schema ("User", "Post").
+   */
+  private models = new Map<string, FullRegisteredModel>();
 
-   /**
-    * Whether initialize() has been called successfully.
-    * Guards against using the registry before it's ready.
-    */
-   private initialized = false;
+  /**
+   * Whether initialize() has been called successfully.
+   * Guards against using the registry before it's ready.
+   */
+  private initialized = false;
 
-   /**
-    * Register a model with the admin.
-    *
-    * This is the public API that developers call:
-    *   admin.register("User")
-    *   admin.register("Post", { listDisplay: ["title", "author", "published"] })
-    *
-    * Registration is synchronous and lightweight — it just stores the intent.
-    * The actual introspection and config resolution happens lazily in initialize().
-    *
-    * Important: You can call register() before the Prisma schema has been
-    * generated. The validation only happens at mount time.
-    *
-    * @param modelName - The model name exactly as it appears in schema.prisma (PascalCase)
-    * @param config    - Optional customization config. Every field is optional.
-    */
-   register(modelName: string, config: ModelConfig = {}): void {
-      if (this.initialized) {
-         throw new Error(`[paneljs] Cannot call register("${modelName}") after admin.mount() has been called. ` + `All register() calls must happen before mounting the admin router.`);
+  /**
+   * Register a model with the admin.
+   *
+   * This is the public API that developers call:
+   *   admin.register("User")
+   *   admin.register("Post", { listDisplay: ["title", "author", "published"] })
+   *
+   * Registration is synchronous and lightweight — it just stores the intent.
+   * The actual introspection and config resolution happens lazily in initialize().
+   *
+   * Important: You can call register() before the Prisma schema has been
+   * generated. The validation only happens at mount time.
+   *
+   * @param modelName - The model name exactly as it appears in schema.prisma (PascalCase)
+   * @param config    - Optional customization config. Every field is optional.
+   */
+  register(modelName: string, config: ModelConfig = {}): void {
+    if (this.initialized) {
+      throw new Error(
+        `[paneljs] Cannot call register("${modelName}") after admin.mount() has been called. ` +
+          `All register() calls must happen before mounting the admin router.`,
+      );
+    }
+
+    if (this.pendingRegistrations.has(modelName)) {
+      console.warn(
+        `[paneljs] Model "${modelName}" registered more than once. The second registration will overwrite the first.`,
+      );
+    }
+
+    this.pendingRegistrations.set(modelName, config);
+  }
+
+  /**
+   * Initialize the registry.
+   *
+   * This is called internally by admin.mount(app). Developers never call this directly.
+   *
+   * What happens here:
+   *   1. Run the introspector → get AdminModelMeta for every model in the schema.
+   *   2. For each pending registration, validate the model name exists in the schema.
+   *   3. If the developer provided field overrides (config.fields), validate that
+   *      every field name they referenced actually exists on the model.
+   *   4. Resolve the config — fill in all defaults.
+   *   5. Store the fully resolved FullRegisteredModel.
+   *
+   * After this, the registry is "sealed" — no more register() calls are allowed.
+   *
+   * @param allModelMeta - Model metadata from the host data adapter.
+   */
+  async initialize(allModelMeta: Map<string, AdminModelMeta>): Promise<void> {
+    if (this.initialized) {
+      throw new Error(
+        `[paneljs] initialize() called more than once. This is a bug.`,
+      );
+    }
+
+    // ── Validate and resolve each pending registration ─────────
+    for (const [modelName, rawConfig] of this.pendingRegistrations) {
+      const meta = allModelMeta.get(modelName);
+
+      // Guard: model name must exist in the schema
+      if (!meta) {
+        const available = [...allModelMeta.keys()].sort().join(", ");
+        throw new Error(
+          `[paneljs] admin.register("${modelName}") failed: ` +
+            `no model named "${modelName}" found in the Prisma schema.\n` +
+            `Available models: ${available}`,
+        );
       }
 
-      if (this.pendingRegistrations.has(modelName)) {
-         console.warn(`[paneljs] Model "${modelName}" registered more than once. The second registration will overwrite the first.`);
+      // Guard: validate field override names
+      // If the developer writes config.fields: { nonExistentField: { exclude: true } },
+      // that's almost certainly a typo. Fail loudly instead of silently ignoring it.
+      if (rawConfig.fields) {
+        const modelFieldNames = new Set(meta.fields.map((f) => f.name));
+        for (const overrideName of Object.keys(rawConfig.fields)) {
+          if (!modelFieldNames.has(overrideName)) {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") config.fields: ` +
+                `field "${overrideName}" does not exist on model "${modelName}".\n` +
+                `Available fields: ${[...modelFieldNames].sort().join(", ")}`,
+            );
+          }
+        }
       }
 
-      this.pendingRegistrations.set(modelName, config);
-   }
-
-   /**
-    * Initialize the registry.
-    *
-    * This is called internally by admin.mount(app). Developers never call this directly.
-    *
-    * What happens here:
-    *   1. Run the introspector → get AdminModelMeta for every model in the schema.
-    *   2. For each pending registration, validate the model name exists in the schema.
-    *   3. If the developer provided field overrides (config.fields), validate that
-    *      every field name they referenced actually exists on the model.
-    *   4. Resolve the config — fill in all defaults.
-    *   5. Store the fully resolved FullRegisteredModel.
-    *
-    * After this, the registry is "sealed" — no more register() calls are allowed.
-    *
-    * @param allModelMeta - Model metadata from the host data adapter.
-    */
-   async initialize(allModelMeta: Map<string, AdminModelMeta>): Promise<void> {
-      if (this.initialized) {
-         throw new Error(`[paneljs] initialize() called more than once. This is a bug.`);
+      // Guard: validate listDisplay field names
+      if (rawConfig.listDisplay) {
+        const modelFieldNames = new Set(meta.fields.map((f) => f.name));
+        for (const fieldName of rawConfig.listDisplay) {
+          if (!modelFieldNames.has(fieldName)) {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") config.listDisplay: ` +
+                `field "${fieldName}" does not exist on model "${modelName}".\n` +
+                `Available fields: ${[...modelFieldNames].sort().join(", ")}`,
+            );
+          }
+        }
       }
 
-      // ── Validate and resolve each pending registration ─────────
-      for (const [modelName, rawConfig] of this.pendingRegistrations) {
-         const meta = allModelMeta.get(modelName);
-
-         // Guard: model name must exist in the schema
-         if (!meta) {
-            const available = [...allModelMeta.keys()].sort().join(", ");
-            throw new Error(`[paneljs] admin.register("${modelName}") failed: ` + `no model named "${modelName}" found in the Prisma schema.\n` + `Available models: ${available}`);
-         }
-
-         // Guard: validate field override names
-         // If the developer writes config.fields: { nonExistentField: { exclude: true } },
-         // that's almost certainly a typo. Fail loudly instead of silently ignoring it.
-         if (rawConfig.fields) {
-            const modelFieldNames = new Set(meta.fields.map((f) => f.name));
-            for (const overrideName of Object.keys(rawConfig.fields)) {
-               if (!modelFieldNames.has(overrideName)) {
-                  throw new Error(
-                     `[paneljs] admin.register("${modelName}") config.fields: ` +
-                        `field "${overrideName}" does not exist on model "${modelName}".\n` +
-                        `Available fields: ${[...modelFieldNames].sort().join(", ")}`,
-                  );
-               }
-            }
-         }
-
-         // Guard: validate listDisplay field names
-         if (rawConfig.listDisplay) {
-            const modelFieldNames = new Set(meta.fields.map((f) => f.name));
-            for (const fieldName of rawConfig.listDisplay) {
-               if (!modelFieldNames.has(fieldName)) {
-                  throw new Error(
-                     `[paneljs] admin.register("${modelName}") config.listDisplay: ` +
-                        `field "${fieldName}" does not exist on model "${modelName}".\n` +
-                        `Available fields: ${[...modelFieldNames].sort().join(", ")}`,
-                  );
-               }
-            }
-         }
-
-         // Guard: validate searchFields names
-         if (rawConfig.searchFields) {
-            const scalarStringFields = new Set(meta.fields.filter((f) => f.type === "string" && !f.isId).map((f) => f.name));
-            for (const fieldName of rawConfig.searchFields) {
-               if (!scalarStringFields.has(fieldName)) {
-                  throw new Error(
-                     `[paneljs] admin.register("${modelName}") config.searchFields: ` +
-                        `field "${fieldName}" either does not exist or is not a String field on model "${modelName}". ` +
-                        `Only String fields can be used as search fields.`,
-                  );
-               }
-            }
-         }
-
-         // Guard: list filters must be fields the introspector marked as
-         // filterable (enum, boolean, date-time, or foreign-key scalar).
-         if (rawConfig.listFilter) {
-            const filterableFieldNames = new Set(meta.filterableFields);
-            for (const fieldName of rawConfig.listFilter) {
-               if (!filterableFieldNames.has(fieldName)) {
-                  throw new Error(
-                     `[paneljs] admin.register("${modelName}") config.listFilter: ` +
-                        `field "${fieldName}" cannot be used as a filter. ` +
-                        `Available filter fields: ${[...filterableFieldNames].sort().join(", ") || "none"}.`,
-                  );
-               }
-            }
-         }
-
-         if (rawConfig.perPage !== undefined && (!Number.isSafeInteger(rawConfig.perPage) || rawConfig.perPage < 1 || rawConfig.perPage > 200)) {
-            throw new Error(`[paneljs] admin.register("${modelName}") config.perPage must be an integer from 1 to 200.`);
-         }
-
-         if (rawConfig.defaultSort) {
-            const sortField = meta.fields.find((field) => field.name === rawConfig.defaultSort?.field);
-            if (!sortField || sortField.type === "relation") throw new Error(`[paneljs] admin.register("${modelName}") config.defaultSort.field must be a scalar field on the model.`);
-            if (rawConfig.defaultSort.direction !== "asc" && rawConfig.defaultSort.direction !== "desc") throw new Error(`[paneljs] admin.register("${modelName}") config.defaultSort.direction must be "asc" or "desc".`);
-         }
-
-         if (rawConfig.pluralName !== undefined && !/^[a-z][a-z0-9-]*$/i.test(rawConfig.pluralName)) {
-            throw new Error(`[paneljs] admin.register("${modelName}") config.pluralName must contain only letters, numbers, and hyphens.`);
-         }
-
-         if (process.env.NODE_ENV === "production" && rawConfig.permissions === undefined) {
-            throw new Error(`[paneljs] admin.register("${modelName}") requires explicit permissions in production.`);
-         }
-
-         // Guard: custom actions must have stable, URL-safe names and unique
-         // identifiers. Failing at mount avoids discovering configuration
-         // mistakes only when an administrator clicks an action in production.
-         if (rawConfig.actions) {
-            const actionNames = new Set<string>();
-            for (const action of rawConfig.actions) {
-               if (action.name === DELETE_SELECTED_ACTION.name) {
-                  throw new Error(`[paneljs] admin.register("${modelName}") action name "${action.name}" is reserved for the built-in delete action.`);
-               }
-               if (!/^[a-z][a-z0-9_]*$/.test(action.name)) {
-                  throw new Error(`[paneljs] admin.register("${modelName}") action name "${action.name}" must use lowercase letters, numbers, and underscores and begin with a letter.`);
-               }
-               if (actionNames.has(action.name)) {
-                  throw new Error(`[paneljs] admin.register("${modelName}") defines the action "${action.name}" more than once.`);
-               }
-               if (!action.label.trim()) {
-                  throw new Error(`[paneljs] admin.register("${modelName}") action "${action.name}" must have a label.`);
-               }
-               if (typeof action.handler !== "function") {
-                  throw new Error(`[paneljs] admin.register("${modelName}") action "${action.name}" must define a handler.`);
-               }
-               actionNames.add(action.name);
-            }
-         }
-
-         // ── Apply displayField / pluralName overrides from config ─
-         // The developer can override what the introspector auto-detected.
-         // We apply these overrides directly onto a copy of the meta here
-         // so downstream consumers only need to look at meta, not config.
-         const resolvedMeta: AdminModelMeta = { ...meta };
-
-         if (rawConfig.displayField) {
-            const fieldExists = meta.fields.some((f) => f.name === rawConfig.displayField);
-            if (!fieldExists) {
-               throw new Error(`[paneljs] admin.register("${modelName}") config.displayField: ` + `field "${rawConfig.displayField}" does not exist on model "${modelName}".`);
-            }
-            resolvedMeta.displayField = rawConfig.displayField;
-         }
-
-         if (rawConfig.pluralName) {
-            resolvedMeta.pluralName = rawConfig.pluralName.toLowerCase();
-         }
-
-         // ── Resolve the config — fill in all defaults ─────────────
-         const resolved = resolveConfig(resolvedMeta, rawConfig);
-
-         if ([...this.models.values()].some((entry) => entry.meta.pluralName === resolvedMeta.pluralName)) {
-            throw new Error(`[paneljs] admin.register("${modelName}") duplicates the pluralName "${resolvedMeta.pluralName}" of another registered model.`);
-         }
-
-         // ── Store the fully resolved entry ─────────────────────────
-         this.models.set(modelName, {
-            meta: resolvedMeta,
-            resolved,
-            raw: rawConfig,
-         });
+      // Guard: validate searchFields names
+      if (rawConfig.searchFields) {
+        const scalarStringFields = new Set(
+          meta.fields
+            .filter((f) => f.type === "string" && !f.isId)
+            .map((f) => f.name),
+        );
+        for (const fieldName of rawConfig.searchFields) {
+          if (!scalarStringFields.has(fieldName)) {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") config.searchFields: ` +
+                `field "${fieldName}" either does not exist or is not a String field on model "${modelName}". ` +
+                `Only String fields can be used as search fields.`,
+            );
+          }
+        }
       }
 
-      this.initialized = true;
-   }
-
-   // ============================================================
-   // READ API (used by routerFactory, schemaEndpoint, auth middleware)
-   // ============================================================
-
-   /**
-    * Assert that initialize() has been called.
-    * Every read method calls this to give clear errors if accessed too early.
-    */
-   private assertInitialized(): void {
-      if (!this.initialized) {
-         throw new Error(`[paneljs] Registry accessed before admin.mount() was called. ` + `Make sure you call admin.mount(app) before handling any requests.`);
+      // Guard: list filters must be fields the introspector marked as
+      // filterable (enum, boolean, date-time, or foreign-key scalar).
+      if (rawConfig.listFilter) {
+        const filterableFieldNames = new Set(meta.filterableFields);
+        for (const fieldName of rawConfig.listFilter) {
+          if (!filterableFieldNames.has(fieldName)) {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") config.listFilter: ` +
+                `field "${fieldName}" cannot be used as a filter. ` +
+                `Available filter fields: ${[...filterableFieldNames].sort().join(", ") || "none"}.`,
+            );
+          }
+        }
       }
-   }
 
-   /**
-    * Get a single registered model by its Prisma model name.
-    *
-    * Returns undefined if the model was not registered.
-    * Consumers should handle undefined — not every model in the schema
-    * is necessarily registered in the admin.
-    *
-    * @param modelName - PascalCase model name, e.g. "User", "Post"
-    */
-   get(modelName: string): FullRegisteredModel | undefined {
-      this.assertInitialized();
-      return this.models.get(modelName);
-   }
-
-   /**
-    * Get a registered model by its plural URL name.
-    * e.g. "users" → the User FullRegisteredModel
-    *
-    * Used by the router to resolve "GET /admin/api/users" → User model.
-    *
-    * @param pluralName - e.g. "users", "posts", "categories"
-    */
-   getByPluralName(pluralName: string): FullRegisteredModel | undefined {
-      this.assertInitialized();
-      for (const entry of this.models.values()) {
-         if (entry.meta.pluralName === pluralName) return entry;
+      if (
+        rawConfig.perPage !== undefined &&
+        (!Number.isSafeInteger(rawConfig.perPage) ||
+          rawConfig.perPage < 1 ||
+          rawConfig.perPage > 200)
+      ) {
+        throw new Error(
+          `[paneljs] admin.register("${modelName}") config.perPage must be an integer from 1 to 200.`,
+        );
       }
-      return undefined;
-   }
 
-   /**
-    * Get all registered models, in registration order.
-    *
-    * Used by:
-    *  - GET /admin/api/schema  → returns all models to the UI
-    *  - The admin sidebar      → lists all models for navigation
-    */
-   getAll(): FullRegisteredModel[] {
-      this.assertInitialized();
-      return [...this.models.values()];
-   }
+      if (rawConfig.defaultSort) {
+        const sortField = meta.fields.find(
+          (field) => field.name === rawConfig.defaultSort?.field,
+        );
+        if (!sortField || sortField.type === "relation")
+          throw new Error(
+            `[paneljs] admin.register("${modelName}") config.defaultSort.field must be a scalar field on the model.`,
+          );
+        if (
+          rawConfig.defaultSort.direction !== "asc" &&
+          rawConfig.defaultSort.direction !== "desc"
+        )
+          throw new Error(
+            `[paneljs] admin.register("${modelName}") config.defaultSort.direction must be "asc" or "desc".`,
+          );
+      }
 
-   /**
-    * Returns the number of registered models.
-    * Useful for health checks and logging.
-    */
-   get size(): number {
-      return this.initialized ? this.models.size : this.pendingRegistrations.size;
-   }
+      if (
+        rawConfig.pluralName !== undefined &&
+        !/^[a-z][a-z0-9-]*$/i.test(rawConfig.pluralName)
+      ) {
+        throw new Error(
+          `[paneljs] admin.register("${modelName}") config.pluralName must contain only letters, numbers, and hyphens.`,
+        );
+      }
 
-   /**
-    * Whether a model name is currently registered.
-    */
-   has(modelName: string): boolean {
-      return this.initialized ? this.models.has(modelName) : this.pendingRegistrations.has(modelName);
-   }
+      if (
+        process.env.NODE_ENV === "production" &&
+        rawConfig.permissions === undefined
+      ) {
+        throw new Error(
+          `[paneljs] admin.register("${modelName}") requires explicit permissions in production.`,
+        );
+      }
+
+      // Guard: custom actions must have stable, URL-safe names and unique
+      // identifiers. Failing at mount avoids discovering configuration
+      // mistakes only when an administrator clicks an action in production.
+      if (rawConfig.actions) {
+        const actionNames = new Set<string>();
+        for (const action of rawConfig.actions) {
+          if (action.name === DELETE_SELECTED_ACTION.name) {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") action name "${action.name}" is reserved for the built-in delete action.`,
+            );
+          }
+          if (!/^[a-z][a-z0-9_]*$/.test(action.name)) {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") action name "${action.name}" must use lowercase letters, numbers, and underscores and begin with a letter.`,
+            );
+          }
+          if (actionNames.has(action.name)) {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") defines the action "${action.name}" more than once.`,
+            );
+          }
+          if (!action.label.trim()) {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") action "${action.name}" must have a label.`,
+            );
+          }
+          if (typeof action.handler !== "function") {
+            throw new Error(
+              `[paneljs] admin.register("${modelName}") action "${action.name}" must define a handler.`,
+            );
+          }
+          actionNames.add(action.name);
+        }
+      }
+
+      // ── Apply displayField / pluralName overrides from config ─
+      // The developer can override what the introspector auto-detected.
+      // We apply these overrides directly onto a copy of the meta here
+      // so downstream consumers only need to look at meta, not config.
+      const resolvedMeta: AdminModelMeta = { ...meta };
+
+      if (rawConfig.displayField) {
+        const fieldExists = meta.fields.some(
+          (f) => f.name === rawConfig.displayField,
+        );
+        if (!fieldExists) {
+          throw new Error(
+            `[paneljs] admin.register("${modelName}") config.displayField: ` +
+              `field "${rawConfig.displayField}" does not exist on model "${modelName}".`,
+          );
+        }
+        resolvedMeta.displayField = rawConfig.displayField;
+      }
+
+      if (rawConfig.pluralName) {
+        resolvedMeta.pluralName = rawConfig.pluralName.toLowerCase();
+      }
+
+      // ── Resolve the config — fill in all defaults ─────────────
+      const resolved = resolveConfig(resolvedMeta, rawConfig);
+
+      if (
+        [...this.models.values()].some(
+          (entry) => entry.meta.pluralName === resolvedMeta.pluralName,
+        )
+      ) {
+        throw new Error(
+          `[paneljs] admin.register("${modelName}") duplicates the pluralName "${resolvedMeta.pluralName}" of another registered model.`,
+        );
+      }
+
+      // ── Store the fully resolved entry ─────────────────────────
+      this.models.set(modelName, {
+        meta: resolvedMeta,
+        resolved,
+        raw: rawConfig,
+      });
+    }
+
+    this.initialized = true;
+  }
+
+  // ============================================================
+  // READ API (used by routerFactory, schemaEndpoint, auth middleware)
+  // ============================================================
+
+  /**
+   * Assert that initialize() has been called.
+   * Every read method calls this to give clear errors if accessed too early.
+   */
+  private assertInitialized(): void {
+    if (!this.initialized) {
+      throw new Error(
+        `[paneljs] Registry accessed before admin.mount() was called. ` +
+          `Make sure you call admin.mount(app) before handling any requests.`,
+      );
+    }
+  }
+
+  /**
+   * Get a single registered model by its Prisma model name.
+   *
+   * Returns undefined if the model was not registered.
+   * Consumers should handle undefined — not every model in the schema
+   * is necessarily registered in the admin.
+   *
+   * @param modelName - PascalCase model name, e.g. "User", "Post"
+   */
+  get(modelName: string): FullRegisteredModel | undefined {
+    this.assertInitialized();
+    return this.models.get(modelName);
+  }
+
+  /**
+   * Get a registered model by its plural URL name.
+   * e.g. "users" → the User FullRegisteredModel
+   *
+   * Used by the router to resolve "GET /admin/api/users" → User model.
+   *
+   * @param pluralName - e.g. "users", "posts", "categories"
+   */
+  getByPluralName(pluralName: string): FullRegisteredModel | undefined {
+    this.assertInitialized();
+    for (const entry of this.models.values()) {
+      if (entry.meta.pluralName === pluralName) return entry;
+    }
+    return undefined;
+  }
+
+  /**
+   * Get all registered models, in registration order.
+   *
+   * Used by:
+   *  - GET /admin/api/schema  → returns all models to the UI
+   *  - The admin sidebar      → lists all models for navigation
+   */
+  getAll(): FullRegisteredModel[] {
+    this.assertInitialized();
+    return [...this.models.values()];
+  }
+
+  /**
+   * Returns the number of registered models.
+   * Useful for health checks and logging.
+   */
+  get size(): number {
+    return this.initialized ? this.models.size : this.pendingRegistrations.size;
+  }
+
+  /**
+   * Whether a model name is currently registered.
+   */
+  has(modelName: string): boolean {
+    return this.initialized
+      ? this.models.has(modelName)
+      : this.pendingRegistrations.has(modelName);
+  }
 }
