@@ -10,11 +10,13 @@ import {
   type InstallPlan,
   type PackageManifest,
 } from "./project.js";
+import { color } from "./color.js";
 import type { SelectItem } from "./prompt.js";
 import {
   docsUrl,
   FRAMEWORKS,
   ORMS,
+  PACKAGE_INSTALL_SPEC,
   paneljsPackages,
   parseFramework,
   parseOrm,
@@ -103,7 +105,12 @@ export function resolveInitPlan(
   const frameworkChoice = resolveFramework(framework);
   const ormChoice = resolveOrm(orm);
   const packages = paneljsPackages(frameworkChoice.id, ormChoice.id);
-  const plan = planInstall(manifest, packages, peersFor(ormChoice.id));
+  const plan = planInstall(
+    manifest,
+    packages,
+    peersFor(ormChoice.id),
+    PACKAGE_INSTALL_SPEC,
+  );
   if (plan.incompatible.length > 0) {
     throw new Error(plan.incompatible.join("\n"));
   }
@@ -161,22 +168,31 @@ export async function runInit(input: {
   const adding = [...plan.dependencies, ...plan.devDependencies];
   input.io.stdout.write("\n");
   if (adding.length === 0) {
-    input.io.stdout.write("PanelJS packages for this stack are already listed.\n");
+    input.io.stdout.write(
+      `${color.accent("✔")} PanelJS packages for this stack are already listed.\n`,
+    );
   } else {
-    input.io.stdout.write(`Using ${resolved.pm}. Will add:\n`);
-    for (const name of plan.dependencies) input.io.stdout.write(`  ${name}\n`);
+    input.io.stdout.write(
+      `${color.dim("Using")} ${color.bold(resolved.pm)}. ${color.bold("Will add:")}\n`,
+    );
+    for (const name of plan.dependencies)
+      input.io.stdout.write(`  ${color.cyan(name)}\n`);
     for (const name of plan.devDependencies)
-      input.io.stdout.write(`  ${name} (dev)\n`);
+      input.io.stdout.write(
+        `  ${color.cyan(name)} ${color.dim("(dev)")}\n`,
+      );
   }
   if (plan.alreadyPresent.length > 0) {
     input.io.stdout.write(
-      `Already present: ${plan.alreadyPresent.join(", ")}\n`,
+      `${color.dim("Already present:")} ${color.dim(plan.alreadyPresent.join(", "))}\n`,
     );
   }
-  input.io.stdout.write("No source files will be changed.\n");
+  input.io.stdout.write(color.dim("No source files will be changed.\n"));
 
   if (flags.dryRun === true) {
-    input.io.stdout.write("\nDry run. Nothing was installed.\n");
+    input.io.stdout.write(
+      `\n${color.yellow("Dry run.")} ${color.dim("Nothing was installed.")}\n`,
+    );
     writeSnippet(input.io, resolved.framework, resolved.orm);
     return;
   }
@@ -198,14 +214,18 @@ export async function runInit(input: {
     );
   }
 
-  input.io.stdout.write("\nInstalled. Wire this into your existing server:\n\n");
+  input.io.stdout.write(
+    `\n${color.title("Installed.")} Wire this into your existing server:\n\n`,
+  );
   writeSnippet(input.io, resolved.framework, resolved.orm);
 }
 
 function writeSnippet(io: InitIo, framework: FrameworkId, orm: OrmId): void {
   io.stdout.write(`${setupSnippet(framework, orm)}\n\n`);
-  io.stdout.write(`Docs: ${docsUrl(framework, orm)}\n`);
-  io.stdout.write("Auth: https://www.paneljs.com/docs/guide/auth\n");
+  io.stdout.write(`${color.bold("Docs")} ${color.link(docsUrl(framework, orm))}\n`);
+  io.stdout.write(
+    `${color.bold("Auth")} ${color.link("https://www.paneljs.com/docs/guide/auth")}\n`,
+  );
 }
 
 async function pick<T extends string>(

@@ -1,23 +1,24 @@
 {
-  "name": "@paneljs/typeorm",
-  "version": "0.1.6",
-  "description": "TypeORM adapter for PanelJS, a Django-style admin panel for Express and Node.js applications.",
+  "name": "@paneljs/mikroorm",
+  "version": "0.1.0",
+  "description": "MikroORM adapter for PanelJS, a Django-style admin panel for Express and Node.js applications.",
   "license": "MIT",
   "type": "module",
   "author": "Divinesta",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/divinesta/paneljs.git",
-    "directory": "packages/typeorm"
+    "directory": "packages/mikroorm"
   },
   "bugs": {
     "url": "https://github.com/divinesta/paneljs/issues"
   },
-  "homepage": "https:paneljs.com",
+  "homepage": "https://paneljs.com",
   "keywords": [
     "paneljs",
-    "typeorm",
-    "typeorm-admin",
+    "mikroorm",
+    "mikro-orm",
+    "mikroorm-admin",
     "express-admin",
     "django-admin-alternative"
   ],
@@ -43,7 +44,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "lint": "echo \"@paneljs/typeorm: no lint yet\"",
+    "lint": "echo \"@paneljs/mikroorm: no lint yet\"",
     "check-types": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --passWithNoTests --exclude 'test/integration/**'",
     "test:unit": "vitest run --passWithNoTests --exclude 'test/integration/**'",
@@ -51,18 +52,17 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "paneljs": "^0.3.1"
+    "paneljs": "workspace:^"
   },
   "peerDependencies": {
-    "typeorm": "^0.3.20"
+    "@mikro-orm/core": "^6.4.0"
   },
   "devDependencies": {
+    "@mikro-orm/core": "^6.4.0",
+    "@mikro-orm/postgresql": "^6.4.0",
     "@paneljs/testkit": "workspace:*",
     "@testcontainers/postgresql": "^12.1.0",
     "@types/node": "^22.15.3",
-    "@types/pg": "^8.15.5",
-    "pg": "^8.16.3",
-    "typeorm": "^0.3.20",
     "typescript": "5.9.2"
   }
 }

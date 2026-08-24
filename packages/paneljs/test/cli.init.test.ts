@@ -17,6 +17,7 @@ import {
   planInstall,
 } from "../src/cli/project.js";
 import {
+  PACKAGE_INSTALL_SPEC,
   docsUrl,
   paneljsPackages,
   parseFramework,
@@ -135,12 +136,13 @@ describe("package manager and peers", () => {
         { name: "@prisma/client", installAs: "dep", spec: "~7.5.0" },
         { name: "prisma", installAs: "dev", spec: "~7.5.0" },
       ],
+      PACKAGE_INSTALL_SPEC,
     );
     expect(plan.alreadyPresent).toEqual(["express"]);
     expect(plan.dependencies).toEqual([
-      "paneljs",
-      "@paneljs/express",
-      "@paneljs/prisma",
+      "paneljs@^0.3.2",
+      "@paneljs/express@^0.3.1",
+      "@paneljs/prisma@^0.3.2",
       "@prisma/client@~7.5.0",
     ]);
     expect(plan.devDependencies).toEqual(["prisma@~7.5.0"]);
@@ -176,6 +178,7 @@ describe("package manager and peers", () => {
     expect(installArgs("pnpm", ["paneljs"], false)).toEqual(["add", "paneljs"]);
     expect(installArgs("npm", ["prisma@~7.5.0"], true)).toEqual([
       "install",
+      "--no-workspaces",
       "-D",
       "prisma@~7.5.0",
     ]);
@@ -296,9 +299,9 @@ describe("runInit", () => {
     });
     expect(fake.install).toHaveBeenCalledTimes(1);
     expect(fake.install.mock.calls[0][2]).toEqual([
-      "paneljs",
-      "@paneljs/express",
-      "@paneljs/typeorm",
+      "paneljs@^0.3.2",
+      "@paneljs/express@^0.3.1",
+      "@paneljs/typeorm@^0.1.6",
     ]);
     expect(fake.install.mock.calls[0][3]).toEqual([]);
     expect(fake.output).toMatch(/typeormAdapter/);

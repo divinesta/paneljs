@@ -1,6 +1,8 @@
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
+import { color } from "./color.js";
+
 export interface SelectItem {
   value: string;
   label: string;
@@ -18,8 +20,10 @@ export async function question(label: string): Promise<string> {
 }
 
 export async function confirm(label: string, defaultYes = true): Promise<boolean> {
-  const suffix = defaultYes ? " [Y/n]: " : " [y/N]: ";
-  const answer = (await question(`${label}${suffix}`)).toLowerCase();
+  const suffix = defaultYes
+    ? color.dim(" [Y/n]: ")
+    : color.dim(" [y/N]: ");
+  const answer = (await question(`${color.question(label)}${suffix}`)).toLowerCase();
   if (!answer) return defaultYes;
   return answer === "y" || answer === "yes";
 }
@@ -67,8 +71,6 @@ export async function hiddenQuestion(label: string): Promise<string> {
   });
 }
 
-const dim = (text: string) => `\x1b[2m${text}\x1b[0m`;
-
 export async function select(
   label: string,
   items: SelectItem[],
@@ -88,19 +90,23 @@ export async function select(
   const render = (first: boolean) => {
     if (!first) stdout.write(`\x1b[${items.length}A`);
     for (const [index, item] of items.entries()) {
-      const cursor = index === current ? "❯ " : "  ";
+      const selected = index === current;
+      const cursor = selected ? color.accent("❯ ") : "  ";
+      const name = item.disabled
+        ? color.dim(item.label)
+        : selected
+          ? color.accent(item.label)
+          : item.label;
       const hint = item.disabled
-        ? dim(" (coming soon)")
+        ? color.yellow(" (coming soon)")
         : item.hint
-          ? dim(` ${item.hint}`)
+          ? color.dim(` ${item.hint}`)
           : "";
-      const line = `${cursor}${item.label}${hint}`;
-      const painted = item.disabled ? dim(line) : line;
-      stdout.write(`\x1b[2K${painted}\n`);
+      stdout.write(`\x1b[2K${cursor}${name}${hint}\n`);
     }
   };
 
-  stdout.write(`${label}\n`);
+  stdout.write(`${color.question(label)}\n`);
   stdout.write("\x1b[?25l");
   render(true);
 
@@ -129,8 +135,15 @@ export async function select(
         restore();
         stdout.write(`\x1b[${items.length}A`);
         for (const [index, item] of items.entries()) {
-          const mark = index === current ? "❯ " : "  ";
-          stdout.write(`\x1b[2K${mark}${item.label}\n`);
+          const selected = index === current;
+          const mark = selected ? color.accent("❯ ") : "  ";
+          const name = item.disabled
+            ? color.dim(item.label)
+            : selected
+              ? color.accent(item.label)
+              : item.label;
+          const hint = item.disabled ? color.yellow(" (coming soon)") : "";
+          stdout.write(`\x1b[2K${mark}${name}${hint}\n`);
         }
         resolveSelect(items[current].value);
         return;

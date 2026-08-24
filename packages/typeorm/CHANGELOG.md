@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.6] - 2026-08-23
+
+### Fixed
+
+- The published `paneljs` dependency is `^0.3.1`, not `workspace:^`. npm consumers could not install 0.1.5 because of that protocol.
+
 ## [0.1.5] - 2026-08-21
 
 ### Breaking

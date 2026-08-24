@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.2] - 2026-08-23
+
+### Added
+
+- CLI output is colored (prompts, package list, success, errors). Honors `NO_COLOR` and non-TTY streams. The mount snippet stays uncolored so it stays copy-pasteable.
+
+### Fixed
+
+- `paneljs init` installs npm-safe version ranges. Published `@paneljs/express`, `@paneljs/prisma`, and `@paneljs/typeorm` had `paneljs: workspace:^`, which npm cannot install. `init` now asks for versions that ship a real semver range, and `npm install` is passed `--no-workspaces`.
+
 ## [0.3.1] - 2026-08-23
 
 ### Added

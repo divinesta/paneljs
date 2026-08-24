@@ -1,0 +1,28 @@
+{
+  "name": "@paneljs/example-mikroorm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "start": "tsx index.ts",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:seed": "tsx seed.ts",
+    "lint": "echo \"example-mikroorm: no lint yet\""
+  },
+  "dependencies": {
+    "@mikro-orm/core": "^6.4.0",
+    "@mikro-orm/postgresql": "^6.4.0",
+    "@paneljs/express": "workspace:*",
+    "@paneljs/mikroorm": "workspace:*",
+    "express": "^5.0.0",
+    "paneljs": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.15.3",
+    "tsx": "^4.20.3",
+    "typescript": "5.9.2"
+  }
+}
