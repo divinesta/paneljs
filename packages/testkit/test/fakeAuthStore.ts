@@ -52,6 +52,23 @@ export class FakeAuthStoreEnvironment implements AuthStoreContractEnvironment {
         );
         return user ? structuredClone(user) : null;
       },
+      createUser: async (input) => {
+        if (
+          this.users.some(
+            (candidate) => candidate[options.identifier] === input.identifier,
+          )
+        ) {
+          throw new Error("Duplicate administrator identifier.");
+        }
+        this.users.push({
+          id: `auth-user-${this.users.length + 1}`,
+          [options.identifier]: input.identifier,
+          passwordHash: input.passwordHash,
+          role: input.role,
+          isActive: input.isActive,
+          ...(input.tenantId ? { tenantId: input.tenantId } : {}),
+        });
+      },
       findSessionWithUser: async (
         tokenHash,
       ): Promise<BuiltInSessionRecord | null> => {

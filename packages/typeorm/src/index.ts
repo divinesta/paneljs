@@ -29,6 +29,9 @@ export function typeormAdapter(options: TypeormAdapterOptions): DataAdapter {
       return typeormResource(dataSource, meta);
     },
     createAuthStore: (auth) => typeormAuthStore(dataSource, auth),
+    async dispose() {
+      if (dataSource.isInitialized) await dataSource.destroy();
+    },
   };
 }
 

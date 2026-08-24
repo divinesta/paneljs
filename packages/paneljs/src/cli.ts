@@ -16,9 +16,9 @@ ${color.bold("Usage")}
   ${color.cyan("paneljs createsuperuser")} --config ./paneljs.config.mjs [--email value] [--username value] [--password value]
 
 ${color.dim("init adds PanelJS packages to the current app. It does not rewrite source files.")}
-${color.dim("auth:schema and createsuperuser are Prisma setup tools. TypeORM uses builtInAuthEntities() instead.")}
+${color.dim("auth:schema prints Prisma models. createsuperuser works with every PanelJS ORM adapter.")}
 
-${color.dim("The createsuperuser config module must default-export { prisma, auth }, where auth is a built-in auth configuration.")}`);
+${color.dim("The createsuperuser config module must default-export { adapter, auth }, where auth is a built-in auth configuration.")}`);
 };
 
 const command = process.argv[2];

@@ -52,7 +52,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "paneljs": "workspace:^"
+    "paneljs": "^0.3.2"
   },
   "peerDependencies": {
     "@mikro-orm/core": "^6.4.0"

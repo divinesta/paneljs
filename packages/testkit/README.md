@@ -8,8 +8,9 @@ adapters and core admin operations must pass. It is not published to npm.
 - `defineAdapterContract(harness)` tests normalized metadata, scoped reads,
   selections, filters, search, sorting, pagination, create, update, bulk update,
   delete, and bulk delete through `DataAdapter`.
-- `defineAuthStoreContract(harness)` tests email/username lookup plus session
-  creation, lookup, expiration, deletion, and missing records.
+- `defineAuthStoreContract(harness)` tests email/username lookup and
+  administrator creation plus session creation, lookup, expiration, deletion,
+  duplicates, and missing records.
 - `defineAdminBehaviorContract(harness)` runs the framework-neutral core
   `AdminService` through scoped lists, pagination, CRUD permissions, scoped
   creates and updates, not-found isolation, and selected deletion.

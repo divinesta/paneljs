@@ -40,6 +40,11 @@ export function prismaAdapter(options: PrismaAdapterOptions): DataAdapter {
         ),
       }),
     createAuthStore: (auth) => prismaAuthStore(prisma, auth),
+    async dispose() {
+      const disconnect = (prisma as { $disconnect?: () => Promise<void> })
+        .$disconnect;
+      if (disconnect) await disconnect.call(prisma);
+    },
   };
 }
 

@@ -219,6 +219,9 @@ three referential actions.
 | `AUTH-027` | Malformed cookie encoding            | Request is unauthenticated without throwing                                     | Core            | `CU`    | Required |
 | `AUTH-028` | Login input bounds                   | Empty/oversized identifier or password receives generic invalid credentials     | Core/Transport  | `CU/HT` | Required |
 | `AUTH-029` | Login throttling                     | Limit is enforced per mounted admin, IP, and identifier with `Retry-After`      | Transport       | `HT`    | Required |
+| `AUTH-030` | Create administrator by email        | Active administrator is persisted with the supplied email, hash, and role       | Auth store      | `AS`    | Required |
+| `AUTH-031` | Create administrator by username     | Active administrator is persisted with the supplied username, hash, and role    | Auth store      | `AS`    | Required |
+| `AUTH-032` | Duplicate administrator identifier   | Store rejects an email or username that already belongs to an administrator     | Auth store      | `AS`    | Required |
 
 ## 7. Permissions, scopes, and relation safety
 

@@ -33,6 +33,9 @@ export function mikroormAdapter(options: MikroormAdapterOptions): DataAdapter {
       return mikroormResource(orm, meta);
     },
     createAuthStore: (auth) => mikroormAuthStore(orm, auth),
+    async dispose() {
+      await orm.close(true);
+    },
   };
 }
 

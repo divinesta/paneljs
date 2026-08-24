@@ -82,6 +82,15 @@ export function typeormAuthStore(
         }),
       );
     },
+    async createUser(input) {
+      await users.save({
+        [options.identifier]: input.identifier,
+        passwordHash: input.passwordHash,
+        role: input.role,
+        isActive: input.isActive,
+        ...(input.tenantId ? { tenantId: input.tenantId } : {}),
+      });
+    },
     async findSessionWithUser(tokenHash) {
       return asSession(
         await sessions.findOne({

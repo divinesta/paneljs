@@ -51,7 +51,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "paneljs": "^0.3.1"
+    "paneljs": "^0.3.2"
   },
   "peerDependencies": {
     "typeorm": "^0.3.20"

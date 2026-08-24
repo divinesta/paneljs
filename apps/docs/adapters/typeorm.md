@@ -43,7 +43,11 @@ const dataSource = new DataSource({
 
 Then `auth: { mode: "built-in", identifier: "email" }`. Do not `register("ExpressAdminUser")`.
 
-The Prisma `createsuperuser` CLI does not apply here. Insert the first operator with `hashAdminPassword` from `paneljs` and the auth-user repository. The [TypeORM example](/example/typeorm) shows a seed that does this.
+Create the first operator with the shared CLI after initializing a `typeormAdapter` in `paneljs.config.mjs`:
+
+```sh
+npx paneljs createsuperuser --config ./paneljs.config.mjs
+```
 
 Full walkthrough: [Authentication](/guide/auth).
 

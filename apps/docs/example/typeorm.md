@@ -10,7 +10,7 @@ Entities: `User`, `Post`, `Tenant`, plus built-in `ExpressAdminUser` / `ExpressA
 
 **User** and **Post** are registered for operators. `Tenant` is registered for super-admins only. Auth tables are not registered.
 
-The seed creates application users, posts, and administrator accounts (including a superuser).
+The seed creates application users and posts. Administrator creation is a separate command, so reseeding sample data never deletes operator accounts.
 
 ## Run it
 
@@ -23,21 +23,14 @@ pnpm --filter @paneljs/express build
 pnpm --filter @paneljs/typeorm build
 
 pnpm --filter @paneljs/example-typeorm db:up
-
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5436/paneljs_typeorm_example
-
 pnpm --filter @paneljs/example-typeorm db:seed
+pnpm --filter @paneljs/example-typeorm admin:createsuperuser
 pnpm --filter @paneljs/example-typeorm dev
 ```
 
 Open `http://localhost:3001/admin/login`.
 
-Default seed login:
-
-- email: `ada@example.test` (super admin, all tenants)
-- password: `changeme-now`
-
-Also seeded: `northwind@example.test` / `changeme-now` (`ADMIN`, Northwind only).
+Sign in with the superuser credentials you created.
 
 Uses Postgres on port **5436** and the app on **3001** so it does not collide with the Prisma example (5435 / 3000).
 

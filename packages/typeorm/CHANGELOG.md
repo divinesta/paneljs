@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- The auth store implements administrator creation for the shared `createsuperuser` command.
+- `typeormAdapter` disposes its initialized `DataSource` when a short-lived CLI command finishes.
+
 ## [0.1.6] - 2026-08-23
 
 ### Fixed

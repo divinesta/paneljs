@@ -294,6 +294,10 @@ export class MemoryAuthStore implements AdminAuthStore {
       : null;
   }
 
+  async createUser(): Promise<void> {
+    throw new Error("MemoryAuthStore does not support user provisioning.");
+  }
+
   async findSessionWithUser(tokenHash: string) {
     const session = this.sessions.get(tokenHash);
     return session && session.expiresAt > new Date() ? session : null;

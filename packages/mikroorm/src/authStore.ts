@@ -61,6 +61,24 @@ export function mikroormAuthStore(
         } as FilterQuery<object>),
       );
     },
+    async createUser(input) {
+      const em = orm.em.fork();
+      const data: Record<string, unknown> = {
+        [options.identifier]: input.identifier,
+        passwordHash: input.passwordHash,
+        role: input.role,
+        isActive: input.isActive,
+        ...(input.tenantId ? { tenantId: input.tenantId } : {}),
+      };
+      const entity = orm.getMetadata().get(userModel);
+      for (const prop of Object.values(entity.properties)) {
+        if (data[prop.name] !== undefined) continue;
+        if (typeof prop.onCreate === "function") {
+          data[prop.name] = prop.onCreate(data, em);
+        }
+      }
+      await em.insert(userModel, data);
+    },
     async findSessionWithUser(tokenHash) {
       const em = orm.em.fork();
       return asSession(

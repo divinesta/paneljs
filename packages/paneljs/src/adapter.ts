@@ -21,7 +21,7 @@ export interface ModelResource {
 
 /**
  * Host-supplied data layer. Core never imports an ORM.
- * Prisma, TypeORM, and Drizzle each implement this.
+ * Prisma, TypeORM, and MikroORM each implement this.
  */
 export interface DataAdapter {
   /** Opaque client handed to custom action handlers. */
@@ -30,4 +30,6 @@ export interface DataAdapter {
   resource(meta: AdminModelMeta): ModelResource;
   /** Optional. Built-in login uses this when `auth.store` is not set. */
   createAuthStore?(options: AuthStoreOptions): AdminAuthStore;
+  /** Optional lifecycle hook used by short-lived commands such as createsuperuser. */
+  dispose?(): Promise<void>;
 }

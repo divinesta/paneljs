@@ -9,6 +9,7 @@ type PrismaClientLike = object;
 
 type UserDelegate = {
   findUnique(args: unknown): Promise<unknown>;
+  create(args: unknown): Promise<unknown>;
 };
 
 type SessionDelegate = {
@@ -92,6 +93,17 @@ export function prismaAuthStore(
           where: { [options.identifier]: identifier },
         }),
       );
+    },
+    async createUser(input) {
+      await users.create({
+        data: {
+          [options.identifier]: input.identifier,
+          passwordHash: input.passwordHash,
+          role: input.role,
+          isActive: input.isActive,
+          ...(input.tenantId ? { tenantId: input.tenantId } : {}),
+        },
+      });
     },
     async findSessionWithUser(tokenHash) {
       return asSession(

@@ -19,3 +19,5 @@ The `paneljs` CLI lives on the `paneljs` package. After adding the built-in auth
 npx paneljs init --framework express --orm prisma
 npx paneljs createsuperuser --config ./paneljs.config.mjs
 ```
+
+The config exports `{ adapter: prismaAdapter({ prisma }), auth }`.

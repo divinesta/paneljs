@@ -56,6 +56,60 @@ export function defineAuthStoreContract(
       ).resolves.toBeNull();
     });
 
+    it("AUTH-030 creates an administrator identified by email", async () => {
+      await store.createUser({
+        identifier: seed.missingIdentifier,
+        passwordHash: "created-password-hash",
+        role: "SUPER_ADMIN",
+        isActive: true,
+      });
+
+      await expect(
+        store.findUserByIdentifier(seed.missingIdentifier),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          email: seed.missingIdentifier,
+          passwordHash: "created-password-hash",
+          role: "SUPER_ADMIN",
+          isActive: true,
+        }),
+      );
+    });
+
+    it("AUTH-031 creates an administrator identified by username", async () => {
+      seed = await environment.reset("username");
+      store = environment.createStore({ identifier: "username" });
+
+      await store.createUser({
+        identifier: seed.missingIdentifier,
+        passwordHash: "created-password-hash",
+        role: "ADMIN",
+        isActive: true,
+      });
+
+      await expect(
+        store.findUserByIdentifier(seed.missingIdentifier),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          username: seed.missingIdentifier,
+          passwordHash: "created-password-hash",
+          role: "ADMIN",
+          isActive: true,
+        }),
+      );
+    });
+
+    it("AUTH-032 rejects a duplicate administrator identifier", async () => {
+      await expect(
+        store.createUser({
+          identifier: seed.identifierValue,
+          passwordHash: "another-password-hash",
+          role: "SUPER_ADMIN",
+          isActive: true,
+        }),
+      ).rejects.toBeDefined();
+    });
+
     it("AUTH-013/AUTH-014 creates and retrieves a session with its user", async () => {
       const expiresAt = new Date(Date.now() + 60_000);
       await store.createSession({

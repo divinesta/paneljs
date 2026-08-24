@@ -129,7 +129,7 @@ const admin = createAdmin({
 
 Do not `register("ExpressAdminUser")`. See [Authentication](/guide/auth).
 
-The Prisma `createsuperuser` CLI does not read a TypeORM `DataSource`. Create the first operator with `hashAdminPassword` from `paneljs` and your auth-user repository — the [TypeORM example](/example/typeorm) does this in its seed.
+Create the first operator with `npx paneljs createsuperuser --config ./paneljs.config.mjs`. The config must export an initialized `typeormAdapter` and the built-in auth settings. See [Authentication](/guide/auth).
 
 ## Open the admin
 

@@ -36,3 +36,9 @@ The `DataSource` must already be initialized. Introspection reads live entity me
 For built-in login, add `builtInAuthEntities()` to the DataSource and set `auth: { mode: "built-in", identifier: "email" }`. `typeormAdapter` supplies `createAuthStore`. External `getCurrentUser` still works if you skip those entities.
 
 Do not `register("ExpressAdminUser")`.
+
+Create an operator with the shared CLI. The config exports an initialized adapter and built-in auth settings:
+
+```bash
+npx paneljs createsuperuser --config ./paneljs.config.mjs
+```

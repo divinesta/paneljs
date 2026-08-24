@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Breaking
+
+- `createsuperuser` config now exports `adapter: prismaAdapter({ prisma })` instead of the Prisma client directly.
+
+### Added
+
+- The auth store implements shared administrator creation for the ORM-neutral `createsuperuser` command.
+
 ## [0.3.2] - 2026-08-23
 
 ### Fixed

@@ -1,4 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
+import { prismaAdapter } from "@paneljs/prisma";
 import { PrismaClient } from "./generated/prisma/client";
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -10,7 +11,7 @@ const prisma = new PrismaClient({
 });
 
 export default {
-  prisma,
+  adapter: prismaAdapter({ prisma }),
   auth: {
     mode: "built-in" as const,
     identifier: "email" as const,

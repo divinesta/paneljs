@@ -23,8 +23,17 @@ export interface BuiltInSessionRecord {
   user: BuiltInUserRecord;
 }
 
+export interface CreateBuiltInUserInput {
+  identifier: string;
+  passwordHash: string;
+  role: "ADMIN" | "SUPER_ADMIN";
+  isActive: boolean;
+  tenantId?: string;
+}
+
 export interface AdminAuthStore {
   findUserByIdentifier(identifier: string): Promise<BuiltInUserRecord | null>;
+  createUser(input: CreateBuiltInUserInput): Promise<void>;
   findSessionWithUser(tokenHash: string): Promise<BuiltInSessionRecord | null>;
   createSession(input: {
     tokenHash: string;

@@ -20,7 +20,7 @@ API routes are mounted first so `/admin/api/*` always wins over the SPA.
 
 ## What it does not know
 
-Express does not import Prisma or TypeORM. It talks to `admin` and `adapter.resource()`. Pick an ORM on [Installation](/guide/installation/).
+Express does not import Prisma, TypeORM, or MikroORM. It talks to `admin` and `adapter.resource()`. Pick an ORM on [Installation](/guide/installation/).
 
 ## Request object
 

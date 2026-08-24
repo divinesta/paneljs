@@ -9,6 +9,7 @@
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:seed": "node --env-file=.env --import tsx seed.ts",
+    "admin:createsuperuser": "node --env-file=.env --import tsx ../../../packages/paneljs/src/cli.ts createsuperuser --config ./paneljs.config.ts",
     "lint": "echo \"example-typeorm: no lint yet\""
   },
   "dependencies": {

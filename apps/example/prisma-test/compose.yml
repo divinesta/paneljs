@@ -21,8 +21,8 @@ services:
 
   app:
     build:
-      context: ../..
-      dockerfile: apps/example/Dockerfile
+      context: ../../..
+      dockerfile: apps/example/prisma-test/Dockerfile
     container_name: paneljs-example-app
     restart: unless-stopped
     ports:

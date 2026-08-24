@@ -17,7 +17,7 @@ Choose whether administrators sign in with an email address or a username. Creat
 
 ```ts
 const admin = createAdmin({
-  adapter, // prismaAdapter or typeormAdapter
+  adapter, // prismaAdapter, typeormAdapter, or mikroormAdapter
   auth: {
     mode: "built-in",
     identifier: "email",
@@ -47,53 +47,68 @@ const dataSource = new DataSource({
 });
 ```
 
-:::
+```ts [MikroORM]
+import { builtInAuthEntities } from "@paneljs/mikroorm";
 
-**Prisma:** paste the printed models into `schema.prisma`, then run your normal Prisma migration and client generation commands.
-
-**TypeORM:** put `builtInAuthEntities()` on the `DataSource` `entities` list (and sync/migrate however you already do). There is no schema-file paste step.
-
-Use `--identifier username` / `{ identifier: "username" }` if operators sign in with a username.
-
-## Create the first superuser
-
-::: code-group
-
-```sh [Prisma]
-npx paneljs createsuperuser --config ./paneljs.config.mjs
-```
-
-```ts [TypeORM]
-import { hashAdminPassword } from "paneljs";
-
-const passwordHash = await hashAdminPassword(password);
-await dataSource.getRepository("ExpressAdminUser").save({
-  email,
-  passwordHash,
-  role: "SUPER_ADMIN",
-  isActive: true,
+const orm = await MikroORM.init({
+  clientUrl: process.env.DATABASE_URL,
+  entities: [...appEntities, ...builtInAuthEntities({ identifier: "email" })],
 });
 ```
 
 :::
 
-**Prisma:** the CLI needs the application's real Prisma client. Create `paneljs.config.mjs` next to your package manifest:
+**Prisma:** paste the printed models into `schema.prisma`, then run your normal Prisma migration and client generation commands.
 
-```js
+**TypeORM and MikroORM:** put `builtInAuthEntities()` on the ORM's `entities` list, then sync or migrate with that ORM. There is no schema-file paste step.
+
+Use `--identifier username` / `{ identifier: "username" }` if operators sign in with a username.
+
+## Create the first superuser
+
+```sh
+npx paneljs createsuperuser --config ./paneljs.config.mjs
+```
+
+The command is ORM-neutral. Its config exports the initialized adapter and the matching built-in auth settings:
+
+::: code-group
+
+```js [Prisma]
+import { prismaAdapter } from "@paneljs/prisma";
 import { prisma } from "./src/prisma.js";
 
 export default {
-  prisma,
-  auth: {
-    mode: "built-in",
-    identifier: "email",
-  },
+  adapter: prismaAdapter({ prisma }),
+  auth: { mode: "built-in", identifier: "email" },
 };
 ```
 
-The command asks for the selected identifier and password, hashes the password, then creates an active `SUPER_ADMIN` account. In a CI-only setup, provide `--email` or `--username` plus `EXPRESS_ADMIN_PASSWORD` instead of interactive input.
+```js [TypeORM]
+import { typeormAdapter } from "@paneljs/typeorm";
+import { dataSource } from "./src/data-source.js";
 
-**TypeORM:** there is no `createsuperuser` CLI for a `DataSource` yet. Insert the row as above (the [TypeORM example](/example/typeorm) does this in its seed).
+await dataSource.initialize();
+
+export default {
+  adapter: typeormAdapter({ dataSource }),
+  auth: { mode: "built-in", identifier: "email" },
+};
+```
+
+```js [MikroORM]
+import { mikroormAdapter } from "@paneljs/mikroorm";
+import { orm } from "./src/orm.js";
+
+export default {
+  adapter: mikroormAdapter({ orm }),
+  auth: { mode: "built-in", identifier: "email" },
+};
+```
+
+:::
+
+The command asks for the selected identifier and password, rejects an existing identifier, hashes the password, and creates an active `SUPER_ADMIN`. In CI, provide `--email` or `--username` plus `EXPRESS_ADMIN_PASSWORD` instead of interactive input.
 
 Open `/admin/login` after starting the server. Built-in auth creates a secure, `HttpOnly`, `SameSite=Lax` cookie scoped to your configured `basePath`. It does not create an application session. The login page and API routes use that same path automatically.
 

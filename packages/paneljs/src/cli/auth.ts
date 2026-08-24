@@ -1,6 +1,8 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import type { DataAdapter } from "../adapter.js";
+import { resolveAuthStore } from "../builtInAuth.js";
 import { hashAdminPassword } from "../passwords.js";
 import type { BuiltInAuthConfig } from "../types.js";
 import { argument } from "./args.js";
@@ -8,8 +10,17 @@ import { color } from "./color.js";
 import { confirm, hiddenQuestion, question } from "./prompt.js";
 
 export interface PaneljsCliConfig {
-  prisma: object;
+  adapter: DataAdapter;
   auth: BuiltInAuthConfig;
+}
+
+export interface CreateSuperuserIo {
+  loadConfig(configPath: string): Promise<PaneljsCliConfig>;
+  question(label: string): Promise<string>;
+  hiddenQuestion(label: string): Promise<string>;
+  confirm(label: string, defaultValue: boolean): Promise<boolean>;
+  log(message: string): void;
+  warn(message: string): void;
 }
 
 const emailSchema = `enum ExpressAdminRole {
@@ -54,36 +65,49 @@ export function authSchema(identifier: string): string {
   return identifier === "email" ? emailSchema : usernameSchema;
 }
 
-const modelKey = (modelName: string) =>
-  modelName.charAt(0).toLowerCase() + modelName.slice(1);
-
-const loadConfig = async (configPath: string): Promise<PaneljsCliConfig> => {
+export const loadConfig = async (
+  configPath: string,
+): Promise<PaneljsCliConfig> => {
   const module = await import(pathToFileURL(resolve(configPath)).href);
   const config = module.default as PaneljsCliConfig | undefined;
-  if (!config?.prisma || config.auth?.mode !== "built-in")
+  if (!config?.adapter || config.auth?.mode !== "built-in")
     throw new Error(
-      'The config must default-export { prisma, auth: { mode: "built-in", ... } }. TypeORM apps should insert the first operator with hashAdminPassword instead.',
+      'The config must default-export { adapter, auth: { mode: "built-in", ... } }.',
     );
   return config;
 };
 
-export const createSuperuser = async (argv: string[]): Promise<void> => {
+const defaultIo: CreateSuperuserIo = {
+  loadConfig,
+  question,
+  hiddenQuestion,
+  confirm,
+  log: console.log,
+  warn: console.warn,
+};
+
+export const createSuperuser = async (
+  argv: string[],
+  io: CreateSuperuserIo = defaultIo,
+): Promise<void> => {
   const configPath = argument(argv, "--config");
   if (!configPath)
     throw new Error("createsuperuser requires --config ./paneljs.config.mjs");
-  const config = await loadConfig(configPath);
+  const config = await io.loadConfig(configPath);
   try {
+    const store = resolveAuthStore(config.adapter, config.auth);
     const identifierName = config.auth.identifier;
     const identifier =
       argument(argv, `--${identifierName}`) ??
-      (await question(
+      (await io.question(
         `${identifierName === "email" ? "Email" : "Username"}: `,
       ));
     const suppliedPassword =
       argument(argv, "--password") ?? process.env.EXPRESS_ADMIN_PASSWORD;
-    const password = suppliedPassword ?? (await hiddenQuestion("Password: "));
+    const password =
+      suppliedPassword ?? (await io.hiddenQuestion("Password: "));
     if (!suppliedPassword) {
-      const confirmation = await hiddenQuestion("Confirm password: ");
+      const confirmation = await io.hiddenQuestion("Confirm password: ");
       if (password !== confirmation) throw new Error("Passwords do not match.");
     }
     if (!identifier || identifier.length > 254)
@@ -92,32 +116,26 @@ export const createSuperuser = async (argv: string[]): Promise<void> => {
     if (password.length < 12) {
       const warning =
         "This password is shorter than the recommended 12 characters. Continue anyway?";
-      if (suppliedPassword) console.warn(`Warning: ${warning}`);
-      else if (!(await confirm(warning, false)))
+      if (suppliedPassword) io.warn(`Warning: ${warning}`);
+      else if (!(await io.confirm(warning, false)))
         throw new Error("Superuser creation cancelled.");
     }
 
-    const delegate = (config.prisma as Record<string, unknown>)[
-      modelKey(config.auth.userModel ?? "ExpressAdminUser")
-    ] as { create(args: unknown): Promise<unknown> } | undefined;
-    if (!delegate)
+    if (await store.findUserByIdentifier(identifier)) {
       throw new Error(
-        `Prisma client has no delegate for ${config.auth.userModel ?? "ExpressAdminUser"}. Generate your Prisma client after adding the auth schema.`,
+        `An administrator with ${identifierName} "${identifier}" already exists.`,
       );
-    await delegate.create({
-      data: {
-        [identifierName]: identifier,
-        passwordHash: await hashAdminPassword(password),
-        role: "SUPER_ADMIN",
-        isActive: true,
-      },
+    }
+    await store.createUser({
+      identifier,
+      passwordHash: await hashAdminPassword(password),
+      role: "SUPER_ADMIN",
+      isActive: true,
     });
-    console.log(
+    io.log(
       `${color.title("Superuser created.")} Sign in at /admin/login with your ${identifierName}.`,
     );
   } finally {
-    const disconnect = (config.prisma as { $disconnect?: () => Promise<void> })
-      .$disconnect;
-    if (disconnect) await disconnect.call(config.prisma);
+    await config.adapter.dispose?.();
   }
 };

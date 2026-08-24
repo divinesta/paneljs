@@ -14,6 +14,7 @@ pnpm --filter @paneljs/mikroorm build
 
 pnpm --filter @paneljs/example-mikroorm db:up
 pnpm --filter @paneljs/example-mikroorm db:seed
+pnpm --filter @paneljs/example-mikroorm admin:createsuperuser
 pnpm --filter @paneljs/example-mikroorm dev
 ```
 
@@ -21,11 +22,6 @@ The seed and app load `apps/example/mikroorm-test/.env` automatically.
 
 Open `http://localhost:3002/admin/login`.
 
-Default seed login:
-
-- email: `ada@example.test` (super admin, all tenants)
-- password: `changeme-now`
-
-Also seeded: `northwind@example.test` / `changeme-now` (`ADMIN`, Northwind only).
+Sign in with the superuser credentials you created.
 
 Uses its own Postgres on port **5437** so it does not collide with the Prisma example (5435 / 3000) or the TypeORM example (5436 / 3001).

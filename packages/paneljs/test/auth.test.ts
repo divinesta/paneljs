@@ -35,6 +35,7 @@ const activeUser: BuiltInUserRecord = {
 function store(overrides: Partial<AdminAuthStore> = {}): AdminAuthStore {
   return {
     findUserByIdentifier: vi.fn().mockResolvedValue(null),
+    createUser: vi.fn().mockResolvedValue(undefined),
     findSessionWithUser: vi.fn().mockResolvedValue(null),
     createSession: vi.fn().mockResolvedValue(undefined),
     deleteSessionByTokenHash: vi.fn().mockResolvedValue(undefined),

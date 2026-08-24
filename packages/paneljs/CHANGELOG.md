@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Breaking
+
+- `createsuperuser` config now exports `{ adapter, auth }`; the Prisma-only `{ prisma, auth }` contract was removed.
+- `AdminAuthStore` implementations must provide `createUser()`.
+
+### Added
+
+- `createsuperuser` now provisions built-in administrators through Prisma, TypeORM, or MikroORM adapters.
+- `DataAdapter.dispose()` lets short-lived CLI commands close ORM connections cleanly.
+
 ## [0.3.2] - 2026-08-23
 
 ### Added

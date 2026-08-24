@@ -193,7 +193,7 @@ importers:
     dependencies:
       paneljs:
         specifier: ^0.3.1
-        version: 0.3.1
+        version: link:../paneljs
     devDependencies:
       "@types/express":
         specifier: ^5.0.6
@@ -217,7 +217,7 @@ importers:
   packages/mikroorm:
     dependencies:
       paneljs:
-        specifier: workspace:^
+        specifier: ^0.3.2
         version: link:../paneljs
     devDependencies:
       "@mikro-orm/core":
@@ -288,8 +288,8 @@ importers:
         specifier: ~7.5.0
         version: 7.5.0(typescript@5.9.2)
       paneljs:
-        specifier: ^0.3.1
-        version: 0.3.1
+        specifier: ^0.3.2
+        version: link:../paneljs
     devDependencies:
       "@paneljs/testkit":
         specifier: workspace:*
@@ -338,8 +338,8 @@ importers:
   packages/typeorm:
     dependencies:
       paneljs:
-        specifier: ^0.3.1
-        version: 0.3.1
+        specifier: ^0.3.2
+        version: link:../paneljs
     devDependencies:
       "@paneljs/testkit":
         specifier: workspace:*
@@ -4431,14 +4431,6 @@ packages:
         integrity: sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==,
       }
 
-  paneljs@0.3.1:
-    resolution:
-      {
-        integrity: sha512-W54oCpX7SInZpc9yeljkfAuyntemHtBkbQaA2ahxVplEH5iTEHMklNk9h2FvcqxYwuUb6u9SXrtadYGA4/Q6RQ==,
-      }
-    engines: { node: ^20.19 || ^22.12 || >=24.0 }
-    hasBin: true
-
   parseurl@1.3.3:
     resolution:
       {
@@ -8361,8 +8353,6 @@ snapshots:
       regex-recursion: 6.0.2
 
   package-json-from-dist@1.0.1: {}
-
-  paneljs@0.3.1: {}
 
   parseurl@1.3.3: {}
 

@@ -138,7 +138,7 @@ export interface BuiltInAuthConfig {
   sessionTtlSeconds?: number;
   secureCookies?: boolean;
   loginRateLimit?: false | { windowMs?: number; maxAttempts?: number };
-  /** Optional override. Prisma adapters supply a store via `createAuthStore`. */
+  /** Optional override. ORM adapters supply a store via `createAuthStore`. */
   store?: AdminAuthStore;
 }
 

@@ -159,6 +159,7 @@ export type {
   AuthStoreOptions,
   BuiltInSessionRecord,
   BuiltInUserRecord,
+  CreateBuiltInUserInput,
 } from "./authStore.js";
 export {
   DEFAULT_AUTH_SESSION_MODEL,
