@@ -12,7 +12,7 @@
     "db:push": "prisma db push",
     "db:seed": "node --env-file=.env --import tsx seed.ts",
     "e2e:seed": "node --import tsx e2eSeed.ts",
-    "admin:createsuperuser": "node --env-file=.env --import tsx ../../packages/paneljs/src/cli.ts createsuperuser --config ./paneljs.config.ts",
+    "admin:createsuperuser": "node --env-file=.env --import tsx ../../../packages/paneljs/src/cli.ts createsuperuser --config ./paneljs.config.ts",
     "lint": "echo \"example: no lint yet\""
   },
   "dependencies": {

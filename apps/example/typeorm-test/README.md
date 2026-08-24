@@ -13,12 +13,11 @@ pnpm --filter @paneljs/express build
 pnpm --filter @paneljs/typeorm build
 
 pnpm --filter @paneljs/example-typeorm db:up
-
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5436/paneljs_typeorm_example
-
 pnpm --filter @paneljs/example-typeorm db:seed
 pnpm --filter @paneljs/example-typeorm dev
 ```
+
+The seed and app load `apps/example/typeorm-test/.env` automatically.
 
 Open `http://localhost:3001/admin/login`.
 

@@ -13,12 +13,11 @@ pnpm --filter @paneljs/express build
 pnpm --filter @paneljs/mikroorm build
 
 pnpm --filter @paneljs/example-mikroorm db:up
-
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5437/paneljs_mikroorm_example
-
 pnpm --filter @paneljs/example-mikroorm db:seed
 pnpm --filter @paneljs/example-mikroorm dev
 ```
+
+The seed and app load `apps/example/mikroorm-test/.env` automatically.
 
 Open `http://localhost:3002/admin/login`.
 

@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch index.ts",
-    "start": "tsx index.ts",
+    "dev": "node --env-file=.env --import tsx --watch index.ts",
+    "start": "node --env-file=.env --import tsx index.ts",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
-    "db:seed": "tsx seed.ts",
+    "db:seed": "node --env-file=.env --import tsx seed.ts",
     "lint": "echo \"example-mikroorm: no lint yet\""
   },
   "dependencies": {
