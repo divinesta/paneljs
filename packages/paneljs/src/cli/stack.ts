@@ -85,7 +85,7 @@ export function resolveOrm(id: OrmId): StackChoice<OrmId> {
 
 /** npm-safe ranges. Published adapters used to leak `workspace:^`, which npm cannot install. */
 export const PACKAGE_INSTALL_SPEC: Record<string, string> = {
-  paneljs: "^0.3.3",
+  paneljs: "^0.3.4",
   "@paneljs/express": "^0.3.1",
   "@paneljs/prisma": "^0.3.3",
   "@paneljs/typeorm": "^0.1.7",
