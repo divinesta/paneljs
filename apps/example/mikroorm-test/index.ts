@@ -111,6 +111,54 @@ admin.register("Post", {
   ],
 });
 
+admin.register("Customer", {
+  listDisplay: ["email", "fullName", "company", "isActive", "createdAt"],
+  listFilter: ["isActive", "createdAt"],
+  searchFields: ["email", "fullName", "company"],
+  permissions: editorPermissions,
+  scope: tenantScope,
+});
+
+admin.register("Category", {
+  listDisplay: ["name", "description", "createdAt"],
+  searchFields: ["name", "description"],
+  permissions: editorPermissions,
+  scope: tenantScope,
+});
+
+admin.register("Product", {
+  listDisplay: ["sku", "name", "category", "price", "stock", "status"],
+  listFilter: ["status", "createdAt"],
+  searchFields: ["sku", "name", "description"],
+  permissions: editorPermissions,
+  scope: tenantScope,
+});
+
+admin.register("Order", {
+  listDisplay: [
+    "reference",
+    "customer",
+    "owner",
+    "status",
+    "total",
+    "placedAt",
+  ],
+  listFilter: ["status", "placedAt"],
+  searchFields: ["reference"],
+  permissions: editorPermissions,
+  scope: tenantScope,
+});
+
+admin.register("OrderItem", {
+  listDisplay: ["order", "product", "quantity", "unitPrice", "createdAt"],
+  searchFields: [],
+  permissions: editorPermissions,
+  scope: async (adminUser) =>
+    adminUser.isSuperAdmin
+      ? {}
+      : { order: { tenantId: adminUser.tenantId ?? "__no_tenant__" } },
+});
+
 await mount(app, admin);
 
 const server = app.listen(port, () => {

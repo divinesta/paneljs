@@ -1,6 +1,8 @@
 # PanelJS TypeORM example
 
-Small Express host using `@paneljs/typeorm`. Proves list, search, filters, create, edit, delete, bulk publish, and built-in `/admin/login`.
+Express dogfood host using `@paneljs/typeorm`. Proves list, search, filters,
+relations, create, edit, delete, bulk publish, tenant scoping, and built-in
+`/admin/login`.
 
 ## Run
 
@@ -23,5 +25,10 @@ The seed and app load `apps/example/typeorm-test/.env` automatically.
 Open `http://localhost:3001/admin/login`.
 
 Sign in with the superuser credentials you created.
+
+The seed matches the Prisma example: three tenants (Northwind, Contoso, and
+Fabrikam), plus 72 users, 60 customers, 36 categories, 120 products, 120 posts,
+90 orders, and 270 order items. Re-running it replaces the example business
+data without deleting built-in admin users.
 
 Uses its own Postgres on port **5436** so it does not collide with the Prisma example (5435 / 3000).

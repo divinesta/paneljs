@@ -6,8 +6,8 @@ let environment: TypeormBrowserEnvironment;
 
 async function login(page: Page): Promise<void> {
   await page.goto(`${environment.baseUrl}/login`);
-  await page.getByLabel("Email address").fill("ada@example.test");
-  await page.locator("#admin-password").fill("changeme-now");
+  await page.getByLabel("Email address").fill("admin@example.com");
+  await page.locator("#admin-password").fill("admin123");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(
     page.getByRole("heading", { name: "Available models" }),
@@ -27,10 +27,10 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
     await login(page);
     await page.locator(".model-card", { hasText: "Post" }).click();
     await expect(
-      page.getByText("3 records available to your account."),
+      page.getByText("120 records available to your account."),
     ).toBeVisible();
     await expect(
-      page.getByText("Notes on the Analytical Engine"),
+      page.getByText("Quarterly update 16", { exact: true }).first(),
     ).toBeVisible();
   });
 
@@ -48,9 +48,9 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
       .getByRole("button")
       .click();
     const authorSearch = page.getByPlaceholder("Search users by email");
-    await authorSearch.fill("ada");
+    await authorSearch.fill("ada@example.test");
     await page
-      .getByRole("option", { name: /ada@northwind\.test/ })
+      .getByRole("option", { name: /ada@example\.test/ })
       .getByRole("button")
       .click();
     await page.getByRole("button", { name: "Create record" }).click();
@@ -94,24 +94,24 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
   }) => {
     await login(page);
     await page.goto(`${environment.baseUrl}/users`);
-    await page.getByLabel("Search User").fill("ada@northwind.test");
+    await page
+      .getByLabel("Search User")
+      .fill("katherine-johnson.northwind@example.test");
     await page.getByLabel("Search User").press("Enter");
     await page.getByLabel("Select all records on this page").check();
     await page
       .getByRole("combobox", { name: "Choose an action" })
       .selectOption("delete_selected");
     await page.getByRole("button", { name: "Delete selected" }).click();
-    await expect(
-      page.getByText("Post: Notes on the Analytical Engine"),
-    ).toBeVisible();
+    await expect(page.getByText("Post: Team memo 5")).toBeVisible();
     await expect(page.getByText("Will be deleted").first()).toBeVisible();
     await page.getByRole("button", { name: "Confirm delete" }).click();
 
     await page.goto(`${environment.baseUrl}/posts`);
-    await page.getByLabel("Search Post").fill("Notes on the Analytical Engine");
+    await page.getByLabel("Search Post").fill("Team memo 5");
     await page.getByLabel("Search Post").press("Enter");
     await expect(
-      page.getByText("No records match your current view."),
+      page.getByText("2 records available to your account."),
     ).toBeVisible();
   });
 });

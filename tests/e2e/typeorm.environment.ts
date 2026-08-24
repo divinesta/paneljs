@@ -84,7 +84,7 @@ export class TypeormBrowserEnvironment {
       PORT: String(port),
     };
     try {
-      await run("pnpm", ["run", "db:seed"], env);
+      await run("pnpm", ["run", "e2e:seed"], env);
       const server = spawn(process.execPath, [tsxCli, "index.ts"], {
         cwd: exampleDirectory,
         env,
