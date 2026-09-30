@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Home, LayoutDashboard, Menu } from "lucide-react";
 import {
   BrowserRouter,
@@ -27,7 +27,7 @@ export const App = () => {
       {isLoginRoute && <LoginPage />}
       {!isLoginRoute && state.status === "loading" && (
         <FullPageState
-          eyebrow="Prisma Admin"
+          eyebrow="PanelJS"
           title="Loading your workspace"
           detail="Reading the models and permissions available to you…"
           busy
@@ -62,7 +62,46 @@ export const App = () => {
 
 const AdminShell = ({ schema }: { schema: Schema }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigationRef = useRef<HTMLElement>(null);
+  const menuRef = useRef<HTMLButtonElement>(null);
   const location = useLocation();
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const sidebar = navigationRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    sidebar?.querySelector<HTMLElement>("a")?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSidebarOpen(false);
+        menuRef.current?.focus();
+      }
+      if (event.key !== "Tab") return;
+      const links = sidebar?.querySelectorAll<HTMLElement>("a, button");
+      if (!links?.length) return;
+      const first = links[0];
+      const last = links[links.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    const desktop = window.matchMedia("(min-width: 761px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setSidebarOpen(false);
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      desktop.removeEventListener("change", closeOnDesktop);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [sidebarOpen]);
   const navigate = useNavigate();
   const segments = location.pathname.split("/").filter(Boolean);
   const activeModel = schema.models.find(
@@ -89,12 +128,19 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
 
   return (
     <div className="admin-screen">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <div className="app-frame">
         <div
           className={`scrim ${sidebarOpen ? "is-visible" : ""}`}
           onClick={closeSidebar}
         />
-        <aside className={`sidebar ${sidebarOpen ? "is-open" : ""}`}>
+        <aside
+          ref={navigationRef}
+          id="admin-navigation"
+          className={`sidebar ${sidebarOpen ? "is-open" : ""}`}
+        >
           <div className="brand-lockup">
             <div className="brand-mark">P</div>
             <div>
@@ -143,11 +189,14 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
             <span className="status-dot" /> Connected to host app
           </div>
         </aside>
-        <main className="main-panel">
+        <main className="main-panel" inert={sidebarOpen}>
           <header className="topbar">
             <div className="topbar-left">
               <button
+                ref={menuRef}
                 className="menu-button"
+                aria-expanded={sidebarOpen}
+                aria-controls="admin-navigation"
                 type="button"
                 aria-label="Open navigation"
                 onClick={() => setSidebarOpen(true)}
@@ -193,7 +242,7 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
               />
             </div>
           </header>
-          <div className="content-wrap">
+          <div className="content-wrap" id="main-content" tabIndex={-1}>
             <Routes>
               <Route path="/" element={<Dashboard schema={schema} />} />
               <Route

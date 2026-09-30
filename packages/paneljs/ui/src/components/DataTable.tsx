@@ -50,6 +50,14 @@ export const DataTable = ({
                   aria-label="Select all records on this page"
                   type="checkbox"
                   checked={allSelected}
+                  ref={(input) => {
+                    if (input)
+                      input.indeterminate =
+                        !allSelected &&
+                        records.some((record) =>
+                          selectedIds?.has(String(record[idField])),
+                        );
+                  }}
                   onChange={(event) => onToggleAll(event.target.checked)}
                 />
               </th>
@@ -148,7 +156,10 @@ export const DataTable = ({
                       key={field.name}
                     >
                       {field.type === "boolean" ? (
-                        <span className="table-boolean">
+                        <span
+                          className="table-boolean"
+                          data-value={String(record[field.name])}
+                        >
                           {formatRecordValue(record[field.name], field)}
                         </span>
                       ) : field.type === "enum" ? (
@@ -162,7 +173,17 @@ export const DataTable = ({
                   ))}
                   {canEdit && (
                     <td className="row-arrow">
-                      <ArrowRight size={16} strokeWidth={1.75} aria-hidden />
+                      <button
+                        type="button"
+                        className="row-open-button"
+                        aria-label={`Open record ${String(record[idField])}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onOpen(String(record[idField]));
+                        }}
+                      >
+                        <ArrowRight size={16} strokeWidth={1.75} aria-hidden />
+                      </button>
                     </td>
                   )}
                 </tr>

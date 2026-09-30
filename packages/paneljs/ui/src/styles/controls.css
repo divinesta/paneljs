@@ -1,0 +1,82 @@
+.primary-button {
+  align-items: center;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 6px;
+  padding: 10px 14px;
+  white-space: nowrap;
+  background: var(--action-background);
+  color: var(--on-action);
+  min-height: 38px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 120ms var(--ease-out);
+}
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.secondary-button {
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 10px 12px;
+  background: var(--surface-raised);
+  border-color: var(--border);
+  color: var(--text-secondary);
+  min-height: 38px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 120ms var(--ease-out);
+}
+.danger-button {
+  border: 1px solid var(--danger);
+  cursor: pointer;
+  padding: 10px 12px;
+  min-height: 38px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 120ms var(--ease-out);
+  background: var(--surface-raised);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+}
+.secondary-button:hover {
+  background: var(--accent-wash);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.danger-button:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface-raised));
+}
+.primary-button:hover {
+  background: var(--action-hover);
+  color: var(--on-action);
+}
+.primary-button:active:not(:disabled),
+.secondary-button:active:not(:disabled),
+.danger-button:active:not(:disabled) {
+  transform: scale(0.98);
+}

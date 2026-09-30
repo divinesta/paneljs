@@ -182,8 +182,19 @@ export const ListView = ({ schema }: { schema: Schema }) => {
         </div>
       )}
       {data.status === "loading" && (
-        <div className="table-card table-state">
-          <span className="spinner" /> Loading records…
+        <div
+          className="table-card table-skeleton"
+          role="status"
+          aria-label="Loading records"
+        >
+          <span className="sr-only">Loading records…</span>
+          {Array.from({ length: 6 }, (_, index) => (
+            <div className="skeleton-row" key={index} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
+          ))}
         </div>
       )}
       {data.status === "ready" && (

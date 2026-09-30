@@ -1,0 +1,119 @@
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../../public/fonts/dm-sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../../public/fonts/dm-sans-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../../public/fonts/dm-sans-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../../public/fonts/dm-sans-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../../public/fonts/dm-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../../public/fonts/dm-mono-500.woff2") format("woff2");
+}
+:root {
+  color: var(--text-primary);
+  background: var(--surface-canvas);
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --surface-raised: #ffffff;
+  --on-action: #ffffff;
+  --table-row-hover: var(--surface-subtle);
+  --table-row-hover-text: var(--text-secondary);
+  --surface-canvas: #fafafa;
+  --surface-subtle: #f5f5f5;
+  --surface-input: #ffffff;
+  --text-primary: #202124;
+  --text-secondary: #52545a;
+  --text-muted: #686b72;
+  --border: #e5e5e7;
+  --border-strong: #c9cacc;
+  --sidebar: #f3f3f3;
+  --sidebar-hover: #eaeaec;
+  --sidebar-border: #e2e2e4;
+  --action-background: #242528;
+  --action-hover: #3b3d42;
+  --table-row-selected: #f0f0f2;
+  --tag-background: #f0f0f2;
+  --tag-text: #52545a;
+  --accent: #34363b;
+  --accent-active: #34363b;
+  --accent-strong: #34363b;
+  --accent-soft: #ededee;
+  --accent-wash: #f5f5f6;
+  --on-accent: #ffffff;
+  --focus-ring: rgba(82, 84, 90, 0.25);
+  --danger: #b42332;
+  --shadow: rgba(20, 20, 24, 0.07);
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "DM Mono", monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --sidebar-width: 232px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --success: #36734a;
+  --success-surface: #edf5ef;
+  line-height: 1.5;
+  font-size: 14px;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --table-row-hover: var(--surface-subtle);
+  --table-row-hover-text: var(--text-secondary);
+  --shadow: rgba(0, 0, 0, 0.3);
+  --surface-canvas: #18191b;
+  --surface-raised: #202124;
+  --surface-subtle: #28292d;
+  --surface-input: #242528;
+  --text-primary: #f1f1f2;
+  --text-secondary: #c3c4c8;
+  --text-muted: #a0a2a9;
+  --border: #34363b;
+  --border-strong: #50525a;
+  --sidebar: #1c1d20;
+  --sidebar-hover: #2c2d32;
+  --sidebar-border: #34363b;
+  --action-background: #ededee;
+  --action-hover: #d8d9dc;
+  --on-action: #202124;
+  --table-row-selected: #303137;
+  --tag-background: #303137;
+  --tag-text: #c3c4c8;
+  --accent-soft: #303137;
+  --accent-wash: #28292d;
+  --success: #9ccbab;
+  --success-surface: #23382b;
+  --danger: #f2a0a8;
+  color-scheme: dark;
+}

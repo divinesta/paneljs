@@ -1,0 +1,182 @@
+.login-page {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px;
+  background: var(--surface-canvas);
+}
+.login-card {
+  animation: login-enter 220ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1))
+    both;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  max-width: 420px;
+  padding: 32px;
+  width: 100%;
+  box-shadow: 0 8px 32px var(--shadow);
+}
+.login-brand {
+  align-items: center;
+  background: var(--accent);
+  border-radius: var(--radius-lg);
+  color: var(--on-accent);
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+.login-heading {
+  margin: 24px 0 28px;
+}
+.login-heading p {
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+.login-heading h1 {
+  color: var(--text-primary);
+  font-size: clamp(27px, 5vw, 32px);
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+  margin: 0;
+}
+.login-heading span {
+  color: var(--text-muted);
+  display: block;
+  font-size: 14px;
+  line-height: 1.55;
+  margin-top: 10px;
+}
+.login-form {
+  display: grid;
+  gap: 18px;
+}
+.login-field {
+  display: grid;
+  gap: 8px;
+}
+.login-field label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.login-field input {
+  background: var(--surface-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+  min-height: 46px;
+  outline: 0;
+  padding: 10px 12px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+  width: 100%;
+}
+.login-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.login-password-wrap {
+  position: relative;
+}
+.login-password-wrap input {
+  padding-right: 48px;
+}
+.password-visibility {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  height: 36px;
+  justify-content: center;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    transform 120ms ease;
+  width: 36px;
+}
+.password-visibility:hover {
+  background: var(--accent-wash);
+  color: var(--text-primary);
+}
+.password-visibility:active {
+  transform: scale(0.97);
+}
+.login-submit:active {
+  transform: scale(0.97);
+}
+.login-error {
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border));
+  border-radius: var(--radius-md);
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: -2px 0 0;
+  padding: 10px 12px;
+}
+.login-submit {
+  align-items: center;
+  background: var(--action-background);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--on-action);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  min-height: 46px;
+  transition:
+    background 160ms ease,
+    transform 120ms ease;
+  width: 100%;
+}
+.login-submit:hover:not(:disabled) {
+  background: var(--action-hover);
+}
+.login-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+.password-visibility:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+:root[data-theme="dark"] .model-card:hover {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+:root[data-theme="dark"] .breadcrumb-back:hover {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+:root[data-theme="dark"] .secondary-button:hover {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+:root[data-theme="dark"] .pagination button:not(:disabled):hover {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}

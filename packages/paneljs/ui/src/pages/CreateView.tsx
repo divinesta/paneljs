@@ -200,7 +200,9 @@ export const CreateView = ({
           <p>
             {mode === "view"
               ? "Read-only record details."
-              : "Only scalar fields are editable in this first release."}
+              : mode === "create"
+                ? "Enter the details below to create a record."
+                : "Update the details below, then save your changes."}
           </p>
         </div>
       </div>

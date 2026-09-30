@@ -10,12 +10,13 @@ import {
 } from "react";
 
 type ThemeMode = "system" | "light" | "dark";
-type PaletteName = "lime" | "ocean" | "violet" | "rose" | "amber";
+type PaletteName = "neutral" | "lime" | "ocean" | "violet" | "rose" | "amber";
 
 type Appearance = { mode: ThemeMode; palette: PaletteName };
 
 const storageKey = "express-admin:appearance";
 const paletteLabels: Record<PaletteName, string> = {
+  neutral: "Neutral",
   lime: "Lime",
   ocean: "Ocean",
   violet: "Violet",
@@ -23,7 +24,7 @@ const paletteLabels: Record<PaletteName, string> = {
   amber: "Amber",
 };
 
-const defaultAppearance: Appearance = { mode: "system", palette: "lime" };
+const defaultAppearance: Appearance = { mode: "system", palette: "neutral" };
 
 const readAppearance = (): Appearance => {
   try {
