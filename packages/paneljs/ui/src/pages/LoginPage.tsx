@@ -1,6 +1,9 @@
-import { Eye, EyeOff, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { adminBasePath, joinAdminPath } from "../config";
+
+import { LoginVisual } from "../components/LoginVisual";
+import panelMark from "../assets/paneljs-mark.svg";
 
 type Identifier = "email" | "username";
 
@@ -73,74 +76,97 @@ export const LoginPage = () => {
     identifierType === "email" ? "Email address" : "Username";
   return (
     <main className="login-page" aria-labelledby="login-title">
-      <section className="login-card">
-        <div className="login-brand" aria-hidden="true">
-          <ShieldCheck size={22} strokeWidth={1.75} />
+      <LoginVisual />
+      <div className="login-form-panel">
+        <div className="login-panel-label">
+          <span>PanelJS</span>
+          <span>Admin workspace</span>
         </div>
-        <div className="login-heading">
-          <p>Express Admin</p>
-          <h1 id="login-title">Sign in to continue</h1>
-          <span>Use an administrator account to access this workspace.</span>
-        </div>
-
-        <form className="login-form" onSubmit={submit} noValidate>
-          <div className="login-field">
-            <label htmlFor="admin-identifier">{identifierLabel}</label>
-            <input
-              id="admin-identifier"
-              name="identifier"
-              type={identifierType === "email" ? "email" : "text"}
-              autoComplete="username"
-              autoCapitalize="none"
-              value={identifier}
-              onChange={(event) => setIdentifier(event.target.value)}
-              disabled={!identifierType || submitting}
-              required
-            />
+        <section className="login-card">
+          <img
+            className="login-brand"
+            src={panelMark}
+            alt="PanelJS"
+            width="40"
+            height="40"
+          />
+          <div className="login-heading">
+            <h1 id="login-title">Welcome back.</h1>
+            <span>Sign in to your admin workspace.</span>
           </div>
-          <div className="login-field">
-            <label htmlFor="admin-password">Password</label>
-            <div className="login-password-wrap">
+
+          <form className="login-form" onSubmit={submit} aria-busy={submitting}>
+            <div className="login-field">
+              <label htmlFor="admin-identifier">{identifierLabel}</label>
               <input
-                id="admin-password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                id="admin-identifier"
+                name="identifier"
+                type={identifierType === "email" ? "email" : "text"}
+                autoComplete="username"
+                placeholder={
+                  identifierType === "email"
+                    ? "you@company.com"
+                    : "Your username"
+                }
+                autoCapitalize="none"
+                value={identifier}
+                onChange={(event) => setIdentifier(event.target.value)}
                 disabled={!identifierType || submitting}
                 required
               />
-              <button
-                className="password-visibility"
-                type="button"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                onClick={() => setShowPassword((visible) => !visible)}
-                disabled={!identifierType || submitting}
-              >
-                {showPassword ? (
-                  <EyeOff size={18} strokeWidth={1.75} />
-                ) : (
-                  <Eye size={18} strokeWidth={1.75} />
-                )}
-              </button>
             </div>
-          </div>
-          {error && (
-            <p className="login-error" role="alert">
-              {error}
-            </p>
-          )}
-          <button
-            className="login-submit"
-            type="submit"
-            disabled={!identifierType || submitting}
-          >
-            <KeyRound size={17} strokeWidth={1.75} />
-            <span>{submitting ? "Signing in…" : "Sign in"}</span>
-          </button>
-        </form>
-      </section>
+            <div className="login-field">
+              <label htmlFor="admin-password">Password</label>
+              <div className="login-password-wrap">
+                <input
+                  id="admin-password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={!identifierType || submitting}
+                  required
+                />
+                <button
+                  className="password-visibility"
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  disabled={!identifierType || submitting}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} strokeWidth={1.75} />
+                  ) : (
+                    <Eye size={18} strokeWidth={1.75} />
+                  )}
+                </button>
+              </div>
+            </div>
+            {error && (
+              <p className="login-error" role="alert">
+                {error}
+              </p>
+            )}
+            <button
+              className="login-submit"
+              type="submit"
+              disabled={!identifierType || submitting}
+            >
+              <span>{submitting ? "Signing in…" : "Sign in"}</span>
+              <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          </form>
+          <p className="login-access-note">
+            Need access? Contact your administrator.
+          </p>
+        </section>
+        <p className="login-footer">
+          <LockKeyhole size={13} strokeWidth={1.75} aria-hidden="true" />{" "}
+          Administrator access only
+        </p>
+      </div>
     </main>
   );
 };

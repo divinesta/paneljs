@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.5] - 2026-09-30
+
+### Added
+
+- Neutral accent palette, preserving existing saved appearance preferences.
+- Split login layout with PanelJS branding and four architectural images that crossfade every five seconds. Includes image selectors, pause/play controls, and reduced-motion support; autoplay pauses in hidden tabs.
+- Keyboard-accessible record controls, a skip-to-content link, mobile navigation focus management, and table loading placeholders.
+
+### Changed
+
+- Refined admin navigation, typography, spacing, tables, forms, and light/dark themes while preserving existing workflows.
+- Organized frontend styling into focused stylesheets with shared theme tokens and documented ownership.
+- Adapted the login image panel to a compact header on mobile, keeping the sign-in form accessible.
+
+### Fixed
+
+- Bundled fonts and images resolve relative to their built assets, supporting custom admin base paths.
+- Navigation hover states no longer change text size, and mobile search controls no longer inherit an oversized desktop flex basis.
+- Bulk-selection checkboxes show an indeterminate state when only some visible records are selected.
+
 ## [0.3.4] - 2026-08-24
 
 ### Added
