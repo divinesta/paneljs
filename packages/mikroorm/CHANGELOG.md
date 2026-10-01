@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1] - 2026-10-01
+
+### Fixed
+
+- Scope, filters, search, ids, and custom-action selections are combined without overlapping fields replacing security constraints.
+- Native updates apply MikroORM `onUpdate` values, including managed `updatedAt` timestamps.
+- Unique-constraint failures during create and update return a safe `VALIDATION_ERROR` instead of an internal server error.
+
 ## [0.1.0] - 2026-08-24
 
 ### Added

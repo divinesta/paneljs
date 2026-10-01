@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.8] - 2026-10-01
+
+### Fixed
+
+- Scope, filters, search, ids, and custom-action selections are combined without overlapping fields replacing security constraints.
+- Create operations use insert semantics, so a supplied existing primary key cannot update or take ownership of another record.
+- Unique-constraint failures during create and update return a safe `VALIDATION_ERROR` instead of an internal server error.
+
 ## [0.1.7] - 2026-08-24
 
 ### Added

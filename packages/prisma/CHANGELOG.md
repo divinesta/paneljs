@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.4] - 2026-10-01
+
+### Fixed
+
+- Unique-constraint failures during create and update return a safe `VALIDATION_ERROR` instead of an internal server error.
+
 ## [0.3.3] - 2026-08-24
 
 ### Breaking

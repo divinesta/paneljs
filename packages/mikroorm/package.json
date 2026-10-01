@@ -1,6 +1,6 @@
 {
   "name": "@paneljs/mikroorm",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MikroORM adapter for PanelJS, a Django-style admin panel for Express and Node.js applications.",
   "license": "MIT",
   "type": "module",
