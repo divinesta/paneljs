@@ -1,15 +1,16 @@
-import type {
-  AdminFieldMeta,
-  AdminModelMeta,
-  CountQuery,
-  CreateQuery,
-  DataAdapter,
-  DeleteManyQuery,
-  FieldSelect,
-  FindFirstQuery,
-  FindManyQuery,
-  ModelResource,
-  UpdateManyQuery,
+import {
+  RequestValidationError,
+  type AdminFieldMeta,
+  type AdminModelMeta,
+  type CountQuery,
+  type CreateQuery,
+  type DataAdapter,
+  type DeleteManyQuery,
+  type FieldSelect,
+  type FindFirstQuery,
+  type FindManyQuery,
+  type ModelResource,
+  type UpdateManyQuery,
 } from "paneljs";
 
 import type {
@@ -471,6 +472,7 @@ export class FakeAdapterEnvironment implements AdapterContractEnvironment {
           updatedAt: now,
           ...clone(query.data),
         };
+        this.assertUniqueValues(meta, row);
         this.table(meta.name).push(row);
         return this.project(row, query.select);
       },
@@ -479,7 +481,13 @@ export class FakeAdapterEnvironment implements AdapterContractEnvironment {
         let count = 0;
         for (const row of this.table(meta.name)) {
           if (!this.matches(row, query)) continue;
-          Object.assign(row, clone(query.data));
+          const updated = {
+            ...row,
+            ...clone(query.data),
+            updatedAt: new Date("2026-08-22T00:00:00.000Z"),
+          };
+          this.assertUniqueValues(meta, updated, row);
+          Object.assign(row, updated);
           count += 1;
         }
         return { count };
@@ -498,6 +506,28 @@ export class FakeAdapterEnvironment implements AdapterContractEnvironment {
   private assertTarget(query: { id?: ContractId; ids?: ContractId[] }): void {
     if (query.id === undefined && query.ids === undefined) {
       throw new Error("A fake update/delete requires id or ids");
+    }
+  }
+
+  private assertUniqueValues(
+    meta: AdminModelMeta,
+    candidate: Row,
+    current?: Row,
+  ): void {
+    const uniqueFields = meta.fields.filter((field) => field.isUnique);
+    const duplicate = this.table(meta.name).some(
+      (row) =>
+        row !== current &&
+        uniqueFields.some(
+          (field) =>
+            candidate[field.name] !== undefined &&
+            row[field.name] === candidate[field.name],
+        ),
+    );
+    if (duplicate) {
+      throw new RequestValidationError(
+        "A record with the same unique value already exists.",
+      );
     }
   }
 }

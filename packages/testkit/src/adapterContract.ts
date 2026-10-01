@@ -208,6 +208,40 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         });
         expect(records).toEqual([{ id: seed.postA2 }]);
       });
+
+      it("QUERY-023 does not let a requested id replace an id-based scope", async () => {
+        const tenant = metadata.get(CONTRACT_MODELS.tenant)!;
+        await expect(
+          environment.adapter.resource(tenant).findFirst({
+            scope: { id: seed.tenantA },
+            id: seed.tenantB,
+            select: { fields: ["id"], relations: [] },
+          }),
+        ).resolves.toBeNull();
+      });
+
+      it("QUERY-023 does not let a filter replace the same scope field", async () => {
+        const post = metadata.get(CONTRACT_MODELS.post)!;
+        await expect(
+          environment.adapter.resource(post).findMany({
+            scope: { tenantId: seed.tenantA },
+            filters: { tenantId: { equals: seed.tenantB } },
+            select: { fields: ["id"], relations: [] },
+          }),
+        ).resolves.toEqual([]);
+      });
+
+      it("QUERY-023 combines a same-field filter and search", async () => {
+        const post = metadata.get(CONTRACT_MODELS.post)!;
+        await expect(
+          environment.adapter.resource(post).findMany({
+            scope: { tenantId: seed.tenantA },
+            filters: { title: { equals: "Internal Notes" } },
+            search: { text: "Quarterly", fields: ["title"] },
+            select: { fields: ["id"], relations: [] },
+          }),
+        ).resolves.toEqual([]);
+      });
     });
 
     describe("writes", () => {
@@ -241,6 +275,35 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         ).resolves.toMatchObject({ email: "new@paneljs.test" });
       });
 
+      it("DATA-006 rejects create when a supplied id already exists", async () => {
+        const tenant = metadata.get(CONTRACT_MODELS.tenant)!;
+        await expect(
+          environment.adapter.resource(tenant).create({
+            data: { id: seed.tenantB, name: "Overwritten tenant" },
+            select: { fields: ["id", "name"], relations: [] },
+          }),
+        ).rejects.toThrow();
+        await expect(
+          environment.readRecord(CONTRACT_MODELS.tenant, seed.tenantB),
+        ).resolves.toMatchObject({ name: "Tenant B" });
+      });
+
+      it("DATA-006 returns a safe validation error for duplicate values", async () => {
+        const user = metadata.get(CONTRACT_MODELS.user)!;
+        await expect(
+          environment.adapter.resource(user).create({
+            data: {
+              email: "ada@paneljs.test",
+              fullName: "Duplicate User",
+              role: "USER",
+              isActive: true,
+              tenantId: seed.tenantA,
+            },
+            select: { fields: ["id"], relations: [] },
+          }),
+        ).rejects.toMatchObject({ code: "VALIDATION_ERROR", status: 400 });
+      });
+
       it("DATA-007/DATA-009 updates only a scoped matching id", async () => {
         const user = metadata.get(CONTRACT_MODELS.user)!;
         await expect(
@@ -263,6 +326,38 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         await expect(
           environment.readRecord(CONTRACT_MODELS.user, seed.userB),
         ).resolves.not.toMatchObject({ fullName: "Forbidden" });
+      });
+
+      it("DATA-007 applies ORM-managed update timestamp values", async () => {
+        const user = metadata.get(CONTRACT_MODELS.user)!;
+        const before = await environment.readRecord(
+          CONTRACT_MODELS.user,
+          seed.userA,
+        );
+        await environment.adapter.resource(user).updateMany({
+          scope: { tenantId: seed.tenantA },
+          id: seed.userA,
+          data: { fullName: "Timestamp Updated" },
+        });
+        const after = await environment.readRecord(
+          CONTRACT_MODELS.user,
+          seed.userA,
+        );
+        expect(after?.updatedAt).toBeInstanceOf(Date);
+        expect((after?.updatedAt as Date).getTime()).toBeGreaterThan(
+          (before?.updatedAt as Date).getTime(),
+        );
+      });
+
+      it("DATA-007 returns a safe validation error for duplicate values", async () => {
+        const user = metadata.get(CONTRACT_MODELS.user)!;
+        await expect(
+          environment.adapter.resource(user).updateMany({
+            scope: { tenantId: seed.tenantA },
+            id: seed.userA,
+            data: { email: "grace@paneljs.test" },
+          }),
+        ).rejects.toMatchObject({ code: "VALIDATION_ERROR", status: 400 });
       });
 
       it("DATA-008 updates multiple selected records", async () => {

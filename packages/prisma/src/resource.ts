@@ -23,7 +23,19 @@ function isForeignKeyViolation(error: unknown): boolean {
   return code === "P2003" || code === "P2014";
 }
 
+function isUniqueViolation(error: unknown): boolean {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return false;
+  }
+  return (error as { code?: unknown }).code === "P2002";
+}
+
 function rethrowWriteError(error: unknown): never {
+  if (isUniqueViolation(error)) {
+    throw new RequestValidationError(
+      "A record with the same unique value already exists.",
+    );
+  }
   if (isForeignKeyViolation(error)) {
     throw new RequestValidationError(
       "Cannot delete this record because other records still reference it.",
@@ -168,18 +180,26 @@ export function prismaResource(
         where: toPrismaWhere(meta, query, caseInsensitive),
       });
     },
-    create(query: CreateQuery) {
-      return delegate.create({
-        data: query.data,
-        select: toPrismaSelect(query.select),
-      });
+    async create(query: CreateQuery) {
+      try {
+        return await delegate.create({
+          data: query.data,
+          select: toPrismaSelect(query.select),
+        });
+      } catch (error) {
+        rethrowWriteError(error);
+      }
     },
     async updateMany(query: UpdateManyQuery) {
       requireWriteTarget(query);
-      return await delegate.updateMany({
-        where: toPrismaWhere(meta, query, caseInsensitive),
-        data: query.data,
-      });
+      try {
+        return await delegate.updateMany({
+          where: toPrismaWhere(meta, query, caseInsensitive),
+          data: query.data,
+        });
+      } catch (error) {
+        rethrowWriteError(error);
+      }
     },
     async deleteMany(query: DeleteManyQuery) {
       requireWriteTarget(query);

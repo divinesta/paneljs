@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   ForeignKeyConstraintViolationException,
   NotNullConstraintViolationException,
+  UniqueConstraintViolationException,
   type FilterQuery,
   type MikroORM,
 } from "@mikro-orm/core";
@@ -87,6 +88,15 @@ function applyFilters(
   }
 }
 
+function combineAnd(conditions: Record<string, unknown>[]): Where {
+  const nonEmpty = conditions.filter(
+    (condition) => Object.keys(condition).length > 0,
+  );
+  if (nonEmpty.length === 0) return {} as Where;
+  if (nonEmpty.length === 1) return nonEmpty[0] as Where;
+  return { $and: nonEmpty } as Where;
+}
+
 function toMikroormWhere(
   meta: AdminModelMeta,
   query: {
@@ -100,22 +110,26 @@ function toMikroormWhere(
 ): Where {
   assertSimpleScope(query.scope);
   const fkMap = belongsToFkMap(meta);
-  const base: Record<string, unknown> = rewriteKeys(fkMap, { ...query.scope });
-  applyFilters(base, query.filters, fkMap);
-  if (query.ids !== undefined) base[meta.idField] = { $in: query.ids };
-  if (query.id !== undefined) base[meta.idField] = query.id;
+  const scope = rewriteKeys(fkMap, { ...query.scope });
+  const filters: Record<string, unknown> = {};
+  applyFilters(filters, query.filters, fkMap);
+  const target: Record<string, unknown> = {};
+  if (query.ids !== undefined) target[meta.idField] = { $in: query.ids };
+  if (query.id !== undefined) target[meta.idField] = query.id;
 
   const search = query.search;
-  if (!search || search.fields.length === 0) return base as Where;
+  if (!search || search.fields.length === 0) {
+    return combineAnd([scope, filters, target]);
+  }
 
   const match = caseInsensitive ? "$ilike" : "$like";
   const pattern = `%${search.text}%`;
-  return {
-    ...base,
+  const searchCondition = {
     $or: search.fields.map((field) => ({
       [rewriteFieldName(fkMap, field)]: { [match]: pattern },
     })),
-  } as Where;
+  };
+  return combineAnd([scope, filters, target, searchCondition]);
 }
 
 function relationPk(value: unknown): unknown {
@@ -180,6 +194,11 @@ function assertWriteTarget(query: {
 }
 
 function rethrowWriteError(error: unknown): never {
+  if (error instanceof UniqueConstraintViolationException) {
+    throw new RequestValidationError(
+      "A record with the same unique value already exists.",
+    );
+  }
   if (error instanceof ForeignKeyConstraintViolationException) {
     throw new RequestValidationError(
       "Cannot delete this record because other records still reference it.",
@@ -202,6 +221,20 @@ function applyInsertDefaults(
     if (prop.kind && prop.kind !== "scalar") continue;
     if (typeof prop.onCreate === "function") {
       data[prop.name] = prop.onCreate(data, orm.em);
+    }
+  }
+}
+
+function applyUpdateValues(
+  orm: MikroORM,
+  entityName: string,
+  data: Record<string, unknown>,
+): void {
+  const entity = orm.getMetadata().get(entityName);
+  for (const prop of Object.values(entity.properties)) {
+    if (data[prop.name] !== undefined) continue;
+    if (typeof prop.onUpdate === "function") {
+      data[prop.name] = prop.onUpdate(data, orm.em);
     }
   }
 }
@@ -239,10 +272,10 @@ export function mikroormActionWhere(
     }
   }
   const idField = entity.primaryKeys[0] ?? "id";
-  return {
-    ...rewriteKeys(fkMap, { ...where.scope }),
-    [idField]: { $in: where.ids },
-  } as Where;
+  return combineAnd([
+    rewriteKeys(fkMap, { ...where.scope }),
+    { [idField]: { $in: where.ids } },
+  ]);
 }
 
 export function mikroormResource(
@@ -317,12 +350,18 @@ export function mikroormResource(
     async updateMany(query: UpdateManyQuery) {
       assertWriteTarget(query);
       const em = orm.em.fork();
-      const count = await em.nativeUpdate(
-        name,
-        toMikroormWhere(meta, query, caseInsensitive),
-        rewriteKeys(fkMap, { ...query.data }),
-      );
-      return { count };
+      const data = rewriteKeys(fkMap, { ...query.data });
+      applyUpdateValues(orm, name, data);
+      try {
+        const count = await em.nativeUpdate(
+          name,
+          toMikroormWhere(meta, query, caseInsensitive),
+          data,
+        );
+        return { count };
+      } catch (error) {
+        rethrowWriteError(error);
+      }
     },
     async deleteMany(query: DeleteManyQuery) {
       assertWriteTarget(query);

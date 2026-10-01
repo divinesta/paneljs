@@ -17,8 +17,11 @@ import {
 } from "paneljs";
 import {
   And,
+  Equal,
+  FindOperator,
   ILike,
   In,
+  IsNull,
   LessThanOrEqual,
   Like,
   MoreThanOrEqual,
@@ -59,24 +62,45 @@ function applyFilters(
   if (!filters) return;
   for (const [field, filter] of Object.entries(filters)) {
     if ("equals" in filter) {
-      base[field] = filter.equals;
+      addCondition(base, field, equalityCondition(filter.equals));
       continue;
     }
     if ("in" in filter) {
-      base[field] = In(filter.in);
+      addCondition(base, field, In(filter.in));
       continue;
     }
     if (filter.gte !== undefined && filter.lte !== undefined) {
-      base[field] = And(
-        MoreThanOrEqual(filter.gte),
-        LessThanOrEqual(filter.lte),
+      addCondition(
+        base,
+        field,
+        And(MoreThanOrEqual(filter.gte), LessThanOrEqual(filter.lte)),
       );
     } else if (filter.gte !== undefined) {
-      base[field] = MoreThanOrEqual(filter.gte);
+      addCondition(base, field, MoreThanOrEqual(filter.gte));
     } else if (filter.lte !== undefined) {
-      base[field] = LessThanOrEqual(filter.lte);
+      addCondition(base, field, LessThanOrEqual(filter.lte));
     }
   }
+}
+
+function equalityCondition(value: unknown): FindOperator<unknown> {
+  return value === null ? IsNull() : Equal(value);
+}
+
+function asFindOperator(value: unknown): FindOperator<unknown> {
+  return value instanceof FindOperator ? value : equalityCondition(value);
+}
+
+function addCondition(
+  base: Record<string, unknown>,
+  field: string,
+  condition: unknown,
+): void {
+  if (!(field in base)) {
+    base[field] = condition;
+    return;
+  }
+  base[field] = And(asFindOperator(base[field]), asFindOperator(condition));
 }
 
 function toTypeormWhere(
@@ -93,8 +117,10 @@ function toTypeormWhere(
   assertSimpleScope(query.scope);
   const base: Record<string, unknown> = { ...query.scope };
   applyFilters(base, query.filters);
-  if (query.ids !== undefined) base[meta.idField] = In(query.ids);
-  if (query.id !== undefined) base[meta.idField] = query.id;
+  if (query.ids !== undefined) addCondition(base, meta.idField, In(query.ids));
+  if (query.id !== undefined) {
+    addCondition(base, meta.idField, equalityCondition(query.id));
+  }
 
   const search = query.search;
   if (!search || search.fields.length === 0) {
@@ -103,13 +129,11 @@ function toTypeormWhere(
 
   const match = caseInsensitive ? ILike : Like;
   const pattern = `%${search.text}%`;
-  return search.fields.map(
-    (field) =>
-      ({
-        ...base,
-        [field]: match(pattern),
-      }) as FindOptionsWhere<ObjectLiteral>,
-  );
+  return search.fields.map((field) => {
+    const branch = { ...base };
+    addCondition(branch, field, match(pattern));
+    return branch as FindOptionsWhere<ObjectLiteral>;
+  });
 }
 
 function projectRecord(
@@ -196,7 +220,22 @@ function isNotNullViolation(error: unknown): boolean {
   );
 }
 
+function isUniqueViolation(error: unknown): boolean {
+  const code = driverCode(error);
+  return (
+    code === "23505" ||
+    code === "ER_DUP_ENTRY" ||
+    code === "SQLITE_CONSTRAINT_UNIQUE" ||
+    code === "SQLITE_CONSTRAINT_PRIMARYKEY"
+  );
+}
+
 function rethrowWriteError(error: unknown): never {
+  if (isUniqueViolation(error)) {
+    throw new RequestValidationError(
+      "A record with the same unique value already exists.",
+    );
+  }
   if (isForeignKeyViolation(error)) {
     throw new RequestValidationError(
       "Cannot delete this record because other records still reference it.",
@@ -219,10 +258,9 @@ export function typeormActionWhere(
   where: ActionWhere,
 ): FindOptionsWhere<ObjectLiteral> {
   assertSimpleScope(where.scope);
-  return {
-    ...where.scope,
-    [idField]: In(where.ids),
-  } as FindOptionsWhere<ObjectLiteral>;
+  const result: Record<string, unknown> = { ...where.scope };
+  addCondition(result, idField, In(where.ids));
+  return result as FindOptionsWhere<ObjectLiteral>;
 }
 
 export function typeormResource(
@@ -270,31 +308,40 @@ export function typeormResource(
             data[column.propertyName] = randomUUID();
           }
         }
-        const saved = await repo.save(repo.create(data));
-        const id = saved[meta.idField] as string | number | undefined;
+        const inserted = await repo.insert(data);
+        const id = (data[meta.idField] ??
+          inserted.identifiers[0]?.[meta.idField] ??
+          inserted.generatedMaps[0]?.[meta.idField]) as
+          | string
+          | number
+          | undefined;
         if (id === undefined) {
-          return projectRecord(saved, query.select);
+          return projectRecord(data, query.select);
         }
         const reloaded = await repo.findOne({
           where: { [meta.idField]: id } as FindOptionsWhere<ObjectLiteral>,
           relations: relationNames(query.select),
         });
-        return projectRecord(reloaded ?? saved, query.select);
+        return projectRecord(reloaded ?? data, query.select);
       } catch (error) {
         rethrowWriteError(error);
       }
     },
     async updateMany(query: UpdateManyQuery) {
       assertWriteTarget(query);
-      const result = await repo.update(
-        toTypeormWhere(
-          meta,
-          query,
-          caseInsensitive,
-        ) as FindOptionsWhere<ObjectLiteral>,
-        query.data,
-      );
-      return { count: result.affected ?? 0 };
+      try {
+        const result = await repo.update(
+          toTypeormWhere(
+            meta,
+            query,
+            caseInsensitive,
+          ) as FindOptionsWhere<ObjectLiteral>,
+          query.data,
+        );
+        return { count: result.affected ?? 0 };
+      } catch (error) {
+        rethrowWriteError(error);
+      }
     },
     async deleteMany(query: DeleteManyQuery) {
       assertWriteTarget(query);
