@@ -1,7 +1,7 @@
 {
   "name": "paneljs",
   "version": "0.3.5",
-  "description": "Django-style, schema-driven Prisma admin panel for Express and Node.js applications.",
+  "description": "Django-style admin panel for Node.js. Mount a schema-driven admin UI on Express from your Prisma, TypeORM, or MikroORM models.",
   "license": "MIT",
   "type": "module",
   "author": "Divinesta",
@@ -13,18 +13,25 @@
   "bugs": {
     "url": "https://github.com/divinesta/paneljs/issues"
   },
-  "homepage": "https://github.com/divinesta/paneljs",
+  "homepage": "https://paneljs.com",
   "keywords": [
-    "prisma-admin",
-    "prisma-admin-panel",
-    "express",
-    "prisma",
-    "express-admin",
+    "admin",
+    "admin-panel",
+    "admin-dashboard",
     "nodejs-admin",
-    "django-admin-alternative",
+    "express-admin",
     "typescript-admin",
+    "prisma",
+    "prisma-admin",
+    "typeorm",
+    "typeorm-admin",
+    "mikro-orm",
+    "mikroorm-admin",
+    "express",
+    "crud",
     "schema-driven",
-    "crud"
+    "django-admin",
+    "adminjs-alternative"
   ],
   "bin": {
     "paneljs": "./dist/cli.js"
