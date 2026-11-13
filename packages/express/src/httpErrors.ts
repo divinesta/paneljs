@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler, Response } from "express";
-import { AdminApiError } from "paneljs";
+import { AdminApiError, RequestValidationError } from "paneljs";
 
 type BodyParserError = {
   type?: unknown;
@@ -32,7 +32,13 @@ function getBodyParserError(error: unknown): {
 }
 
 export function sendApiError(res: Response, error: AdminApiError): void {
-  res.status(error.status).json({ error: error.message, code: error.code });
+  const field =
+    error instanceof RequestValidationError ? error.field : undefined;
+  res.status(error.status).json({
+    error: error.message,
+    code: error.code,
+    ...(field ? { field } : {}),
+  });
 }
 
 export const createApiErrorHandler =

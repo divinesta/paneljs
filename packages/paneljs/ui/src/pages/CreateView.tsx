@@ -1,11 +1,11 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { apiBase, fetchRecord, readApiError } from "../api";
+import { apiBase, fetchRecord, readApiErrorDetails } from "../api";
 import { ApiNotice, NotFound } from "../components/Feedback";
 import { AutoFormField } from "../components/AutoForm";
 import { useFormModel } from "../hooks/useFormModel";
 import type { Schema } from "../types";
-import { extractFieldName, fieldLabel, toDateInput } from "../utils/format";
+import { fieldLabel, toDateInput } from "../utils/format";
 import { writableFields } from "../utils/fieldResolver";
 
 export const CreateView = ({
@@ -169,9 +169,9 @@ export const CreateView = ({
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      const message = await readApiError(response);
-      const field = extractFieldName(message);
-      if (field) form.setFieldErrors({ [field]: message });
+      const { message, field } = await readApiErrorDetails(response);
+      if (field && fields.some((candidate) => candidate.name === field))
+        form.setFieldErrors({ [field]: message });
       else form.setError(message);
       form.setStatus("ready");
       return;

@@ -109,9 +109,9 @@ Django's admin works because `ModelAdmin` sits directly on the ORM. Everything b
 | Feature | Django | PanelJS | Notes |
 | --- | --- | --- | --- |
 | Unique violation as a form error | yes | **Have** | Prisma `P2002` |
-| FK violation as a form error | yes | **Partial** | `P2003`/`P2014` mapped, but the message always says "cannot delete" |
-| Not-null / not-found mapping | yes | **Missing** | Prisma `P2011`, `P2025` |
-| Error tied to a field | yes | **Missing** | Errors are one message for the form |
+| FK violation as a form error | yes | **Have** | `P2003`/`P2014`: "still referenced" on delete, "related record does not exist" on create/update |
+| Not-null / not-found mapping | yes | **Have** | Prisma `P2011` → 400, `P2025` → 404 |
+| Error tied to a field | yes | **Have** | `RequestValidationError.field` → `{ field }` in the API response → message under the input. Multi-field unique constraints still show as a form-level message |
 | CSRF / clickjacking | yes | **Have** | Same-origin check on mutations, `X-Frame-Options: DENY` |
 | Login rate limit | add-on | **Have** | `loginRateLimit.ts` |
 
@@ -125,12 +125,19 @@ The rule for every step: change `query.ts` (core types) first, then the Prisma a
 
 `packages/prisma/src/introspector.ts` `determineRelationKind` returns `hasMany` for every list relation. Detect many-to-many: a list relation whose opposite field (same `relationName` on the other model) is also a list. Unlocks step 5.
 
-### Step 2. Quick error and search fixes (small)
+### Step 2. Quick error and search fixes (small) ✅ Done
 
 - In `packages/prisma/src/resource.ts` `rethrowWriteError`, pick the FK message by operation (create/update vs delete).
 - Map `P2011` (null) and `P2025` (not found).
 - Return the field name with the error when Prisma gives it (`meta.target`) so the UI can mark the input.
 - Add a test for `%` and `_` in search text, and record the result here.
+
+**Findings (Prisma 7.5 + `PrismaPg`, PostgreSQL 16):**
+
+- **Search wildcards were a real bug.** Prisma passes `contains` text into `LIKE` unescaped: searching `%` or `_` matched every row, `a_b` also matched `axb`, and `\` matched nothing. Fixed by escaping `\`, `%` and `_` in `toPrismaSearch` for PostgreSQL, MySQL and CockroachDB (backslash is their default LIKE escape). Only PostgreSQL is tested. SQLite and SQL Server have no default escape character, so they still treat `%` and `_` as wildcards. Pinned by `packages/prisma/test/integration/contracts.test.ts`.
+- **`meta.target` is not there with driver adapters.** Constraint details come in `meta.driverAdapterError.cause.constraint`: `{ fields: ["email"] }` for unique, `{ index: "Post_authorId_fkey" }` for foreign keys. The mapper reads both shapes and turns the FK constraint name into its column by matching the model's foreign key fields.
+- **`P2011` is a safety net.** A null or missing required value is caught first by core validation (`validation.ts`), or else by Prisma's client-side `PrismaClientValidationError`, before the database sees it. `P2025` doesn't fire for `updateMany`/`deleteMany` (they return `count: 0`), but will for the `update` calls in step 5.
+- TypeORM and MikroORM were not checked for the wildcard issue.
 
 ### Step 3. Filter tree and field paths (medium)
 

@@ -530,6 +530,7 @@ function assertScopeRelationsUnchanged(
       if (data[foreignKeyField] !== undefined) {
         throw new RequestValidationError(
           `Field "${foreignKeyField}" is controlled by the configured scope and cannot be updated through the admin.`,
+          foreignKeyField,
         );
       }
     }

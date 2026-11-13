@@ -12,7 +12,14 @@ import { AdminApiError } from "./errors.js";
 
 /** An error a route can safely return to an API caller. */
 export class RequestValidationError extends AdminApiError {
-  constructor(message: string) {
+  /**
+   * @param field The input the error belongs to, when there is one. Transports
+   * return it so the form can show the message under that input.
+   */
+  constructor(
+    message: string,
+    readonly field?: string,
+  ) {
     super(400, "VALIDATION_ERROR", message);
     this.name = "RequestValidationError";
   }
@@ -86,7 +93,10 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 function assertFieldValue(field: AdminFieldMeta, value: unknown): void {
   if (value === null) {
     if (field.isRequired)
-      throw new RequestValidationError(`Field "${field.name}" cannot be null.`);
+      throw new RequestValidationError(
+        `Field "${field.name}" cannot be null.`,
+        field.name,
+      );
     return;
   }
 
@@ -96,6 +106,7 @@ function assertFieldValue(field: AdminFieldMeta, value: unknown): void {
       if (typeof value !== "string")
         throw new RequestValidationError(
           `Field "${field.name}" must be a string.`,
+          field.name,
         );
       return;
     case "number":
@@ -103,41 +114,48 @@ function assertFieldValue(field: AdminFieldMeta, value: unknown): void {
         if (typeof value !== "string" || !/^-?\d+(?:\.\d+)?$/.test(value))
           throw new RequestValidationError(
             `Field "${field.name}" must be a decimal string.`,
+            field.name,
           );
         return;
       }
       if (typeof value !== "number" || !Number.isFinite(value))
         throw new RequestValidationError(
           `Field "${field.name}" must be a finite number.`,
+          field.name,
         );
       return;
     case "boolean":
       if (typeof value !== "boolean")
         throw new RequestValidationError(
           `Field "${field.name}" must be a boolean.`,
+          field.name,
         );
       return;
     case "datetime":
       if (typeof value !== "string" || Number.isNaN(Date.parse(value)))
         throw new RequestValidationError(
           `Field "${field.name}" must be an ISO date-time string.`,
+          field.name,
         );
       return;
     case "enum":
       if (typeof value !== "string" || !field.enumValues?.includes(value))
         throw new RequestValidationError(
           `Field "${field.name}" must be a valid ${field.nativeType} value.`,
+          field.name,
         );
       return;
     case "json":
       if (!isJsonValue(value))
         throw new RequestValidationError(
           `Field "${field.name}" must be valid JSON data.`,
+          field.name,
         );
       return;
     case "relation":
       throw new RequestValidationError(
         `Relation field "${field.name}" is not supported for writes yet.`,
+        field.name,
       );
   }
 }
@@ -176,7 +194,10 @@ export function assertRequiredCreateFields(
     )
       continue;
     if (data[field.name] === undefined)
-      throw new RequestValidationError(`Field "${field.name}" is required.`);
+      throw new RequestValidationError(
+        `Field "${field.name}" is required.`,
+        field.name,
+      );
   }
 }
 
@@ -233,6 +254,7 @@ export function validateWritePayload(
     if (!field)
       throw new RequestValidationError(
         `Field "${fieldName}" cannot be written through the admin.`,
+        fieldName,
       );
 
     assertFieldValue(field, value);

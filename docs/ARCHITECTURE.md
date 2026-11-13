@@ -135,7 +135,8 @@ Three files, three jobs. Everything Prisma-specific lives here.
 - `toPrismaFilters`: `{ equals }` → value, `{ in }` → `{ in }`, `{ gte, lte }` → range
 - `toPrismaSearch`: `{ OR: [{ title: { contains, mode } }, …] }`
 - `toPrismaWhere` (~126): ANDs scope + filters + search + id(s) with `combineAnd`, so keys never overwrite each other
-- `rethrowWriteError` (~33): `P2002` → "unique value exists", `P2003`/`P2014` → "cannot delete…"
+- `rethrowWriteError` (~100): turns Prisma errors into safe 400/404 errors, by operation. `P2002` → unique (with `field`), `P2003`/`P2014` → "still referenced" on delete or "related record does not exist" on create/update (with the FK `field`), `P2011` → null, `P2025` → not found. Reads both the classic `meta.target` and the driver-adapter `meta.driverAdapterError` shapes
+- `escapeLikePattern` / `toPrismaSearch`: escapes `%`, `_`, `\` in search text where the provider supports it
 
 When the roadmap says "teach Prisma to translate X", it means adding to this file.
 

@@ -482,6 +482,20 @@ export function usesInsensitiveSearch(provider: string | undefined): boolean {
   return provider === "postgresql";
 }
 
+/**
+ * Providers whose LIKE treats backslash as the escape character by default,
+ * so `\%` and `\_` match literally. Verified on PostgreSQL; MySQL and
+ * CockroachDB share the default. SQLite and SQL Server have no default
+ * escape character, so search text is passed through unchanged there.
+ */
+export function escapesLikeWildcards(provider: string | undefined): boolean {
+  return (
+    provider === "postgresql" ||
+    provider === "mysql" ||
+    provider === "cockroachdb"
+  );
+}
+
 /** Provider string from the last introspect of this schema path. */
 export function getSchemaProvider(schemaPath?: string): string | undefined {
   return providerCache.get(resolveSchemaPath(schemaPath));

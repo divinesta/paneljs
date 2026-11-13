@@ -3,6 +3,7 @@ import {
   getSchemaProvider,
   introspect,
   usesInsensitiveSearch,
+  escapesLikeWildcards,
   type IntrospectOptions,
 } from "./introspector.js";
 import { prismaResource, type PrismaDelegate } from "./resource.js";
@@ -33,12 +34,13 @@ export function prismaAdapter(options: PrismaAdapterOptions): DataAdapter {
   return {
     client: prisma,
     introspect: () => introspect({ schemaPath }),
-    resource: (meta) =>
-      prismaResource(getDelegate(prisma, meta), meta, {
-        caseInsensitiveSearch: usesInsensitiveSearch(
-          getSchemaProvider(schemaPath),
-        ),
-      }),
+    resource: (meta) => {
+      const provider = getSchemaProvider(schemaPath);
+      return prismaResource(getDelegate(prisma, meta), meta, {
+        caseInsensitiveSearch: usesInsensitiveSearch(provider),
+        escapeSearchWildcards: escapesLikeWildcards(provider),
+      });
+    },
     createAuthStore: (auth) => prismaAuthStore(prisma, auth),
     async dispose() {
       const disconnect = (prisma as { $disconnect?: () => Promise<void> })
@@ -53,6 +55,7 @@ export {
   clearIntrospectionCache,
   getSchemaProvider,
   usesInsensitiveSearch,
+  escapesLikeWildcards,
 } from "./introspector.js";
 export type { IntrospectOptions } from "./introspector.js";
 export { getDelegate };

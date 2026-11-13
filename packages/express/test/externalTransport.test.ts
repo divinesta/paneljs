@@ -145,7 +145,12 @@ describe("Express external-auth transport", () => {
       .set("x-test-auth", "admin")
       .send({ title: "Invalid", published: false, unknown: true })
       .expect(400)
-      .expect(({ body }) => expect(body.code).toBe("VALIDATION_ERROR"));
+      .expect(({ body }) =>
+        expect(body).toMatchObject({
+          code: "VALIDATION_ERROR",
+          field: "unknown",
+        }),
+      );
   });
 
   it("HTTP-015 hides unexpected internal error details", async () => {

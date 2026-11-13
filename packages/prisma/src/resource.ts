@@ -1,4 +1,5 @@
 import {
+  RecordNotFoundError,
   RequestValidationError,
   type ActionWhere,
   type AdminModelMeta,
@@ -15,33 +16,146 @@ import {
   type UpdateManyQuery,
 } from "paneljs";
 
-function isForeignKeyViolation(error: unknown): boolean {
-  if (typeof error !== "object" || error === null || !("code" in error)) {
-    return false;
-  }
+type WriteOperation = "create" | "update" | "delete";
+
+type PrismaKnownError = {
+  code: string;
+  meta?: Record<string, unknown>;
+};
+
+function asPrismaKnownError(error: unknown): PrismaKnownError | null {
+  if (typeof error !== "object" || error === null) return null;
   const code = (error as { code?: unknown }).code;
-  return code === "P2003" || code === "P2014";
+  if (typeof code !== "string") return null;
+  const meta = (error as { meta?: unknown }).meta;
+  return {
+    code,
+    meta:
+      typeof meta === "object" && meta !== null
+        ? (meta as Record<string, unknown>)
+        : undefined,
+  };
 }
 
-function isUniqueViolation(error: unknown): boolean {
-  if (typeof error !== "object" || error === null || !("code" in error)) {
-    return false;
-  }
-  return (error as { code?: unknown }).code === "P2002";
+/**
+ * Prisma 7 with a driver adapter (e.g. PrismaPg) reports constraint details
+ * under `meta.driverAdapterError.cause.constraint` instead of the classic
+ * `meta.target` / `meta.field_name`. Read both shapes.
+ */
+function driverConstraint(
+  meta: Record<string, unknown> | undefined,
+): { fields?: unknown; index?: unknown } | undefined {
+  const adapterError = meta?.driverAdapterError as
+    | { cause?: { constraint?: { fields?: unknown; index?: unknown } } }
+    | undefined;
+  return adapterError?.cause?.constraint;
 }
 
-function rethrowWriteError(error: unknown): never {
-  if (isUniqueViolation(error)) {
-    throw new RequestValidationError(
-      "A record with the same unique value already exists.",
-    );
+function stringList(value: unknown): string[] {
+  if (Array.isArray(value))
+    return value.filter((entry): entry is string => typeof entry === "string");
+  return typeof value === "string" ? [value] : [];
+}
+
+/** Columns named by a unique (P2002) or NOT NULL (P2011) error. */
+function constraintFields(
+  meta: Record<string, unknown> | undefined,
+  modelMeta: AdminModelMeta,
+): string[] {
+  const candidates = [
+    ...stringList(meta?.target),
+    ...stringList(meta?.constraint),
+    ...stringList(driverConstraint(meta)?.fields),
+  ];
+  // Only report names that are real fields; a constraint name such as
+  // "User_email_key" is useless to the form.
+  return candidates.filter((name) =>
+    modelMeta.fields.some((field) => field.name === name),
+  );
+}
+
+/**
+ * The foreign key column behind a P2003 error. Prisma gives the constraint
+ * name ("Post_authorId_fkey") rather than the column, so match it against
+ * this model's foreign key fields.
+ */
+function foreignKeyField(
+  meta: Record<string, unknown> | undefined,
+  modelMeta: AdminModelMeta,
+): string | undefined {
+  const names = [
+    ...stringList(meta?.field_name),
+    ...stringList(driverConstraint(meta)?.index),
+  ];
+  const foreignKeys = modelMeta.fields.flatMap(
+    (field) => field.relation?.foreignKeyFields ?? [],
+  );
+  return foreignKeys
+    .filter((fk) =>
+      names.some((name) => name === fk || name.includes(`_${fk}_fkey`)),
+    )
+    .sort((a, b) => b.length - a.length)[0];
+}
+
+function rethrowWriteError(
+  error: unknown,
+  operation: WriteOperation,
+  modelMeta: AdminModelMeta,
+): never {
+  const known = asPrismaKnownError(error);
+  if (!known) throw error;
+
+  switch (known.code) {
+    case "P2002": {
+      const fields = constraintFields(known.meta, modelMeta);
+      if (fields.length === 1) {
+        throw new RequestValidationError(
+          `Field "${fields[0]}" must be unique. Another record already uses this value.`,
+          fields[0],
+        );
+      }
+      throw new RequestValidationError(
+        "A record with the same unique value already exists.",
+      );
+    }
+    case "P2003":
+    case "P2014": {
+      if (operation === "delete") {
+        throw new RequestValidationError(
+          "Cannot delete this record because other records still reference it.",
+        );
+      }
+      const field = foreignKeyField(known.meta, modelMeta);
+      if (field) {
+        throw new RequestValidationError(
+          `Field "${field}" points to a related record that does not exist.`,
+          field,
+        );
+      }
+      throw new RequestValidationError(
+        "A related record this record points to does not exist.",
+      );
+    }
+    case "P2011": {
+      const [field] = constraintFields(known.meta, modelMeta);
+      if (field) {
+        throw new RequestValidationError(
+          `Field "${field}" cannot be null.`,
+          field,
+        );
+      }
+      throw new RequestValidationError("A required value is missing.");
+    }
+    case "P2025":
+      throw new RecordNotFoundError();
+    default:
+      throw error;
   }
-  if (isForeignKeyViolation(error)) {
-    throw new RequestValidationError(
-      "Cannot delete this record because other records still reference it.",
-    );
-  }
-  throw error;
+}
+
+/** Escape LIKE wildcards so search text is matched literally. */
+function escapeLikePattern(text: string): string {
+  return text.replace(/[\\%_]/g, (character) => `\\${character}`);
 }
 
 function requireWriteTarget(query: {
@@ -96,16 +210,26 @@ function toPrismaFilters(filters: FieldFilters): Record<string, unknown> {
   return result;
 }
 
+type SearchOptions = {
+  caseInsensitive: boolean;
+  escapeWildcards: boolean;
+};
+
 function toPrismaSearch(
   search: SearchQuery | undefined,
-  caseInsensitive: boolean,
+  options: SearchOptions,
 ): Record<string, unknown> | undefined {
   if (!search || search.fields.length === 0) return undefined;
+  // Prisma passes `contains` text into SQL LIKE unescaped, so `%` and `_`
+  // would act as wildcards. Escape them where `\\` is the LIKE escape character.
+  const text = options.escapeWildcards
+    ? escapeLikePattern(search.text)
+    : search.text;
   return {
     OR: search.fields.map((field) => ({
       [field]: {
-        contains: search.text,
-        ...(caseInsensitive ? { mode: "insensitive" } : {}),
+        contains: text,
+        ...(options.caseInsensitive ? { mode: "insensitive" } : {}),
       },
     })),
   };
@@ -132,12 +256,12 @@ function toPrismaWhere(
     ids?: Array<string | number>;
     id?: string | number;
   },
-  caseInsensitive: boolean,
+  search: SearchOptions,
 ): Record<string, unknown> {
   return combineAnd([
     query.scope,
     query.filters ? toPrismaFilters(query.filters) : undefined,
-    toPrismaSearch(query.search, caseInsensitive),
+    toPrismaSearch(query.search, search),
     query.ids !== undefined ? { [meta.idField]: { in: query.ids } } : undefined,
     query.id !== undefined ? { [meta.idField]: query.id } : undefined,
   ]);
@@ -154,13 +278,19 @@ export function prismaActionWhere(
 export function prismaResource(
   delegate: PrismaDelegate,
   meta: AdminModelMeta,
-  options: { caseInsensitiveSearch?: boolean } = {},
+  options: {
+    caseInsensitiveSearch?: boolean;
+    escapeSearchWildcards?: boolean;
+  } = {},
 ): ModelResource {
-  const caseInsensitive = options.caseInsensitiveSearch === true;
+  const search: SearchOptions = {
+    caseInsensitive: options.caseInsensitiveSearch === true,
+    escapeWildcards: options.escapeSearchWildcards === true,
+  };
   return {
     findMany(query: FindManyQuery) {
       const args: Record<string, unknown> = {
-        where: toPrismaWhere(meta, query, caseInsensitive),
+        where: toPrismaWhere(meta, query, search),
         select: toPrismaSelect(query.select),
       };
       if (query.sort)
@@ -171,13 +301,13 @@ export function prismaResource(
     },
     findFirst(query: FindFirstQuery) {
       return delegate.findFirst({
-        where: toPrismaWhere(meta, query, caseInsensitive),
+        where: toPrismaWhere(meta, query, search),
         select: toPrismaSelect(query.select),
       });
     },
     count(query: CountQuery) {
       return delegate.count({
-        where: toPrismaWhere(meta, query, caseInsensitive),
+        where: toPrismaWhere(meta, query, search),
       });
     },
     async create(query: CreateQuery) {
@@ -187,28 +317,28 @@ export function prismaResource(
           select: toPrismaSelect(query.select),
         });
       } catch (error) {
-        rethrowWriteError(error);
+        rethrowWriteError(error, "create", meta);
       }
     },
     async updateMany(query: UpdateManyQuery) {
       requireWriteTarget(query);
       try {
         return await delegate.updateMany({
-          where: toPrismaWhere(meta, query, caseInsensitive),
+          where: toPrismaWhere(meta, query, search),
           data: query.data,
         });
       } catch (error) {
-        rethrowWriteError(error);
+        rethrowWriteError(error, "update", meta);
       }
     },
     async deleteMany(query: DeleteManyQuery) {
       requireWriteTarget(query);
       try {
         return await delegate.deleteMany({
-          where: toPrismaWhere(meta, query, caseInsensitive),
+          where: toPrismaWhere(meta, query, search),
         });
       } catch (error) {
-        rethrowWriteError(error);
+        rethrowWriteError(error, "delete", meta);
       }
     },
   };

@@ -34,6 +34,3 @@ export const toDateInput = (value: string): string => {
   const offset = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 };
-
-export const extractFieldName = (message: string): string | undefined =>
-  /Field "([^"]+)"/.exec(message)?.[1];

@@ -4,7 +4,7 @@ import {
   defineAuthStoreContract,
   defineReferentialBehaviorContract,
 } from "@paneljs/testkit";
-import { afterAll, beforeAll, describe } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PrismaContractDatabase } from "./environment.js";
 
@@ -45,5 +45,95 @@ describe.sequential("Prisma PostgreSQL integration", () => {
     async create() {
       return database.referentialBehaviorEnvironment();
     },
+  });
+
+  // Prisma-specific: these pin down behaviour of Prisma itself (LIKE escaping,
+  // driver-adapter error shapes), so they live here rather than in testkit.
+  describe("Prisma PostgreSQL search and write errors", () => {
+    const select = { fields: ["id", "title"], relations: [] };
+    let author: { id: string; tenantId: string };
+
+    async function postResource() {
+      const models = await database.adapter.introspect();
+      return database.adapter.resource(models.get("Post")!);
+    }
+
+    beforeEach(async () => {
+      await database.adapterEnvironment().reset();
+      author = (await database.prisma.user.findFirstOrThrow({
+        select: { id: true, tenantId: true },
+      })) as { id: string; tenantId: string };
+      await database.prisma.post.deleteMany();
+      await database.prisma.post.createMany({
+        data: [
+          "100% done",
+          "100 done",
+          "a_b",
+          "axb",
+          "back\\slash",
+          "backxslash",
+        ].map((title) => ({
+          title,
+          authorId: author.id,
+          tenantId: author.tenantId,
+        })),
+      });
+    });
+
+    async function search(text: string) {
+      const resource = await postResource();
+      const rows = await resource.findMany({
+        scope: {},
+        filters: {},
+        search: { text, fields: ["title"] },
+        sort: { field: "title", direction: "asc" },
+        select,
+      });
+      return rows.map((row) => row.title);
+    }
+
+    it("matches %, _ and backslash in search text literally", async () => {
+      expect(await search("%")).toEqual(["100% done"]);
+      expect(await search("100%")).toEqual(["100% done"]);
+      expect(await search("_")).toEqual(["a_b"]);
+      expect(await search("a_b")).toEqual(["a_b"]);
+      expect(await search("\\")).toEqual(["back\\slash"]);
+    });
+
+    it("names the foreign key when create points at a missing record", async () => {
+      const resource = await postResource();
+      await expect(
+        resource.create({
+          data: { title: "t", authorId: "missing", tenantId: author.tenantId },
+          select,
+        }),
+      ).rejects.toMatchObject({ code: "VALIDATION_ERROR", field: "authorId" });
+    });
+
+    it("says still-referenced when deleting a referenced record", async () => {
+      const models = await database.adapter.introspect();
+      const users = database.adapter.resource(models.get("User")!);
+      await expect(
+        users.deleteMany({ scope: {}, id: author.id }),
+      ).rejects.toMatchObject({
+        code: "VALIDATION_ERROR",
+        message: expect.stringContaining("Cannot delete"),
+      });
+    });
+
+    it("names the field of a unique violation", async () => {
+      const models = await database.adapter.introspect();
+      const users = database.adapter.resource(models.get("User")!);
+      const existing = await database.prisma.user.findFirstOrThrow({
+        where: { NOT: { id: author.id } },
+      });
+      await expect(
+        users.updateMany({
+          scope: {},
+          id: author.id,
+          data: { email: existing.email },
+        }),
+      ).rejects.toMatchObject({ code: "VALIDATION_ERROR", field: "email" });
+    });
   });
 });
