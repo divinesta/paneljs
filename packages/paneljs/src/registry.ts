@@ -1,5 +1,11 @@
 import type { AdminModelMeta, ModelConfig, ModelPermissions } from "./types.js";
 import { DELETE_SELECTED_ACTION } from "./defaultActions.js";
+import {
+  operatorsForField,
+  parseSearchFieldSpec,
+  resolvePath,
+  splitPath,
+} from "./filterPaths.js";
 
 // ============================================================
 // DEFAULT RESOLUTION
@@ -133,6 +139,47 @@ function resolveConfig(
     perPage,
     permissions,
   };
+}
+
+/**
+ * Check `searchFields` and `listFilter` at startup. Each entry is a field or
+ * a `__` path through registered relations (`author__email`); search entries
+ * may start with `^` (starts with) or `=` (exact).
+ */
+function validateQueryPaths(
+  model: FullRegisteredModel,
+  models: ReadonlyMap<string, FullRegisteredModel>,
+): void {
+  const prefix = `[paneljs] admin.register("${model.meta.name}")`;
+  const resolve = (path: string[], setting: string, entry: string) => {
+    try {
+      return resolvePath(model, path, models, { ignoreVisibility: true });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `${prefix} config.${setting}: "${entry}" is invalid. ${reason}`,
+      );
+    }
+  };
+
+  for (const entry of model.raw.searchFields ?? []) {
+    const { path } = parseSearchFieldSpec(entry);
+    const { field } = resolve(path, "searchFields", entry);
+    if (field.type !== "string" || field.isList || field.isId)
+      throw new Error(
+        `${prefix} config.searchFields: field "${entry}" is not a String field. ` +
+          `Only String fields can be used as search fields.`,
+      );
+  }
+
+  for (const entry of model.raw.listFilter ?? []) {
+    const { field } = resolve(splitPath(entry), "listFilter", entry);
+    if (field.type === "relation" || operatorsForField(field).length === 0)
+      throw new Error(
+        `${prefix} config.listFilter: field "${entry}" cannot be used as a filter. ` +
+          `Filter on a column (for example "${entry}Id" or "${entry}__name"), not a relation, JSON or list field.`,
+      );
+  }
 }
 
 // ============================================================
@@ -326,39 +373,6 @@ export class AdminRegistry {
         }
       }
 
-      // Guard: validate searchFields names
-      if (rawConfig.searchFields) {
-        const scalarStringFields = new Set(
-          meta.fields
-            .filter((f) => f.type === "string" && !f.isId)
-            .map((f) => f.name),
-        );
-        for (const fieldName of rawConfig.searchFields) {
-          if (!scalarStringFields.has(fieldName)) {
-            throw new Error(
-              `[paneljs] admin.register("${modelName}") config.searchFields: ` +
-                `field "${fieldName}" either does not exist or is not a String field on model "${modelName}". ` +
-                `Only String fields can be used as search fields.`,
-            );
-          }
-        }
-      }
-
-      // Guard: list filters must be fields the introspector marked as
-      // filterable (enum, boolean, date-time, or foreign-key scalar).
-      if (rawConfig.listFilter) {
-        const filterableFieldNames = new Set(meta.filterableFields);
-        for (const fieldName of rawConfig.listFilter) {
-          if (!filterableFieldNames.has(fieldName)) {
-            throw new Error(
-              `[paneljs] admin.register("${modelName}") config.listFilter: ` +
-                `field "${fieldName}" cannot be used as a filter. ` +
-                `Available filter fields: ${[...filterableFieldNames].sort().join(", ") || "none"}.`,
-            );
-          }
-        }
-      }
-
       if (
         rawConfig.perPage !== undefined &&
         (!Number.isSafeInteger(rawConfig.perPage) ||
@@ -483,6 +497,12 @@ export class AdminRegistry {
         raw: rawConfig,
       });
     }
+
+    // ── Second pass: search and filter paths ──────────────────
+    // Paths like "author__country" can only be checked once every model is
+    // registered, so this runs after the loop above.
+    for (const model of this.models.values())
+      validateQueryPaths(model, this.models);
 
     this.initialized = true;
   }

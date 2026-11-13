@@ -14,13 +14,15 @@ import {
   type CreateQuery,
   type DeleteManyQuery,
   type EqualityFilter,
-  type FieldFilters,
+  type ResolvedFilter,
   type FieldSelect,
   type FindFirstQuery,
   type FindManyQuery,
   type ModelResource,
   type SearchQuery,
   type UpdateManyQuery,
+  simpleFieldFilters,
+  simpleSearchFields,
 } from "paneljs";
 import { usesInsensitiveSearch } from "./introspector.js";
 
@@ -67,10 +69,10 @@ function assertSimpleScope(scope: EqualityFilter): void {
 
 function applyFilters(
   base: Record<string, unknown>,
-  filters: FieldFilters | undefined,
+  filter: ResolvedFilter | undefined,
   fkMap: Map<string, string>,
 ): void {
-  if (!filters) return;
+  const filters = simpleFieldFilters(filter, "MikroORM");
   for (const [field, filter] of Object.entries(filters)) {
     const key = rewriteFieldName(fkMap, field);
     if ("equals" in filter) {
@@ -101,7 +103,7 @@ function toMikroormWhere(
   meta: AdminModelMeta,
   query: {
     scope: EqualityFilter;
-    filters?: FieldFilters;
+    filter?: ResolvedFilter;
     search?: SearchQuery;
     ids?: Array<string | number>;
     id?: string | number;
@@ -112,7 +114,7 @@ function toMikroormWhere(
   const fkMap = belongsToFkMap(meta);
   const scope = rewriteKeys(fkMap, { ...query.scope });
   const filters: Record<string, unknown> = {};
-  applyFilters(filters, query.filters, fkMap);
+  applyFilters(filters, query.filter, fkMap);
   const target: Record<string, unknown> = {};
   if (query.ids !== undefined) target[meta.idField] = { $in: query.ids };
   if (query.id !== undefined) target[meta.idField] = query.id;
@@ -125,7 +127,7 @@ function toMikroormWhere(
   const match = caseInsensitive ? "$ilike" : "$like";
   const pattern = `%${search.text}%`;
   const searchCondition = {
-    $or: search.fields.map((field) => ({
+    $or: simpleSearchFields(search, "MikroORM").map((field) => ({
       [rewriteFieldName(fkMap, field)]: { [match]: pattern },
     })),
   };

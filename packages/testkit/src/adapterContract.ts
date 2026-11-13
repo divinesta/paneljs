@@ -1,4 +1,9 @@
-import type { AdminModelMeta, DataAdapter } from "paneljs";
+import {
+  fieldCondition,
+  type AdminModelMeta,
+  type DataAdapter,
+  type SearchField,
+} from "paneljs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import {
@@ -6,6 +11,11 @@ import {
   type AdapterContractSeed,
   type ContractId,
 } from "./fixtures.js";
+
+/** A plain `contains` search on one of the model's own fields. */
+function searchField(field: string): SearchField {
+  return { relations: [], field, mode: "contains" };
+}
 
 export interface AdapterContractEnvironment {
   readonly adapter: DataAdapter;
@@ -115,7 +125,6 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         const user = metadata.get(CONTRACT_MODELS.user)!;
         const records = await environment.adapter.resource(user).findMany({
           scope: { tenantId: seed.tenantA },
-          filters: {},
           sort: { field: "email", direction: "asc" },
           select: {
             fields: ["id", "email", "tenantId"],
@@ -136,7 +145,7 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         const post = metadata.get(CONTRACT_MODELS.post)!;
         const records = await environment.adapter.resource(post).findMany({
           scope: { tenantId: seed.tenantA },
-          filters: { published: { equals: true } },
+          filter: fieldCondition("published", "equals", true),
           select: { fields: ["id", "published"], relations: [] },
         });
         expect(records).toEqual([{ id: seed.postA1, published: true }]);
@@ -146,8 +155,10 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         const post = metadata.get(CONTRACT_MODELS.post)!;
         const records = await environment.adapter.resource(post).findMany({
           scope: { tenantId: seed.tenantA },
-          filters: {},
-          search: { text: "Quarterly", fields: ["title", "content"] },
+          search: {
+            text: "Quarterly",
+            fields: [searchField("title"), searchField("content")],
+          },
           select: { fields: ["id", "title"], relations: [] },
         });
         expect(records).toEqual([
@@ -159,7 +170,6 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         const post = metadata.get(CONTRACT_MODELS.post)!;
         const records = await environment.adapter.resource(post).findMany({
           scope: { tenantId: seed.tenantA },
-          filters: {},
           sort: { field: "title", direction: "asc" },
           skip: 1,
           take: 1,
@@ -175,7 +185,7 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         await expect(
           environment.adapter.resource(post).count({
             scope: { tenantId: seed.tenantA },
-            filters: { published: { equals: true } },
+            filter: fieldCondition("published", "equals", true),
           }),
         ).resolves.toBe(1);
       });
@@ -202,7 +212,6 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         const post = metadata.get(CONTRACT_MODELS.post)!;
         const records = await environment.adapter.resource(post).findMany({
           scope: { tenantId: seed.tenantA },
-          filters: {},
           ids: [seed.postA2, seed.postB1],
           select: { fields: ["id"], relations: [] },
         });
@@ -225,7 +234,7 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         await expect(
           environment.adapter.resource(post).findMany({
             scope: { tenantId: seed.tenantA },
-            filters: { tenantId: { equals: seed.tenantB } },
+            filter: fieldCondition("tenantId", "equals", seed.tenantB),
             select: { fields: ["id"], relations: [] },
           }),
         ).resolves.toEqual([]);
@@ -236,8 +245,8 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         await expect(
           environment.adapter.resource(post).findMany({
             scope: { tenantId: seed.tenantA },
-            filters: { title: { equals: "Internal Notes" } },
-            search: { text: "Quarterly", fields: ["title"] },
+            filter: fieldCondition("title", "equals", "Internal Notes"),
+            search: { text: "Quarterly", fields: [searchField("title")] },
             select: { fields: ["id"], relations: [] },
           }),
         ).resolves.toEqual([]);

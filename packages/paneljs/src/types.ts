@@ -193,6 +193,11 @@ export interface SchemaResponse {
     config: {
       listDisplay: string[];
       listFilter: string[];
+      /**
+       * One entry per `listFilter` key. `field` is the field the key ends on,
+       * which for a path like "author__country" is a field on another model.
+       */
+      filterFields: Array<{ key: string; field: AdminFieldMeta }>;
       searchFields: string[];
       defaultSort: { field: string; direction: "asc" | "desc" };
       perPage: number;

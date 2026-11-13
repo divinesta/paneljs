@@ -5,7 +5,33 @@ import {
 import { DELETE_SELECTED_ACTION } from "./defaultActions.js";
 import type { AdminUser, SchemaResponse } from "./types.js";
 import type { AdminRegistry } from "./registry.js";
-import { isFieldVisible, isFieldWritable } from "./validation.js";
+import {
+  parseSearchFieldSpec,
+  resolvePath,
+  splitPath,
+  type ModelLookup,
+} from "./filterPaths.js";
+import type { FullRegisteredModel } from "./registry.js";
+import {
+  isFieldVisible,
+  isFieldWritable,
+  RequestValidationError,
+} from "./validation.js";
+
+/** Resolve a config path for this administrator, or null if they can't use it. */
+function usablePath(
+  model: FullRegisteredModel,
+  path: string[],
+  models: ModelLookup,
+  adminUser: AdminUser,
+) {
+  try {
+    return resolvePath(model, path, models, { adminUser });
+  } catch (error) {
+    if (error instanceof RequestValidationError) return null;
+    throw error;
+  }
+}
 
 export function buildSchemaResponse(
   registry: AdminRegistry,
@@ -17,6 +43,9 @@ export function buildSchemaResponse(
   },
 ): SchemaResponse {
   const { adminUser, siteName, basePath, authMode } = options;
+  const models: ModelLookup = new Map(
+    registry.getAll().map((model) => [model.meta.name, model]),
+  );
 
   return {
     identity: {
@@ -33,7 +62,28 @@ export function buildSchemaResponse(
       .filter(({ resolved }) =>
         hasModelPermission(adminUser, resolved.permissions, "list"),
       )
-      .map(({ meta, resolved, raw }) => {
+      .map((model) => {
+        const { meta, resolved, raw } = model;
+        // Filters and search entries may be relation paths ("author__country"),
+        // so check each one the way a request would, for this administrator.
+        const filterFields = resolved.listFilter.flatMap((key) => {
+          const resolvedPath = usablePath(
+            model,
+            splitPath(key),
+            models,
+            adminUser,
+          );
+          return resolvedPath ? [{ key, field: resolvedPath.field }] : [];
+        });
+        const searchFields = resolved.searchFields.filter(
+          (spec) =>
+            usablePath(
+              model,
+              parseSearchFieldSpec(spec).path,
+              models,
+              adminUser,
+            ) !== null,
+        );
         const visibleFields = meta.fields
           .filter((field) => isFieldVisible(field, raw))
           .map((field) => ({
@@ -77,12 +127,9 @@ export function buildSchemaResponse(
             listDisplay: resolved.listDisplay.filter((fieldName) =>
               visibleFieldNames.has(fieldName),
             ),
-            listFilter: resolved.listFilter.filter((fieldName) =>
-              visibleFieldNames.has(fieldName),
-            ),
-            searchFields: resolved.searchFields.filter((fieldName) =>
-              visibleFieldNames.has(fieldName),
-            ),
+            listFilter: filterFields.map(({ key }) => key),
+            filterFields,
+            searchFields,
             defaultSort: resolved.defaultSort,
             perPage: resolved.perPage,
             permissions: {

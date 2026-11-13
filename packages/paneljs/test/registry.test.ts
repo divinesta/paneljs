@@ -162,7 +162,8 @@ describe("registry configuration validation", () => {
     ],
     ["list display", { listDisplay: ["missing"] }, "does not exist"],
     ["search field", { searchFields: ["isActive"] }, "not a String field"],
-    ["list filter", { listFilter: ["email"] }, "cannot be used as a filter"],
+    ["list filter", { listFilter: ["tenant"] }, "cannot be used as a filter"],
+    ["list filter path", { listFilter: ["tenant__missing"] }, "is invalid"],
     ["page size low", { perPage: 0 }, "integer from 1 to 200"],
     ["page size high", { perPage: 201 }, "integer from 1 to 200"],
     [

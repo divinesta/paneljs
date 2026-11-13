@@ -7,10 +7,12 @@ import {
   type CreateQuery,
   type DeleteManyQuery,
   type EqualityFilter,
-  type FieldFilters,
   type FieldSelect,
   type FindFirstQuery,
   type FindManyQuery,
+  type RelationStep,
+  type ResolvedCondition,
+  type ResolvedFilter,
   type ModelResource,
   type SearchQuery,
   type UpdateManyQuery,
@@ -191,47 +193,103 @@ function toPrismaSelect(
   return result;
 }
 
-function toPrismaFilters(filters: FieldFilters): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const [field, filter] of Object.entries(filters)) {
-    if ("equals" in filter) {
-      result[field] = filter.equals;
-      continue;
-    }
-    if ("in" in filter) {
-      result[field] = { in: filter.in };
-      continue;
-    }
-    const range: Record<string, unknown> = {};
-    if (filter.gte !== undefined) range.gte = filter.gte;
-    if (filter.lte !== undefined) range.lte = filter.lte;
-    if (Object.keys(range).length > 0) result[field] = range;
-  }
-  return result;
-}
-
 type SearchOptions = {
   caseInsensitive: boolean;
   escapeWildcards: boolean;
 };
+
+/**
+ * Nest `inner` under each relation crossed, innermost last:
+ * `[author, tags(many)]` + `{ name: … }` → `{ author: { is: { tags: { some: { name: … } } } } }`.
+ * A path through a list relation means "some related record matches".
+ */
+function underRelations(
+  relations: RelationStep[],
+  inner: Record<string, unknown>,
+): Record<string, unknown> {
+  return relations.reduceRight<Record<string, unknown>>(
+    (where, step) => ({
+      [step.field]: step.many ? { some: where } : { is: where },
+    }),
+    inner,
+  );
+}
+
+/** `contains`/`startsWith`/`equals` on text, matching search's case and escaping. */
+function textCondition(
+  op: "contains" | "startsWith" | "equals",
+  text: string,
+  options: SearchOptions,
+): Record<string, unknown> {
+  // Prisma passes `contains`/`startsWith` text into SQL LIKE unescaped, so `%`
+  // and `_` would act as wildcards. Escape them where `\\` is the LIKE escape.
+  const value =
+    op !== "equals" && options.escapeWildcards ? escapeLikePattern(text) : text;
+  return {
+    [op]: value,
+    ...(options.caseInsensitive ? { mode: "insensitive" } : {}),
+  };
+}
+
+function conditionToPrisma(
+  condition: ResolvedCondition,
+  options: SearchOptions,
+): Record<string, unknown> {
+  const { field, op, value, target } = condition;
+  if (target !== "scalar") {
+    // Only `isNull` reaches here (core rejects other ops on relations).
+    const empty = value === true;
+    if (target === "toOne")
+      return { [field]: empty ? { is: null } : { isNot: null } };
+    return { [field]: empty ? { none: {} } : { some: {} } };
+  }
+  switch (op) {
+    case "isNull":
+      return { [field]: value === true ? null : { not: null } };
+    case "ne":
+      return { [field]: { not: value } };
+    case "contains":
+    case "startsWith":
+      return { [field]: textCondition(op, String(value), options) };
+    default:
+      // equals, in, notIn, gt, gte, lt, lte share Prisma's names.
+      return { [field]: { [op]: value } };
+  }
+}
+
+function toPrismaFilter(
+  node: ResolvedFilter,
+  options: SearchOptions,
+): Record<string, unknown> {
+  switch (node.kind) {
+    case "and":
+      return { AND: node.nodes.map((child) => toPrismaFilter(child, options)) };
+    case "or":
+      return { OR: node.nodes.map((child) => toPrismaFilter(child, options)) };
+    case "not":
+      return { NOT: toPrismaFilter(node.node, options) };
+    case "condition":
+      return underRelations(node.relations, conditionToPrisma(node, options));
+    case "relation":
+      return underRelations(node.relations, {
+        [node.field]: {
+          [node.quantifier]: toPrismaFilter(node.where, options),
+        },
+      });
+  }
+}
 
 function toPrismaSearch(
   search: SearchQuery | undefined,
   options: SearchOptions,
 ): Record<string, unknown> | undefined {
   if (!search || search.fields.length === 0) return undefined;
-  // Prisma passes `contains` text into SQL LIKE unescaped, so `%` and `_`
-  // would act as wildcards. Escape them where `\\` is the LIKE escape character.
-  const text = options.escapeWildcards
-    ? escapeLikePattern(search.text)
-    : search.text;
   return {
-    OR: search.fields.map((field) => ({
-      [field]: {
-        contains: text,
-        ...(options.caseInsensitive ? { mode: "insensitive" } : {}),
-      },
-    })),
+    OR: search.fields.map((field) =>
+      underRelations(field.relations, {
+        [field.field]: textCondition(field.mode, search.text, options),
+      }),
+    ),
   };
 }
 
@@ -251,7 +309,7 @@ function toPrismaWhere(
   meta: AdminModelMeta,
   query: {
     scope: EqualityFilter;
-    filters?: FieldFilters;
+    filter?: ResolvedFilter;
     search?: SearchQuery;
     ids?: Array<string | number>;
     id?: string | number;
@@ -260,7 +318,7 @@ function toPrismaWhere(
 ): Record<string, unknown> {
   return combineAnd([
     query.scope,
-    query.filters ? toPrismaFilters(query.filters) : undefined,
+    query.filter ? toPrismaFilter(query.filter, search) : undefined,
     toPrismaSearch(query.search, search),
     query.ids !== undefined ? { [meta.idField]: { in: query.ids } } : undefined,
     query.id !== undefined ? { [meta.idField]: query.id } : undefined,

@@ -29,6 +29,15 @@ const tableCardClass =
   "w-full overflow-hidden rounded-lg border bg-card text-card-foreground";
 const pageButtonClass = "bg-card text-(--text-secondary) max-[760px]:size-11";
 
+/**
+ * Free-text columns match by "contains"; foreign keys (read-only strings such
+ * as "authorId") and every other type match exactly.
+ */
+const textFilterParam = (field: Field): string =>
+  field.type === "string" && !field.isReadOnly
+    ? `${field.name}__contains`
+    : field.name;
+
 export const ListView = ({ schema }: { schema: Schema }) => {
   const { model: modelPath } = useParams();
   const navigate = useNavigate();
@@ -69,9 +78,12 @@ export const ListView = ({ schema }: { schema: Schema }) => {
   const listFields = model.config.listDisplay
     .map((name) => model.meta.fields.find((field) => field.name === name))
     .filter((field): field is Field => Boolean(field));
-  const filterFields = model.config.listFilter
-    .map((name) => model.meta.fields.find((field) => field.name === name))
-    .filter((field): field is Field => Boolean(field));
+  // Each control is named by its filter key ("author__role") so labels and
+  // query parameters follow the path; the rest comes from the end field.
+  const filterFields = model.config.filterFields.map(({ key, field }) => ({
+    ...field,
+    name: key,
+  }));
   const reset = () => {
     setSearchDraft("");
     setSearch("");
@@ -192,18 +204,20 @@ export const ListView = ({ schema }: { schema: Schema }) => {
                 <DateRangeControl
                   field={field}
                   key={field.name}
-                  from={filters[`${field.name}_gte`] ?? ""}
-                  to={filters[`${field.name}_lte`] ?? ""}
+                  from={filters[`${field.name}__gte`] ?? ""}
+                  to={filters[`${field.name}__lte`] ?? ""}
                   onChange={(key, value) =>
-                    changeFilter(`${field.name}_${key}`, value)
+                    changeFilter(`${field.name}__${key}`, value)
                   }
                 />
               ) : (
                 <FilterControl
                   field={field}
                   key={field.name}
-                  value={filters[field.name] ?? ""}
-                  onChange={(value) => changeFilter(field.name, value)}
+                  value={filters[textFilterParam(field)] ?? ""}
+                  onChange={(value) =>
+                    changeFilter(textFilterParam(field), value)
+                  }
                 />
               ),
             )}

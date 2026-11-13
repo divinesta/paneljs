@@ -25,7 +25,7 @@ export function createCrudRouter(
       const model = getRegisteredModel(req, res, models);
       const adminUser = getAdminUser(req, res);
       if (!model || !adminUser) return;
-      const { page, sort, dir, filters, search } = parseListQuery(
+      const { page, sort, dir, filter, search } = parseListQuery(
         req.query as Record<string, string | string[] | undefined>,
         model.meta,
         model,
@@ -33,7 +33,7 @@ export function createCrudRouter(
       res.json(
         await service.list(model, adminUser, {
           page,
-          filters,
+          filter,
           search,
           sort: { field: sort, direction: dir },
         }),

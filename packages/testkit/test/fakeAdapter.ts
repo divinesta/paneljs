@@ -1,5 +1,7 @@
 import {
   RequestValidationError,
+  simpleFieldFilters,
+  simpleSearchFields,
   type AdminFieldMeta,
   type AdminModelMeta,
   type CountQuery,
@@ -372,8 +374,9 @@ export class FakeAdapterEnvironment implements AdapterContractEnvironment {
       !query.ids.includes(row.id as ContractId)
     )
       return false;
-    if ("filters" in query) {
-      for (const [name, filter] of Object.entries(query.filters)) {
+    if ("filter" in query) {
+      const filters = simpleFieldFilters(query.filter, "fake");
+      for (const [name, filter] of Object.entries(filters)) {
         const value = row[name];
         if ("equals" in filter && value !== filter.equals) return false;
         if ("in" in filter && !filter.in.includes(value as string | number))
@@ -395,7 +398,7 @@ export class FakeAdapterEnvironment implements AdapterContractEnvironment {
     if ("search" in query && query.search) {
       const text = query.search.text.toLowerCase();
       if (
-        !query.search.fields.some((name) =>
+        !simpleSearchFields(query.search, "fake").some((name) =>
           String(row[name] ?? "")
             .toLowerCase()
             .includes(text),

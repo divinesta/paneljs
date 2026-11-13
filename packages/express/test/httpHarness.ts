@@ -1,6 +1,8 @@
 import express, { type Express } from "express";
 import {
   createAdmin,
+  simpleFieldFilters,
+  simpleSearchFields,
   hashAdminPassword,
   type AdminAuthStore,
   type AdminModelMeta,
@@ -8,7 +10,7 @@ import {
   type BuiltInSessionRecord,
   type BuiltInUserRecord,
   type DataAdapter,
-  type FieldFilters,
+  type ResolvedFilter,
   type FieldSelect,
   type ModelResource,
 } from "paneljs";
@@ -102,8 +104,9 @@ type PostRecord = Record<string, unknown> & {
 function matches(
   record: PostRecord,
   scope: Record<string, unknown>,
-  filters: FieldFilters = {},
+  filter?: ResolvedFilter,
 ): boolean {
+  const filters = simpleFieldFilters(filter, "test harness");
   if (!Object.entries(scope).every(([key, value]) => record[key] === value)) {
     return false;
   }
@@ -154,10 +157,10 @@ export class TransportMemoryAdapter implements DataAdapter {
       findMany: async (query) => {
         let rows = this.records.filter(
           (record) =>
-            matches(record, query.scope, query.filters) &&
+            matches(record, query.scope, query.filter) &&
             (query.ids === undefined || query.ids.includes(record.id)) &&
             (!query.search ||
-              query.search.fields.some((field) =>
+              simpleSearchFields(query.search, "test harness").some((field) =>
                 String(record[field] ?? "")
                   .toLowerCase()
                   .includes(query.search!.text.toLowerCase()),
@@ -188,7 +191,7 @@ export class TransportMemoryAdapter implements DataAdapter {
       },
       count: async (query) =>
         this.records.filter((record) =>
-          matches(record, query.scope, query.filters),
+          matches(record, query.scope, query.filter),
         ).length,
       create: async (query) => {
         if (query.data.title === "explode") {

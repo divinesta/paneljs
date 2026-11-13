@@ -162,8 +162,10 @@ describe("Prisma search wildcards", () => {
     void prismaResource(delegate, postMeta, { escapeSearchWildcards }).findMany(
       {
         scope: {},
-        filters: {},
-        search: { text: "100%_\\", fields: ["title"] },
+        search: {
+          text: "100%_\\",
+          fields: [{ relations: [], field: "title", mode: "contains" }],
+        },
         select,
       },
     );
@@ -179,6 +181,205 @@ describe("Prisma search wildcards", () => {
   it("leaves text alone otherwise", () => {
     expect(searchWhere(false)).toEqual({
       OR: [{ title: { contains: "100%_\\" } }],
+    });
+  });
+});
+
+describe("Prisma filter translation", () => {
+  function whereFor(
+    query: Partial<
+      Parameters<ReturnType<typeof prismaResource>["findMany"]>[0]
+    >,
+    options = { caseInsensitiveSearch: true, escapeSearchWildcards: true },
+  ) {
+    const findMany = vi.fn().mockResolvedValue([]);
+    const delegate = { findMany } as unknown as PrismaDelegate;
+    void prismaResource(delegate, postMeta, options).findMany({
+      scope: {},
+      select,
+      ...query,
+    });
+    return findMany.mock.calls[0]?.[0].where;
+  }
+
+  it("nests relation paths, using some for list relations", () => {
+    expect(
+      whereFor({
+        filter: {
+          kind: "condition",
+          relations: [
+            { field: "author", many: false },
+            { field: "tags", many: true },
+          ],
+          field: "name",
+          target: "scalar",
+          op: "equals",
+          value: "urgent",
+        },
+      }),
+    ).toEqual({
+      author: { is: { tags: { some: { name: { equals: "urgent" } } } } },
+    });
+  });
+
+  it("maps and/or/not and every operator", () => {
+    const leaf = (op: string, value: unknown) => ({
+      kind: "condition" as const,
+      relations: [],
+      field: "views",
+      target: "scalar" as const,
+      op: op as never,
+      value: value as never,
+    });
+    expect(
+      whereFor({
+        filter: {
+          kind: "and",
+          nodes: [
+            leaf("ne", 1),
+            leaf("in", [1, 2]),
+            leaf("notIn", [3]),
+            leaf("gt", 4),
+            leaf("lte", 5),
+            leaf("isNull", true),
+            leaf("isNull", false),
+            { kind: "or", nodes: [{ kind: "not", node: leaf("equals", 6) }] },
+          ],
+        },
+      }),
+    ).toEqual({
+      AND: [
+        { views: { not: 1 } },
+        { views: { in: [1, 2] } },
+        { views: { notIn: [3] } },
+        { views: { gt: 4 } },
+        { views: { lte: 5 } },
+        { views: null },
+        { views: { not: null } },
+        { OR: [{ NOT: { views: { equals: 6 } } }] },
+      ],
+    });
+  });
+
+  it("escapes text operators and makes them case-insensitive", () => {
+    expect(
+      whereFor({
+        filter: {
+          kind: "condition",
+          relations: [],
+          field: "title",
+          target: "scalar",
+          op: "startsWith",
+          value: "50%",
+        },
+      }),
+    ).toEqual({ title: { startsWith: "50\\%", mode: "insensitive" } });
+  });
+
+  it("maps isNull on relations and some/every/none filters", () => {
+    expect(
+      whereFor({
+        filter: {
+          kind: "and",
+          nodes: [
+            {
+              kind: "condition",
+              relations: [],
+              field: "author",
+              target: "toOne",
+              op: "isNull",
+              value: true,
+            },
+            {
+              kind: "condition",
+              relations: [],
+              field: "tags",
+              target: "toMany",
+              op: "isNull",
+              value: false,
+            },
+            {
+              kind: "relation",
+              relations: [{ field: "author", many: false }],
+              field: "posts",
+              quantifier: "none",
+              where: {
+                kind: "condition",
+                relations: [],
+                field: "published",
+                target: "scalar",
+                op: "equals",
+                value: true,
+              },
+            },
+          ],
+        },
+      }),
+    ).toEqual({
+      AND: [
+        { author: { is: null } },
+        { tags: { some: {} } },
+        {
+          author: { is: { posts: { none: { published: { equals: true } } } } },
+        },
+      ],
+    });
+  });
+
+  it("searches across relations with each mode", () => {
+    expect(
+      whereFor(
+        {
+          search: {
+            text: "ada",
+            fields: [
+              { relations: [], field: "title", mode: "contains" },
+              {
+                relations: [{ field: "author", many: false }],
+                field: "email",
+                mode: "startsWith",
+              },
+              { relations: [], field: "slug", mode: "equals" },
+            ],
+          },
+        },
+        { caseInsensitiveSearch: false, escapeSearchWildcards: false },
+      ),
+    ).toEqual({
+      OR: [
+        { title: { contains: "ada" } },
+        { author: { is: { email: { startsWith: "ada" } } } },
+        { slug: { equals: "ada" } },
+      ],
+    });
+  });
+
+  it("ANDs scope, filter and search together", () => {
+    expect(
+      whereFor(
+        {
+          scope: { tenantId: "t1" },
+          filter: {
+            kind: "condition",
+            relations: [],
+            field: "views",
+            target: "scalar",
+            op: "gt",
+            value: 1,
+          },
+          search: {
+            text: "x",
+            fields: [{ relations: [], field: "title", mode: "contains" }],
+          },
+        },
+        { caseInsensitiveSearch: false, escapeSearchWildcards: false },
+      ),
+    ).toEqual({
+      AND: [
+        { tenantId: "t1" },
+        { views: { gt: 1 } },
+        { OR: [{ title: { contains: "x" } }] },
+      ],
     });
   });
 });

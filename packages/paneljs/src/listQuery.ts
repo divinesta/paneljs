@@ -1,6 +1,12 @@
+import { isFilterOp, joinPath, splitPath } from "./filterPaths.js";
 import type { FullRegisteredModel } from "./registry.js";
-import type { FieldFilters, SearchQuery } from "./query.js";
-import type { AdminFieldMeta, AdminModelMeta } from "./types.js";
+import type {
+  FilterCondition,
+  FilterNode,
+  FilterOp,
+  FilterValue,
+} from "./query.js";
+import type { AdminModelMeta } from "./types.js";
 import { isFieldVisible, RequestValidationError } from "./validation.js";
 
 export type QueryValue = string | string[] | undefined;
@@ -10,8 +16,9 @@ export type ParsedListQuery = {
   page: number;
   sort: string;
   dir: "asc" | "desc";
-  filters: FieldFilters;
-  search?: SearchQuery;
+  /** AND of every filter parameter. Values are still strings here. */
+  filter?: FilterNode;
+  search?: string;
 };
 
 function getQueryValue(query: QueryMap, name: string): string | undefined {
@@ -24,50 +31,50 @@ function getQueryValue(query: QueryMap, name: string): string | undefined {
   return value;
 }
 
-function parseFilterValue(
-  field: AdminFieldMeta,
-  value: string,
-): string | number | boolean | Date {
-  switch (field.type) {
-    case "string":
-    case "bytes":
-      return value;
-    case "number": {
-      const number = Number(value);
-      if (!Number.isFinite(number))
-        throw new RequestValidationError(
-          `Filter "${field.name}" must be a finite number.`,
-        );
-      return number;
-    }
-    case "boolean":
-      if (value !== "true" && value !== "false")
-        throw new RequestValidationError(
-          `Filter "${field.name}" must be "true" or "false".`,
-        );
-      return value === "true";
-    case "datetime": {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime()))
-        throw new RequestValidationError(
-          `Filter "${field.name}" must be an ISO date-time value.`,
-        );
-      return date;
-    }
-    case "enum":
-      if (!field.enumValues?.includes(value))
-        throw new RequestValidationError(
-          `Filter "${field.name}" must be a valid ${field.nativeType} value.`,
-        );
-      return value;
-    case "json":
-    case "relation":
-      throw new RequestValidationError(
-        `Filter "${field.name}" is not supported.`,
-      );
+/**
+ * `author__name__contains` → path `["author", "name"]`, op `contains`.
+ * Without an operator suffix the op is `equals`. The old `createdAt_gte` /
+ * `createdAt_lte` spelling still works.
+ */
+function parseFilterParameter(
+  parameterName: string,
+  allowed: ReadonlySet<string>,
+): { path: string[]; op: FilterOp } {
+  const segments = splitPath(parameterName);
+  const last = segments.at(-1) ?? "";
+  if (segments.length > 1 && isFilterOp(last)) {
+    const path = segments.slice(0, -1);
+    if (allowed.has(joinPath(path))) return { path, op: last };
   }
+  if (allowed.has(parameterName)) return { path: segments, op: "equals" };
+
+  const legacyRange = /^(.+)_(gte|lte)$/.exec(parameterName);
+  if (legacyRange?.[1] && allowed.has(legacyRange[1]))
+    return {
+      path: splitPath(legacyRange[1]),
+      op: legacyRange[2] as FilterOp,
+    };
+
+  throw new RequestValidationError(
+    `Filter "${parameterName}" is not allowed for this model.`,
+  );
 }
 
+function parseFilterValue(op: FilterOp, raw: string): FilterValue {
+  if (op === "in" || op === "notIn")
+    return raw
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry !== "");
+  return raw;
+}
+
+/**
+ * Parse list-page query parameters. Filters are limited to the paths in the
+ * model's `listFilter` (like Django's `lookup_allowed`), so a URL can't probe
+ * fields the developer didn't offer as filters. Types, visibility and
+ * permissions are checked later by `AdminService.list`.
+ */
 export function parseListQuery(
   query: QueryMap,
   meta: AdminModelMeta,
@@ -103,18 +110,8 @@ export function parseListQuery(
       'Query parameter "dir" must be either "asc" or "desc".',
     );
 
-  const fieldsByName = new Map(meta.fields.map((field) => [field.name, field]));
-  const filterableFields = new Set(
-    model.resolved.listFilter.filter((fieldName) => {
-      const field = fieldsByName.get(fieldName);
-      return (
-        field !== undefined &&
-        field.type !== "relation" &&
-        isFieldVisible(field, model.raw)
-      );
-    }),
-  );
-  const filters: FieldFilters = {};
+  const allowed = new Set(model.resolved.listFilter);
+  const conditions: FilterCondition[] = [];
   const knownQueryParameters = new Set(["page", "sort", "dir", "search"]);
 
   for (const [parameterName, rawValue] of Object.entries(query)) {
@@ -123,54 +120,17 @@ export function parseListQuery(
       throw new RequestValidationError(
         `Query parameter "${parameterName}" must be a single string value.`,
       );
-
-    const rangeMatch = /^(.*)_(gte|lte)$/.exec(parameterName);
-    const fieldName = rangeMatch?.[1] ?? parameterName;
-    const field = fieldsByName.get(fieldName);
-    if (!field || !filterableFields.has(fieldName))
-      throw new RequestValidationError(
-        `Filter "${parameterName}" is not allowed for this model.`,
-      );
-
-    if (rangeMatch) {
-      if (field.type !== "datetime")
-        throw new RequestValidationError(
-          `Filter "${parameterName}" is only supported for date-time fields.`,
-        );
-      const operator = rangeMatch[2];
-      if (operator !== "gte" && operator !== "lte")
-        throw new RequestValidationError(
-          `Filter "${parameterName}" is invalid.`,
-        );
-      const existing = filters[fieldName];
-      const range: { gte?: Date | number; lte?: Date | number } =
-        existing && !("equals" in existing) && !("in" in existing)
-          ? { ...existing }
-          : {};
-      range[operator] = parseFilterValue(field, rawValue) as Date;
-      filters[fieldName] = range;
-    } else {
-      filters[fieldName] = { equals: parseFilterValue(field, rawValue) };
-    }
+    const { path, op } = parseFilterParameter(parameterName, allowed);
+    conditions.push({ path, op, value: parseFilterValue(op, rawValue) });
   }
 
-  const searchValue = getQueryValue(query, "search")?.trim();
-  if (searchValue && searchValue.length > 200)
-    throw new RequestValidationError(
-      'Query parameter "search" must be 200 characters or fewer.',
-    );
-  const searchFields = model.resolved.searchFields.filter((fieldName) => {
-    const field = fieldsByName.get(fieldName);
-    return field?.type === "string" && isFieldVisible(field, model.raw);
-  });
-  if (searchValue && searchFields.length === 0)
-    throw new RequestValidationError(
-      `Model "${meta.name}" has no searchable fields.`,
-    );
+  const search = getQueryValue(query, "search")?.trim() || undefined;
 
-  const search: SearchQuery | undefined = searchValue
-    ? { text: searchValue, fields: searchFields }
-    : undefined;
-
-  return { page: pageValue, sort, dir, filters, search };
+  return {
+    page: pageValue,
+    sort,
+    dir,
+    filter: conditions.length > 0 ? { and: conditions } : undefined,
+    search,
+  };
 }

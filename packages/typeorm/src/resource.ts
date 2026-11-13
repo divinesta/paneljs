@@ -7,13 +7,15 @@ import {
   type CreateQuery,
   type DeleteManyQuery,
   type EqualityFilter,
-  type FieldFilters,
+  type ResolvedFilter,
   type FieldSelect,
   type FindFirstQuery,
   type FindManyQuery,
   type ModelResource,
   type SearchQuery,
   type UpdateManyQuery,
+  simpleFieldFilters,
+  simpleSearchFields,
 } from "paneljs";
 import {
   And,
@@ -57,9 +59,9 @@ function assertSimpleScope(scope: EqualityFilter): void {
 
 function applyFilters(
   base: Record<string, unknown>,
-  filters: FieldFilters | undefined,
+  filter: ResolvedFilter | undefined,
 ): void {
-  if (!filters) return;
+  const filters = simpleFieldFilters(filter, "TypeORM");
   for (const [field, filter] of Object.entries(filters)) {
     if ("equals" in filter) {
       addCondition(base, field, equalityCondition(filter.equals));
@@ -107,7 +109,7 @@ function toTypeormWhere(
   meta: AdminModelMeta,
   query: {
     scope: EqualityFilter;
-    filters?: FieldFilters;
+    filter?: ResolvedFilter;
     search?: SearchQuery;
     ids?: Array<string | number>;
     id?: string | number;
@@ -116,7 +118,7 @@ function toTypeormWhere(
 ): Where {
   assertSimpleScope(query.scope);
   const base: Record<string, unknown> = { ...query.scope };
-  applyFilters(base, query.filters);
+  applyFilters(base, query.filter);
   if (query.ids !== undefined) addCondition(base, meta.idField, In(query.ids));
   if (query.id !== undefined) {
     addCondition(base, meta.idField, equalityCondition(query.id));
@@ -129,7 +131,7 @@ function toTypeormWhere(
 
   const match = caseInsensitive ? ILike : Like;
   const pattern = `%${search.text}%`;
-  return search.fields.map((field) => {
+  return simpleSearchFields(search, "TypeORM").map((field) => {
     const branch = { ...base };
     addCondition(branch, field, match(pattern));
     return branch as FindOptionsWhere<ObjectLiteral>;

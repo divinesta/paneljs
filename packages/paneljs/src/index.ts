@@ -80,16 +80,47 @@ export type {
   CreateQuery,
   DeleteManyQuery,
   EqualityFilter,
-  FieldFilter,
-  FieldFilters,
   FieldSelect,
+  FilterCondition,
+  FilterNode,
+  FilterOp,
+  FilterScalar,
+  FilterValue,
   FindFirstQuery,
   FindManyQuery,
+  RelationFilter,
+  RelationQuantifier,
   RelationSelect,
+  RelationStep,
+  ResolvedCondition,
+  ResolvedFilter,
+  ResolvedRelationFilter,
+  SearchField,
+  SearchMode,
   SearchQuery,
   UpdateManyQuery,
 } from "./query.js";
-export { idSelect, withSelectFields } from "./query.js";
+export {
+  FILTER_OPS,
+  fieldCondition,
+  idSelect,
+  withSelectFields,
+} from "./query.js";
+export {
+  MAX_RELATION_DEPTH,
+  operatorsForField,
+  parseSearchFieldSpec,
+  resolveFilter,
+  resolvePath,
+  resolveSearchFields,
+} from "./filterPaths.js";
+export { simpleFieldFilters, simpleSearchFields } from "./filterCompat.js";
+export type { SimpleFieldFilter, SimpleFieldFilters } from "./filterCompat.js";
+export type {
+  ModelLookup,
+  ResolvedPath,
+  ResolvePathOptions,
+} from "./filterPaths.js";
 export type { ResolvedModelConfig, FullRegisteredModel } from "./registry.js";
 export { AdminRegistry } from "./registry.js";
 export { AdminService, validateSelectedIds } from "./adminService.js";

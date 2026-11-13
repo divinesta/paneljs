@@ -68,9 +68,7 @@ export function createAdminServiceBehaviorDriver(
       service.list(postModel, input.adminUser, {
         page: input.page,
         perPage: input.perPage,
-        search: input.search
-          ? { text: input.search, fields: postModel.resolved.searchFields }
-          : undefined,
+        search: input.search,
       }),
     getPost: (adminUser, id) => service.get(postModel, adminUser, id),
     createPost: (adminUser, data) => service.create(postModel, adminUser, data),

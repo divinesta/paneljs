@@ -12,10 +12,11 @@ import {
   hasRegisteredActionPermission,
   type AdminOperation,
 } from "./permissions.js";
+import { resolveFilter, resolveSearchFields } from "./filterPaths.js";
 import { idSelect } from "./query.js";
 import type {
-  FieldFilters,
   FieldSelect,
+  FilterNode,
   FindManyQuery,
   SearchQuery,
 } from "./query.js";
@@ -44,10 +45,17 @@ const MAX_ACTION_RECORDS = 100;
 export type AdminListInput = {
   page?: number;
   perPage?: number;
-  filters?: FieldFilters;
-  search?: SearchQuery;
+  /**
+   * Checked against the registered models and this administrator before use.
+   * Unlike URL filters, it is not limited to the model's `listFilter`.
+   */
+  filter?: FilterNode;
+  /** Search text, matched against the model's configured `searchFields`. */
+  search?: string;
   sort?: FindManyQuery["sort"];
 };
+
+const MAX_SEARCH_LENGTH = 200;
 
 export type DeletePreview = {
   records: Record<string, unknown>[];
@@ -89,19 +97,22 @@ export class AdminService {
     assertPagination(page, perPage);
     const scope = await resolveScope(model.raw, adminUser);
     const delegate = this.adapter.resource(model.meta);
-    const filters = input.filters ?? {};
+    const filter = input.filter
+      ? resolveFilter(input.filter, model, this.models, adminUser)
+      : undefined;
+    const search = this.resolveSearch(model, adminUser, input.search);
     const sort = input.sort ?? model.resolved.defaultSort;
     const [records, total] = await Promise.all([
       delegate.findMany({
         scope,
-        filters,
-        search: input.search,
+        filter,
+        search,
         sort,
         skip: (page - 1) * perPage,
         take: perPage,
         select: buildListRecordSelect(model.meta, model),
       }),
-      delegate.count({ scope, filters, search: input.search }),
+      delegate.count({ scope, filter, search }),
     ]);
 
     return {
@@ -111,6 +122,30 @@ export class AdminService {
       perPage,
       totalPages: Math.ceil(total / perPage),
     };
+  }
+
+  private resolveSearch(
+    model: FullRegisteredModel,
+    adminUser: AdminUser,
+    text: string | undefined,
+  ): SearchQuery | undefined {
+    const trimmed = text?.trim();
+    if (!trimmed) return undefined;
+    if (trimmed.length > MAX_SEARCH_LENGTH)
+      throw new RequestValidationError(
+        `Search must be ${MAX_SEARCH_LENGTH} characters or fewer.`,
+      );
+    const fields = resolveSearchFields(
+      model,
+      model.resolved.searchFields,
+      this.models,
+      adminUser,
+    );
+    if (fields.length === 0)
+      throw new RequestValidationError(
+        `Model "${model.meta.name}" has no searchable fields.`,
+      );
+    return { text: trimmed, fields };
   }
 
   async get(
@@ -439,7 +474,6 @@ export class AdminService {
     const scope = await resolveScope(model.raw, adminUser);
     const records = await this.adapter.resource(model.meta).findMany({
       scope,
-      filters: {},
       ids: requestedIds,
       select,
     });

@@ -2,7 +2,7 @@ import type { DataAdapter } from "./adapter.js";
 import { buildListRecordSelect } from "./recordSelection.js";
 import type { FullRegisteredModel } from "./registry.js";
 import { hasModelPermission } from "./permissions.js";
-import { withSelectFields } from "./query.js";
+import { fieldCondition, withSelectFields } from "./query.js";
 import { resolveScope } from "./scope.js";
 import type { AdminUser } from "./types.js";
 import { RequestValidationError } from "./validation.js";
@@ -116,7 +116,7 @@ export async function loadDeletePreviewRelations(
       .resource(child.childModel.meta)
       .findMany({
         scope: childScope,
-        filters: { [child.foreignKey]: { in: ids } },
+        filter: fieldCondition(child.foreignKey, "in", ids),
         select: childSelect,
       });
     const recordsByParentId: Record<string, Record<string, unknown>[]> = {};
@@ -155,7 +155,7 @@ export async function assertNoRestrictedRelations(
     const childScope = await resolveScope(child.childModel.raw, adminUser);
     const count = await adapter.resource(child.childModel.meta).count({
       scope: childScope,
-      filters: { [child.foreignKey]: { in: ids } },
+      filter: fieldCondition(child.foreignKey, "in", ids),
     });
     if (count === 0) continue;
     throw new RequestValidationError(

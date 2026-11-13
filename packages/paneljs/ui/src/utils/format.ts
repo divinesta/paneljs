@@ -1,9 +1,13 @@
 import type { Field } from "../types";
 
-export const fieldLabel = (name: string): string =>
+const labelSegment = (name: string): string =>
   name
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/^./, (character) => character.toUpperCase());
+
+/** "createdAt" → "Created At"; a path "author__fullName" → "Author › Full Name". */
+export const fieldLabel = (name: string): string =>
+  name.split("__").map(labelSegment).join(" › ");
 
 export const formatDate = (date: Date): string =>
   new Intl.DateTimeFormat(undefined, {

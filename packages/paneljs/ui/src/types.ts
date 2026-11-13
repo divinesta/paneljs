@@ -42,6 +42,8 @@ export type Model = {
   config: {
     listDisplay: string[];
     listFilter: string[];
+    /** `field` is where the key ends: for "author__role", the author's role. */
+    filterFields: Array<{ key: string; field: Field }>;
     searchFields: string[];
     defaultSort: { field: string; direction: "asc" | "desc" };
     perPage: number;
