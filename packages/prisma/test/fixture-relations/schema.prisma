@@ -1,0 +1,34 @@
+// Introspection-only fixture for relation kinds. Never generated or migrated.
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id
+  profile   Profile?
+  posts     Post[]
+  followers User[]   @relation("Follows")
+  following User[]   @relation("Follows")
+  mentor    User?    @relation("Mentorship", fields: [mentorId], references: [id])
+  mentorId  String?
+  mentees   User[]   @relation("Mentorship")
+}
+
+model Profile {
+  id     String @id
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
+
+model Post {
+  id       String @id
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId String
+  tags     Tag[]
+}
+
+model Tag {
+  id    String @id
+  posts Post[]
+}

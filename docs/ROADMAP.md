@@ -57,7 +57,7 @@ Django's admin works because `ModelAdmin` sits directly on the ORM. Everything b
 | Field order and sections | `fields`, `fieldsets` | **Missing** | |
 | Custom widgets | `formfield_overrides`, `radio_fields` | **Missing** | Widget picked from type in `fieldResolver.ts` |
 | Belongs-to picker with search | `autocomplete_fields`, `raw_id_fields` | **Have** | `RelationSelect.tsx` |
-| Many-to-many editor | `filter_horizontal` | **Missing** | Prisma labels m2m as `hasMany`; writes rejected |
+| Many-to-many editor | `filter_horizontal` | **Missing** | Prisma now labels m2m as `manyToMany` (step 1 done); writes still rejected |
 | Inline child rows | `TabularInline`, `StackedInline` | **Missing** | |
 | Nested create / connect | inlines + formsets | **Missing** | |
 | Custom validation | `clean()` | **Partial** | `beforeCreate` / `beforeUpdate` hooks can throw |
@@ -121,7 +121,7 @@ Django's admin works because `ModelAdmin` sits directly on the ORM. Everything b
 
 The rule for every step: change `query.ts` (core types) first, then the Prisma adapter, then validation + Express, then the UI. Never ship a core type Prisma cannot translate.
 
-### Step 1. Label many-to-many correctly (small)
+### Step 1. Label many-to-many correctly (small) ✅ Done
 
 `packages/prisma/src/introspector.ts` `determineRelationKind` returns `hasMany` for every list relation. Detect many-to-many: a list relation whose opposite field (same `relationName` on the other model) is also a list. Unlocks step 5.
 

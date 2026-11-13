@@ -118,7 +118,7 @@ Three files, three jobs. Everything Prisma-specific lives here.
 | Function | Line | Decides |
 | --- | --- | --- |
 | `mapPrismaTypeToAdminType` | ~41 | `String`→string, `Int/Float/Decimal/BigInt`→number, `DateTime`→datetime, `Json`, `Bytes`, enum, relation |
-| `determineRelationKind` | ~84 | belongsTo / hasOne / hasMany. **Every list relation is `hasMany`, including many-to-many** (roadmap step 1) |
+| `determineRelationKind` | ~84 | belongsTo / hasOne / hasMany / manyToMany. A list is `manyToMany` when its opposite field (same `relationName` on the other model) is also a list |
 | `isReadOnly` | ~115 | ids with defaults, `@updatedAt`, generated fields |
 | `isSearchable` / `isFilterable` | ~137 / ~155 | non-id, non-FK strings / enums, booleans, dates, FK scalars |
 | `detectDisplayField` | ~176 | `name`, `title`, `label`, `username`, `slug`, `email`, then fallbacks |

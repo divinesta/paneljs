@@ -76,26 +76,34 @@ function mapPrismaTypeToAdminType(field: DMMF.Field): AdminFieldType {
  *   relationToFields    → the fields on the OTHER model that the FK references
  *
  * Rules:
- *   isList: true  + many-to-many (both sides have no FK scalars) → "manyToMany"
- *   isList: true  + one-to-many  (FK is on the other model)      → "hasMany"
+ *   isList: true  + opposite field is also a list (many-to-many) → "manyToMany"
+ *   isList: true  + opposite field is single (FK on other model) → "hasMany"
  *   isList: false + FK is ON THIS model (relationFromFields > 0)  → "belongsTo"
  *   isList: false + FK is on other model (relationFromFields = 0) → "hasOne"
+ *
+ * The "opposite field" is the field on the related model with the same
+ * relationName. Prisma requires every relation to be declared on both sides,
+ * so it always exists. A self-relation (User.followers / User.following) has
+ * both sides on the same model, so we skip the field itself when searching.
  */
-function determineRelationKind(field: DMMF.Field): RelationKind {
+function determineRelationKind(
+  field: DMMF.Field,
+  model: DMMF.Model,
+  modelsByName: ReadonlyMap<string, DMMF.Model>,
+): RelationKind {
   const hasLocalFk =
     field.relationFromFields !== undefined &&
     field.relationFromFields.length > 0;
 
   if (field.isList) {
-    // A list relation where neither side owns a scalar FK → manyToMany
-    // A list relation where the other side owns the FK → hasMany
-    // We distinguish by checking the model's @relation configuration.
-    // DMMF doesn't explicitly say "manyToMany", but many-to-many relations
-    // have empty relationFromFields on BOTH sides.
-    // hasMany also has empty relationFromFields on the "one" side (User.posts).
-    // The practical difference at the admin layer is minimal for v1,
-    // so we treat all list relations as "hasMany" and handle m2m on write.
-    return "hasMany";
+    const opposite = modelsByName
+      .get(field.type)
+      ?.fields.find(
+        (other) =>
+          other.relationName === field.relationName &&
+          !(field.type === model.name && other.name === field.name),
+      );
+    return opposite?.isList ? "manyToMany" : "hasMany";
   }
 
   // Not a list
@@ -238,15 +246,16 @@ function buildEnumValuesMap(
 /**
  * Transform a single DMMF Field into our AdminFieldMeta format.
  *
- * The modelNames set is used to detect whether a scalar field is a FK:
- * e.g. "authorId" is a FK because "Author" or "User" exists as a model.
- * We rely on DMMF's isReadOnly flag for this — Prisma marks FK scalar
- * fields as isReadOnly: true automatically.
+ * `model` is the model that owns `field`; `modelsByName` lets relation
+ * fields look up their opposite side (see determineRelationKind).
+ * FK scalars are detected via DMMF's isReadOnly flag — Prisma marks FK
+ * scalar fields as isReadOnly: true automatically.
  */
 function introspectField(
   field: DMMF.Field,
+  model: DMMF.Model,
   enumValuesMap: Map<string, string[]>,
-  allModelNames: Set<string>,
+  modelsByName: ReadonlyMap<string, DMMF.Model>,
 ): AdminFieldMeta {
   const type = mapPrismaTypeToAdminType(field);
   const readOnly = isReadOnly(field);
@@ -272,7 +281,7 @@ function introspectField(
 
   // ── Relation metadata ──────────────────────────────────────
   if (field.kind === "object" && field.relationName) {
-    const kind = determineRelationKind(field);
+    const kind = determineRelationKind(field, model, modelsByName);
 
     // The displayField for the related model will be resolved later by the
     // introspector once all models are processed. We set a placeholder here
@@ -312,7 +321,7 @@ function introspectField(
 function introspectModel(
   model: DMMF.Model,
   enumValuesMap: Map<string, string[]>,
-  allModelNames: Set<string>,
+  modelsByName: ReadonlyMap<string, DMMF.Model>,
 ): AdminModelMeta | null {
   // ── Composite PK guard ─────────────────────────────────────
   // DMMF.Model.primaryKey is non-null when @@id([a,b]) is used.
@@ -336,7 +345,7 @@ function introspectModel(
 
   // ── Introspect all fields ─────────────────────────────────
   const fields = model.fields.map((f) =>
-    introspectField(f, enumValuesMap, allModelNames),
+    introspectField(f, model, enumValuesMap, modelsByName),
   );
 
   // ── Timestamps ─────────────────────────────────────────────
@@ -520,14 +529,14 @@ export async function introspect(
   // ── Build enum values map ─────────────────────────────────
   const enumValuesMap = buildEnumValuesMap(dmmfEnums);
 
-  // ── Collect all model names (used in FK detection) ────────
-  const allModelNames = new Set(dmmfModels.map((m) => m.name));
+  // ── Index models by name (used to find a relation's opposite side) ──
+  const modelsByName = new Map(dmmfModels.map((m) => [m.name, m]));
 
   // ── First pass: introspect all models ─────────────────────
   const result = new Map<string, AdminModelMeta>();
 
   for (const dmmfModel of dmmfModels) {
-    const meta = introspectModel(dmmfModel, enumValuesMap, allModelNames);
+    const meta = introspectModel(dmmfModel, enumValuesMap, modelsByName);
     if (meta !== null) {
       result.set(meta.name, meta);
     }
