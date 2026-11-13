@@ -152,9 +152,13 @@ export const ListView = ({ schema }: { schema: Schema }) => {
               onChange={(event) => setSearchDraft(event.target.value)}
               placeholder={`Search ${model.meta.name.toLowerCase()}…`}
             />
-            <InputGroupAddon align="inline-end" className="pr-1">
+            {/* mr-0 cancels shadcn's negative margin, which is sized for a 32px group. */}
+            <InputGroupAddon
+              align="inline-end"
+              className="pr-[5px] has-[>button]:mr-0"
+            >
               <InputGroupButton
-                className="h-[30px] px-3 text-xs"
+                className="h-[30px] rounded-sm px-3 text-xs text-(--text-secondary) hover:bg-(--sidebar-hover) hover:text-foreground"
                 type="submit"
                 variant="secondary"
               >
