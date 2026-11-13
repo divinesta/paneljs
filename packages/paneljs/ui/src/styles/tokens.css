@@ -1,45 +1,3 @@
-@font-face {
-  font-family: "DM Sans";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("../../public/fonts/dm-sans-400.woff2") format("woff2");
-}
-@font-face {
-  font-family: "DM Sans";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("../../public/fonts/dm-sans-500.woff2") format("woff2");
-}
-@font-face {
-  font-family: "DM Sans";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("../../public/fonts/dm-sans-600.woff2") format("woff2");
-}
-@font-face {
-  font-family: "DM Sans";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("../../public/fonts/dm-sans-700.woff2") format("woff2");
-}
-@font-face {
-  font-family: "DM Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("../../public/fonts/dm-mono-400.woff2") format("woff2");
-}
-@font-face {
-  font-family: "DM Mono";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("../../public/fonts/dm-mono-500.woff2") format("woff2");
-}
 :root {
   color: var(--text-primary);
   background: var(--surface-canvas);
@@ -85,7 +43,6 @@
   --success: #36734a;
   --success-surface: #edf5ef;
   line-height: 1.5;
-  font-size: 14px;
   color-scheme: light;
 }
 :root[data-theme="dark"] {

@@ -1,11 +1,114 @@
-@import "./styles/tokens.css";
-@import "./styles/base.css";
-@import "./styles/shell.css";
-@import "./styles/overview.css";
-@import "./styles/controls.css";
-@import "./styles/table.css";
-@import "./styles/forms.css";
-@import "./styles/feedback.css";
-@import "./styles/appearance.css";
-@import "./styles/login.css";
-@import "./styles/responsive.css";
+/*
+ * Cascade order, lowest to highest priority:
+ *
+ *   theme      Tailwind design tokens (--color-*, --radius-*, ...)
+ *   base       Tailwind preflight (the reset) + shadcn base rules
+ *   legacy     PanelJS's hand-written CSS in ./styles/
+ *   components (unused for now)
+ *   utilities  Tailwind classes, which is what shadcn components are made of
+ *
+ * Legacy beats the reset, so existing screens keep their look.
+ * Utilities beat legacy, so shadcn components render as designed even where an
+ * old `button {}` or `td {}` rule exists. When a screen is migrated to shadcn,
+ * delete its file from the legacy list below.
+ */
+@layer theme, base, legacy, components, utilities;
+
+/* Fonts stay unlayered. */
+@import "./styles/fonts.css";
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@import "./styles/tokens.css" layer(legacy);
+@import "./styles/base.css" layer(legacy);
+@import "./styles/shell.css" layer(legacy);
+@import "./styles/overview.css" layer(legacy);
+@import "./styles/controls.css" layer(legacy);
+@import "./styles/list.css" layer(legacy);
+@import "./styles/forms.css" layer(legacy);
+@import "./styles/feedback.css" layer(legacy);
+@import "./styles/appearance.css" layer(legacy);
+@import "./styles/login.css" layer(legacy);
+@import "./styles/responsive.css" layer(legacy);
+
+/* ThemeProvider sets <html data-theme="dark">, not a .dark class. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Fixed theme values. They match tokens.css, so Tailwind and legacy CSS agree on
+ * fonts and radii. 1rem stays 16px: the 14px base size lives on <body>.
+ */
+@theme {
+   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+   --font-mono: "DM Mono", monospace;
+   --radius-sm: 6px;
+   --radius-md: 8px;
+   --radius-lg: 12px;
+   --radius-xl: 16px;
+   --radius-2xl: 20px;
+   --radius-3xl: 24px;
+   --radius-4xl: 28px;
+}
+
+/*
+ * shadcn colour names, mapped straight onto the PanelJS tokens in tokens.css.
+ * `inline` makes each utility read the token at runtime, so light/dark mode and
+ * the palette switcher (data-palette) recolour shadcn components too.
+ *
+ * Do not add shadcn's own :root / .dark variable blocks. PanelJS already uses
+ * --accent, --border and --sidebar with different meanings; redefining them
+ * would recolour the existing UI. If `shadcn add` injects such blocks into this
+ * file, delete them and map any new names here instead.
+ */
+@theme inline {
+   --font-heading: var(--font-sans);
+
+   --color-background: var(--surface-canvas);
+   --color-foreground: var(--text-primary);
+   --color-card: var(--surface-raised);
+   --color-card-foreground: var(--text-primary);
+   --color-popover: var(--surface-raised);
+   --color-popover-foreground: var(--text-primary);
+   --color-primary: var(--action-background);
+   --color-primary-foreground: var(--on-action);
+   --color-secondary: var(--surface-subtle);
+   --color-secondary-foreground: var(--text-primary);
+   --color-muted: var(--surface-subtle);
+   --color-muted-foreground: var(--text-muted);
+   --color-accent: var(--accent-soft);
+   --color-accent-foreground: var(--text-primary);
+   --color-destructive: var(--danger);
+   --color-border: var(--border);
+   --color-input: var(--border);
+   --color-ring: var(--text-muted);
+
+   --color-sidebar: var(--sidebar);
+   --color-sidebar-foreground: var(--text-primary);
+   --color-sidebar-primary: var(--action-background);
+   --color-sidebar-primary-foreground: var(--on-action);
+   --color-sidebar-accent: var(--sidebar-hover);
+   --color-sidebar-accent-foreground: var(--text-primary);
+   --color-sidebar-border: var(--sidebar-border);
+   --color-sidebar-ring: var(--text-muted);
+
+   --color-success: var(--success);
+   --color-success-surface: var(--success-surface);
+}
+
+@layer base {
+   :root {
+      /* Some shadcn classes read --radius directly. */
+      --radius: 12px;
+   }
+   * {
+      @apply border-border outline-ring/50;
+   }
+   body {
+      @apply bg-background text-foreground;
+   }
+   html {
+      @apply font-sans;
+   }
+}

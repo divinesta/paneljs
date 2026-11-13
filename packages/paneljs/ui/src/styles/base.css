@@ -12,6 +12,8 @@
 }
 body {
   margin: 0;
+  /* Was on :root. Kept off :root so 1rem stays 16px for Tailwind and shadcn. */
+  font-size: 14px;
   min-width: 320px;
   background: var(--surface-canvas);
   color: var(--text-primary);
