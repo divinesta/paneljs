@@ -46,12 +46,22 @@ Only **String** fields. The box on `/admin/users` becomes:
 WHERE email CONTAINS ? OR fullName CONTAINS ?
 ```
 
-| If you…                          | Result                                                                                    |
-| -------------------------------- | ----------------------------------------------------------------------------------------- |
-| Omit `searchFields`              | All non-id string scalars                                                                 |
-| Pass a non-string (`"isActive"`) | `mount` throws                                                                            |
-| Use PostgreSQL                   | Search is case-insensitive (Prisma reads the schema `provider`; TypeORM reads the driver) |
-| Type more than 200 characters    | `400 VALIDATION_ERROR`                                                                    |
+Entries can follow relations with `__`, and take a Django-style prefix:
+
+```ts
+admin.register("Post", {
+  // title contains, author's email starts with, sku matches exactly
+  searchFields: ["title", "^author__email", "=sku"],
+});
+```
+
+| If you…                          | Result                                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------ |
+| Omit `searchFields`              | All non-id string scalars                                                                  |
+| Pass a non-string (`"isActive"`) | `mount` throws                                                                             |
+| Use a relation path              | Must cross registered models; an admin who can't list a model on the way doesn't search it |
+| Use PostgreSQL                   | Search is case-insensitive (Prisma reads the schema `provider`; TypeORM reads the driver)  |
+| Type more than 200 characters    | `400 VALIDATION_ERROR`                                                                     |
 
 ## `listFilter` — filters
 
@@ -67,14 +77,59 @@ admin.register("Post", {
 
 **Opt-in.** No `listFilter` means no filter UI and no filter query params.
 
-| Field                             | Control                     |
-| --------------------------------- | --------------------------- |
-| enum (`role`)                     | Select of enum values       |
-| boolean (`isActive`, `published`) | True / false                |
-| date-time (`createdAt`)           | From / to (`_gte` / `_lte`) |
-| number / string                   | Exact value                 |
+| Field                             | Control                       |
+| --------------------------------- | ----------------------------- |
+| enum (`role`)                     | Select of enum values         |
+| boolean (`isActive`, `published`) | True / false                  |
+| date-time (`createdAt`)           | From / to (`__gte` / `__lte`) |
+| text (`title`)                    | Contains                      |
+| foreign key (`authorId`) / number | Exact value                   |
 
-A filter that is not allowed is `400`, not silently ignored. Scope is always `AND`-ed in — Ada cannot filter her way into Contoso.
+Filters can follow relations with `__`. Each relation crossed must be to a registered model:
+
+```ts
+admin.register("Post", {
+  listFilter: ["author__country", "tags__name", "createdAt"],
+});
+```
+
+A filter that is not allowed is `400`, not silently ignored. Scope is always `AND`-ed in — Ada cannot filter her way into Contoso. Only paths listed in `listFilter` are accepted from the URL, so nobody can probe fields you didn't offer (`?author__passwordHash__startsWith=a` is a `400`). A path through a model the admin can't list is also rejected.
+
+### Filter operators in the URL
+
+Append an operator to a `listFilter` key: `?author__country__in=NG,GH`, `?views__gt=100`, `?category__isNull=true`.
+
+| Operator                    | Works on                        |
+| --------------------------- | ------------------------------- |
+| `equals` (default), `ne`    | everything                      |
+| `in`, `notIn` (comma list)  | text, number, date-time, enum   |
+| `gt`, `gte`, `lt`, `lte`    | number, date-time               |
+| `contains`, `startsWith`    | text                            |
+| `isNull` (`true` / `false`) | everything, including relations |
+
+A path through a list relation (`tags__name=urgent`) matches when **some** related record matches. The old `createdAt_gte` spelling still works.
+
+### Filters from your own code
+
+`AdminService.list` takes a full filter tree, including `or`, `not` and `some` / `every` / `none` over list relations. It is checked against the registered models and the admin's permissions like a URL filter, but is not limited to `listFilter`:
+
+```ts
+await admin.service.list(postModel, adminUser, {
+  filter: {
+    or: [
+      { path: ["author", "country"], op: "equals", value: "NG" },
+      { not: { path: ["views"], op: "lt", value: 10 } },
+      {
+        path: ["tags"],
+        quantifier: "none",
+        where: { path: ["name"], op: "equals", value: "draft" },
+      },
+    ],
+  },
+});
+```
+
+The Prisma adapter supports all of this. The TypeORM and MikroORM adapters currently support an `AND` of `equals`, `in`, `gte` and `lte` on the model's own fields, and plain `contains` search; anything else returns `400`.
 
 ## `defaultSort` and `perPage`
 

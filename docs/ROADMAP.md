@@ -34,11 +34,11 @@ Django's admin works because `ModelAdmin` sits directly on the ORM. Everything b
 | Column from a related model | `author__name` | **Partial** | Only the display field of a belongs-to / has-one |
 | Clickable column links | `list_display_links` | **Partial** | Fixed behaviour |
 | Edit cells inline in the list | `list_editable` | **Missing** | |
-| Filters | `list_filter` | **Partial** | `equals`, `in`, date `gte`/`lte`. Enums, booleans, dates, FK scalars only |
-| Filter on a related field | `list_filter = ["author__country"]` | **Missing** | Needs field paths |
-| Custom filters | `SimpleListFilter` | **Missing** | |
+| Filters | `list_filter` | **Have** | 11 operators via `field__op=value`, any filterable column. Sidebar shows one control per `listFilter` key |
+| Filter on a related field | `list_filter = ["author__country"]` | **Have** | Prisma only; up to 3 relations deep. TypeORM/MikroORM return 400 |
+| Custom filters | `SimpleListFilter` | **Missing** | The filter tree (`or`/`not`/`some`/`every`/`none`) is the building block; no config hook yet |
 | Date drill-down | `date_hierarchy` | **Missing** | |
-| Search | `search_fields` | **Partial** | One substring match over string columns. No `^` (startswith), `=` (exact), or related `author__email` |
+| Search | `search_fields` | **Have** | `^` (starts with), `=` (exact), related `author__email`. Prisma only for the last three |
 | Sort by several columns | `ordering = ["-a", "b"]` | **Missing** | One sort field |
 | Sort by related or computed column | `admin_order_field` | **Missing** | |
 | Pagination | `list_per_page` | **Partial** | Offset only, page ≤ 10,000. No cursor / keyset |
@@ -139,13 +139,27 @@ The rule for every step: change `query.ts` (core types) first, then the Prisma a
 - **`P2011` is a safety net.** A null or missing required value is caught first by core validation (`validation.ts`), or else by Prisma's client-side `PrismaClientValidationError`, before the database sees it. `P2025` doesn't fire for `updateMany`/`deleteMany` (they return `count: 0`), but will for the `update` calls in step 5.
 - TypeORM and MikroORM were not checked for the wildcard issue.
 
-### Step 3. Filter tree and field paths (medium)
+### Step 3. Filter tree and field paths (medium) ✅ Done
 
 - `query.ts`: replace flat `FieldFilters` with a tree: `{ and } | { or } | { not } | { path, op, value }`. Operators: `equals`, `ne`, `in`, `notIn`, `gt`, `gte`, `lt`, `lte`, `contains`, `startsWith`, `isNull`.
 - `path` is a list (`["author", "name"]`). Core checks each hop against `AdminModelMeta` relations and visibility, so nothing outside the registered schema is reachable.
 - Prisma: build nested `where` (`{ author: { name: { contains } } }`), `OR`, `NOT`, and `some` / `every` / `none` for list relations.
 - `listQuery.ts`: parse `author__name__contains=ada` style params into the tree.
 - Config: allow `listFilter: ["author__country"]` and `searchFields: ["author__email", "^title"]`.
+
+**What was built:**
+
+- `query.ts`: callers write a `FilterNode` (`path: string[]`); adapters receive a `ResolvedFilter` in which every relation hop is marked `many` or not, so adapters never look up other models. Search fields became `{ relations, field, mode }`.
+- `filterPaths.ts` (new): `resolvePath` walks a path, requiring registered models, visible fields, at most 3 relations, and (per request) `list` permission on every model crossed. `resolveFilter` also checks operator against field type and converts values; caps: 50 conditions, 100 `in` values, 200-character text.
+- `AdminService.list({ filter, search })` resolves both, so code callers get the same checks as the URL. `search` is now plain text, matched against `searchFields`.
+- URL: `listFilter` is an allowlist, like Django's `lookup_allowed`. `createdAt_gte` still works.
+- Registry: `listFilter` / `searchFields` paths are validated at `mount` in a second pass. Text columns may now be filters.
+- Schema: `config.filterFields: [{ key, field }]` carries the end field of each path, filtered per administrator.
+- Prisma: nested `is` / `some`, `AND` / `OR` / `NOT`, `every` / `none`, `isNull` on relations. `contains` / `startsWith` filters use the same escaping and case-insensitivity as search.
+- TypeORM / MikroORM: `simpleFieldFilters` / `simpleSearchFields` (in core) accept what the old flat shape could express and return a 400 otherwise. Porting is step 15.
+- UI: path labels ("Author › Role"), text filters use `__contains`, dates send `__gte` / `__lte`.
+
+**Known limits:** `ne` and `notIn` exclude rows where the field is null (SQL semantics). `in` values can't contain commas from the URL. No relation sorting yet (step 4).
 
 ### Step 4. Multi-sort and related sort (small)
 

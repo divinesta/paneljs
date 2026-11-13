@@ -40,7 +40,9 @@ Core is the brain. It has no HTTP and no ORM inside it.
 | --- | --- |
 | [`src/types.ts`](../packages/paneljs/src/types.ts) | `AdminFieldMeta` / `AdminModelMeta` (the model description), `ModelConfig` (what you pass to `register`), `AdminUser`, `AdminConfig`, `AuthConfig`, `SchemaResponse` |
 | [`src/adapter.ts`](../packages/paneljs/src/adapter.ts) | `DataAdapter` (`introspect`, `resource`, optional `createAuthStore`, `dispose`) and `ModelResource` (the six CRUD calls) |
-| [`src/query.ts`](../packages/paneljs/src/query.ts) | The query language: `FindManyQuery`, `CreateQuery`, `FieldFilters`, `FieldSelect`, etc. This is the file that has to grow for most roadmap work |
+| [`src/query.ts`](../packages/paneljs/src/query.ts) | The query language: `FindManyQuery`, `CreateQuery`, `FieldSelect`, the filter tree (`FilterNode` from callers, `ResolvedFilter` to adapters) and `SearchQuery`. This is the file that has to grow for most roadmap work |
+| [`src/filterPaths.ts`](../packages/paneljs/src/filterPaths.ts) | Checks filter and search paths (`author__country`): registered models, visible fields, depth ≤ 3, `list` permission per model crossed, operator vs type. Turns a `FilterNode` into a `ResolvedFilter` |
+| [`src/filterCompat.ts`](../packages/paneljs/src/filterCompat.ts) | `simpleFieldFilters` / `simpleSearchFields`: the old flat shape, for adapters that haven't adopted the tree (TypeORM, MikroORM) |
 
 Think of `AdminModelMeta` as Django's `Model._meta`, and `ModelConfig` as a `ModelAdmin` class.
 
@@ -76,7 +78,7 @@ Note: these steps are not wrapped in a transaction. If `afterCreate` fails, the 
 | [`src/permissions.ts`](../packages/paneljs/src/permissions.ts) | `hasModelPermission(user, permissions, op)`: role allowlists; super admin passes |
 | [`src/scope.ts`](../packages/paneljs/src/scope.ts) | `resolveScope` runs your `scope(adminUser)` and rejects `undefined` values. `applyCreateScope` writes scope values into create data so nobody can create rows in another tenant. `buildScopedRecordWhere` is a Prisma-shaped leftover (uses `AND`) |
 | [`src/validation.ts`](../packages/paneljs/src/validation.ts) | `isFieldVisible` (hides `exclude`d fields and names matching password/token/secret/api key unless `expose: true`), `validateWritePayload` (~215): only writable, known, correctly typed fields; relation fields rejected |
-| [`src/listQuery.ts`](../packages/paneljs/src/listQuery.ts) | Turns `?page=2&sort=title&dir=asc&search=x&published=true&createdAt_gte=…` into a `ParsedListQuery`. Enforces page ≤ 10,000, allowed sort and filter fields, search ≤ 200 chars |
+| [`src/listQuery.ts`](../packages/paneljs/src/listQuery.ts) | Turns `?page=2&sort=title&search=x&author__country__in=NG,GH&createdAt__gte=…` into a `ParsedListQuery` (an AND `FilterNode` plus search text). Only `listFilter` keys are accepted. Value and permission checks happen in `AdminService.list` |
 | [`src/recordSelection.ts`](../packages/paneljs/src/recordSelection.ts) | Builds `FieldSelect`: which columns to load, plus the display field of each belongs-to |
 | [`src/deleteRelations.ts`](../packages/paneljs/src/deleteRelations.ts) | Finds child models pointing at this one, previews what `Cascade` / `SetNull` / `Restrict` will do, and blocks `Restrict` |
 | [`src/schema.ts`](../packages/paneljs/src/schema.ts) | `buildSchemaResponse`: what the UI receives. Only models the user may list, only visible fields, permissions turned into booleans |
@@ -134,7 +136,8 @@ Three files, three jobs. Everything Prisma-specific lives here.
 - `toPrismaSelect`: `{ fields, relations }` → `{ title: true, author: { select: { email: true } } }`
 - `toPrismaFilters`: `{ equals }` → value, `{ in }` → `{ in }`, `{ gte, lte }` → range
 - `toPrismaSearch`: `{ OR: [{ title: { contains, mode } }, …] }`
-- `toPrismaWhere` (~126): ANDs scope + filters + search + id(s) with `combineAnd`, so keys never overwrite each other
+- `toPrismaWhere`: ANDs scope + filter + search + id(s) with `combineAnd`, so keys never overwrite each other
+- `toPrismaFilter` / `underRelations`: turn a `ResolvedFilter` into nested Prisma `where` (`{ author: { is: … } }`, `{ tags: { some: … } }`, `AND`/`OR`/`NOT`)
 - `rethrowWriteError` (~100): turns Prisma errors into safe 400/404 errors, by operation. `P2002` → unique (with `field`), `P2003`/`P2014` → "still referenced" on delete or "related record does not exist" on create/update (with the FK `field`), `P2011` → null, `P2025` → not found. Reads both the classic `meta.target` and the driver-adapter `meta.driverAdapterError` shapes
 - `escapeLikePattern` / `toPrismaSearch`: escapes `%`, `_`, `\` in search text where the provider supports it
 

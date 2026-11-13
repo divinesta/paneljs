@@ -18,14 +18,16 @@ Pipeline on every call: authenticate → resolve model → permission → scope 
 
 ## List query
 
-| Parameter | Example                     | Rule                               |
-| --------- | --------------------------- | ---------------------------------- |
-| `page`    | `?page=2`                   | Positive integer                   |
-| `sort`    | `?sort=title`               | Visible scalar                     |
-| `dir`     | `?dir=asc`                  | `asc` or `desc`                    |
-| `search`  | `?search=quarterly`         | `searchFields` only; max 200 chars |
-| filter    | `?published=true`           | Must be in `listFilter`            |
-| range     | `?createdAt_gte=` / `_lte=` | Date-time fields only              |
+| Parameter | Example                       | Rule                                                           |
+| --------- | ----------------------------- | -------------------------------------------------------------- |
+| `page`    | `?page=2`                     | Positive integer                                               |
+| `sort`    | `?sort=title`                 | Visible scalar                                                 |
+| `dir`     | `?dir=asc`                    | `asc` or `desc`                                                |
+| `search`  | `?search=quarterly`           | `searchFields` only; max 200 chars                             |
+| filter    | `?published=true`             | Must be in `listFilter`                                        |
+| path      | `?author__country=NG`         | The path must be in `listFilter`                               |
+| operator  | `?views__gt=100`              | See [operators](../guide/lists.md#filter-operators-in-the-url) |
+| range     | `?createdAt__gte=` / `__lte=` | `_gte` / `_lte` still accepted                                 |
 
 List body:
 

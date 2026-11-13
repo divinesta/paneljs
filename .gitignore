@@ -49,3 +49,5 @@ apps/docs/.vitepress/.temp
 /docs/MULTI_ORM.md
 
 test-commands.md
+graphify-out/
+
