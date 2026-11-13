@@ -7,6 +7,15 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ApiNotice, NotFound } from "../components/Feedback";
 import { ActionBar } from "../components/ActionBar";
 import { DataTable } from "../components/DataTable";
@@ -15,6 +24,10 @@ import { useFilters } from "../hooks/useFilters";
 import { useModelData } from "../hooks/useModelData";
 import { useBulkActions } from "../hooks/useBulkActions";
 import type { Field, ListAction, Schema } from "../types";
+
+const tableCardClass =
+  "w-full overflow-hidden rounded-lg border bg-card text-card-foreground";
+const pageButtonClass = "bg-card text-(--text-secondary) max-[760px]:size-11";
 
 export const ListView = ({ schema }: { schema: Schema }) => {
   const { model: modelPath } = useParams();
@@ -119,38 +132,57 @@ export const ListView = ({ schema }: { schema: Schema }) => {
           </NavLink>
         )}
       </div>
-      <div className="list-toolbar">
+      <div className="mb-3 flex flex-wrap items-center gap-2.5 max-[760px]:flex-col max-[760px]:items-stretch">
         <form
-          className="search-box"
+          className="min-w-0 flex-[0_1_480px] max-[760px]:w-full max-[760px]:flex-none"
           onSubmit={(event) => {
             event.preventDefault();
             setPage(1);
             setSearch(searchDraft.trim());
           }}
         >
-          <Search size={15} strokeWidth={1.75} aria-hidden />
-          <input
-            aria-label={`Search ${model.meta.name}`}
-            value={searchDraft}
-            onChange={(event) => setSearchDraft(event.target.value)}
-            placeholder={`Search ${model.meta.name.toLowerCase()}…`}
-          />
-          <button type="submit">
-            <Search size={14} strokeWidth={2} aria-hidden />
-            Search
-          </button>
+          <InputGroup className="h-10 rounded-md bg-(--surface-input) max-[760px]:h-11">
+            <InputGroupAddon className="pl-3.5">
+              <Search strokeWidth={1.75} aria-hidden />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label={`Search ${model.meta.name}`}
+              className="text-sm max-[760px]:text-base"
+              value={searchDraft}
+              onChange={(event) => setSearchDraft(event.target.value)}
+              placeholder={`Search ${model.meta.name.toLowerCase()}…`}
+            />
+            <InputGroupAddon align="inline-end" className="pr-1">
+              <InputGroupButton
+                className="h-[30px] px-3 text-xs"
+                type="submit"
+                variant="secondary"
+              >
+                <Search strokeWidth={2} aria-hidden />
+                Search
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
         </form>
-        <button className="secondary-button" type="button" onClick={reset}>
+        <Button
+          className="h-10 px-3.5 max-[760px]:self-start"
+          type="button"
+          variant="outline"
+          onClick={reset}
+        >
           Reset
-        </button>
+        </Button>
       </div>
       {filterFields.length > 0 && (
-        <div className="filter-strip" aria-label="Filters">
-          <span className="filter-caption">
+        <div
+          className="mb-5 flex flex-wrap items-center gap-2 py-0.5 max-[760px]:items-stretch"
+          aria-label="Filters"
+        >
+          <span className="mr-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <SlidersHorizontal size={14} strokeWidth={1.75} aria-hidden />
             Filters
           </span>
-          <div className="filter-controls">
+          <div className="flex min-w-0 flex-[1_1_760px] flex-wrap items-center gap-2 max-[760px]:basis-full">
             {filterFields.map((field) =>
               field.type === "datetime" ? (
                 <DateRangeControl
@@ -177,28 +209,35 @@ export const ListView = ({ schema }: { schema: Schema }) => {
       {data.status === "error" && <ApiNotice message={data.error} />}
       {bulkActions.error && <ApiNotice message={bulkActions.error} />}
       {bulkActions.message && (
-        <div className="action-success" role="status">
+        <div
+          className="mb-3.5 rounded-md border border-(--success)/25 bg-(--success-surface) px-3.5 py-3 text-xs text-(--success)"
+          role="status"
+        >
           {bulkActions.message}
         </div>
       )}
       {data.status === "loading" && (
         <div
-          className="table-card table-skeleton"
+          className={cn(tableCardClass, "px-4 py-2")}
           role="status"
           aria-label="Loading records"
         >
           <span className="sr-only">Loading records…</span>
           {Array.from({ length: 6 }, (_, index) => (
-            <div className="skeleton-row" key={index} aria-hidden="true">
-              <span />
-              <span />
-              <span />
+            <div
+              className="grid grid-cols-[2fr_1fr_80px] gap-8 border-b py-[19px] last:border-b-0"
+              key={index}
+              aria-hidden="true"
+            >
+              <Skeleton className="h-3.5" />
+              <Skeleton className="h-3.5" />
+              <Skeleton className="h-3.5" />
             </div>
           ))}
         </div>
       )}
       {data.status === "ready" && (
-        <div className="table-card">
+        <div className={tableCardClass}>
           {selectedIds.size > 0 && (
             <ActionBar
               actions={model.config.actions}
@@ -246,7 +285,7 @@ export const ListView = ({ schema }: { schema: Schema }) => {
               )
             }
           />
-          <div className="table-footer">
+          <div className="flex items-center justify-between border-t px-4 py-3 text-xs text-muted-foreground max-[760px]:flex-col max-[760px]:items-start max-[760px]:gap-2.5">
             <span>
               Showing{" "}
               {data.records.length ? (page - 1) * model.config.perPage + 1 : 0}–
@@ -256,26 +295,32 @@ export const ListView = ({ schema }: { schema: Schema }) => {
               )}{" "}
               of {data.total}
             </span>
-            <div className="pagination">
-              <button
-                type="button"
+            <div className="flex items-center gap-2.5">
+              <Button
                 aria-label="Previous page"
+                className={pageButtonClass}
                 disabled={page <= 1}
+                size="icon"
+                type="button"
+                variant="outline"
                 onClick={goToPreviousPage}
               >
-                <ChevronLeft size={14} strokeWidth={2} aria-hidden />
-              </button>
+                <ChevronLeft aria-hidden />
+              </Button>
               <span>
                 Page {page} of {totalPages}
               </span>
-              <button
-                type="button"
+              <Button
                 aria-label="Next page"
+                className={pageButtonClass}
                 disabled={page >= totalPages}
+                size="icon"
+                type="button"
+                variant="outline"
                 onClick={goToNextPage}
               >
-                <ChevronRight size={14} strokeWidth={2} aria-hidden />
-              </button>
+                <ChevronRight aria-hidden />
+              </Button>
             </div>
           </div>
         </div>

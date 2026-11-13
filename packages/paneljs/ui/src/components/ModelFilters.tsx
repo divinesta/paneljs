@@ -1,4 +1,17 @@
 import { ArrowRight } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
 import type { Field } from "../types";
 import { fieldLabel } from "../utils/format";
 
@@ -11,47 +24,59 @@ export const FilterControl = ({
   value: string;
   onChange: (value: string) => void;
 }) => {
-  if (field.type === "enum")
+  if (field.type === "enum" || field.type === "boolean") {
+    const options =
+      field.type === "boolean"
+        ? [
+            { label: "Yes", value: "true" },
+            { label: "No", value: "false" },
+          ]
+        : (field.enumValues ?? []).map((option) => ({
+            label: option,
+            value: option,
+          }));
+    // Base UI uses null for "nothing selected"; the filter state uses "".
+    const items = [{ label: "Any", value: null as string | null }, ...options];
     return (
-      <label className="filter-control">
-        <span>{fieldLabel(field.name)}</span>
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
+      <Select
+        items={items}
+        value={value === "" ? null : value}
+        onValueChange={(next) => onChange(next ?? "")}
+      >
+        <SelectTrigger
+          aria-label={`${fieldLabel(field.name)} filter`}
+          className="h-9 min-w-40 gap-2 rounded-md bg-(--surface-input) px-3 text-[13px]"
         >
-          <option value="">Any</option>
-          {(field.enumValues ?? []).map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
+          <span className="text-xs text-muted-foreground">
+            {fieldLabel(field.name)}
+          </span>
+          <SelectValue className="text-foreground" />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map((item) => (
+            <SelectItem key={item.value ?? "any"} value={item.value}>
+              {item.label}
+            </SelectItem>
           ))}
-        </select>
-      </label>
+        </SelectContent>
+      </Select>
     );
-  if (field.type === "boolean")
-    return (
-      <label className="filter-control">
-        <span>{fieldLabel(field.name)}</span>
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        >
-          <option value="">Any</option>
-          <option value="true">Yes</option>
-          <option value="false">No</option>
-        </select>
-      </label>
-    );
+  }
   return (
-    <label className="filter-control">
-      <span>{fieldLabel(field.name)}</span>
-      <input
-        type="text"
+    <InputGroup className="h-9 w-auto min-w-40 rounded-md bg-(--surface-input) max-[760px]:h-11 max-[760px]:w-full">
+      <InputGroupAddon className="pl-3">
+        <InputGroupText className="text-xs">
+          {fieldLabel(field.name)}
+        </InputGroupText>
+      </InputGroupAddon>
+      <InputGroupInput
+        aria-label={`${fieldLabel(field.name)} filter`}
+        className="text-[13px] max-[760px]:text-base"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Any"
       />
-    </label>
+    </InputGroup>
   );
 };
 

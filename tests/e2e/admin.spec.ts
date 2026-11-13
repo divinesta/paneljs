@@ -92,11 +92,8 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Reset" }).click();
-    const publishedFilter = page
-      .locator(".filter-control")
-      .filter({ hasText: "Published" })
-      .locator("select");
-    await publishedFilter.selectOption("false");
+    await page.getByRole("combobox", { name: "Published filter" }).click();
+    await page.getByRole("option", { name: "No", exact: true }).click();
     await expect(
       page.getByText("30 records available to your account."),
     ).toBeVisible();
@@ -184,9 +181,10 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
     await page.getByLabel("Select all records on this page").check();
     await expect(page.getByText("50 selected")).toBeVisible();
 
+    await page.getByRole("combobox", { name: "Choose an action" }).click();
     await page
-      .getByRole("combobox", { name: "Choose an action" })
-      .selectOption("publish_selected");
+      .getByRole("option", { name: "Publish selected posts", exact: true })
+      .click();
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Run action" }).click();
     await expect(
@@ -202,9 +200,10 @@ test.describe.serial("canonical Prisma + Express browser suite", () => {
         exact: true,
       })
       .check();
+    await page.getByRole("combobox", { name: "Choose an action" }).click();
     await page
-      .getByRole("combobox", { name: "Choose an action" })
-      .selectOption("delete_selected");
+      .getByRole("option", { name: "Delete selected", exact: true })
+      .click();
     await page.getByRole("button", { name: "Delete selected" }).click();
     await expect(
       page.getByRole("heading", { name: "Delete 1 Post?" }),

@@ -1,5 +1,13 @@
 import { Play, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ListAction } from "../types";
 
 export const ActionBar = ({
@@ -21,32 +29,50 @@ export const ActionBar = ({
   if (actions.length === 0) return null;
 
   return (
-    <div className="action-bar" aria-label="Bulk actions">
-      <span className="action-selection-count">{selectedCount} selected</span>
-      <select
-        aria-label="Choose an action"
-        value={action?.name ?? ""}
-        onChange={(event) => setActionName(event.target.value)}
+    <div
+      className="flex flex-wrap items-center gap-2 border-b bg-muted px-3.5 py-2.5 text-muted-foreground"
+      aria-label="Bulk actions"
+    >
+      <span className="min-w-[72px] font-mono text-[10px]">
+        {selectedCount} selected
+      </span>
+      <Select
+        items={actions.map((candidate) => ({
+          label: candidate.label,
+          value: candidate.name,
+        }))}
+        value={action?.name ?? null}
+        onValueChange={(value) => {
+          if (value) setActionName(value);
+        }}
       >
-        {actions.map((candidate) => (
-          <option key={candidate.name} value={candidate.name}>
-            {candidate.label}
-          </option>
-        ))}
-      </select>
-      <button
-        className={isDeleteAction ? "danger-button" : "secondary-button"}
+        <SelectTrigger
+          aria-label="Choose an action"
+          className="min-w-[190px] bg-(--surface-input) text-foreground"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {actions.map((candidate) => (
+            <SelectItem key={candidate.name} value={candidate.name}>
+              {candidate.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        variant={isDeleteAction ? "destructive" : "outline"}
         type="button"
         disabled={!action || selectedCount === 0 || busy}
         onClick={() => action && onRun(action)}
       >
         {isDeleteAction ? (
-          <Trash2 size={13} aria-hidden />
+          <Trash2 aria-hidden />
         ) : (
-          <Play size={13} fill="currentColor" aria-hidden />
+          <Play fill="currentColor" aria-hidden />
         )}
         {busy ? "Running…" : isDeleteAction ? "Delete selected" : "Run action"}
-      </button>
+      </Button>
     </div>
   );
 };

@@ -67,9 +67,10 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
 
     await page.goto(`${environment.baseUrl}/posts`);
     await page.getByLabel("Select all records on this page").check();
+    await page.getByRole("combobox", { name: "Choose an action" }).click();
     await page
-      .getByRole("combobox", { name: "Choose an action" })
-      .selectOption("publish_selected");
+      .getByRole("option", { name: "Publish selected posts", exact: true })
+      .click();
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Run action" }).click();
     await expect(
@@ -81,9 +82,10 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
       .filter({ hasText: `${title} updated` })
       .getByRole("checkbox")
       .check();
+    await page.getByRole("combobox", { name: "Choose an action" }).click();
     await page
-      .getByRole("combobox", { name: "Choose an action" })
-      .selectOption("delete_selected");
+      .getByRole("option", { name: "Delete selected", exact: true })
+      .click();
     await page.getByRole("button", { name: "Delete selected" }).click();
     await page.getByRole("button", { name: "Confirm delete" }).click();
     await expect(page.getByText(`${title} updated`)).toHaveCount(0);
@@ -99,9 +101,10 @@ test.describe.serial("TypeORM + Express browser smoke suite", () => {
       .fill("katherine-johnson.northwind@example.test");
     await page.getByLabel("Search User").press("Enter");
     await page.getByLabel("Select all records on this page").check();
+    await page.getByRole("combobox", { name: "Choose an action" }).click();
     await page
-      .getByRole("combobox", { name: "Choose an action" })
-      .selectOption("delete_selected");
+      .getByRole("option", { name: "Delete selected", exact: true })
+      .click();
     await page.getByRole("button", { name: "Delete selected" }).click();
     await expect(page.getByText("Post: Team memo 5")).toBeVisible();
     await expect(page.getByText("Will be deleted").first()).toBeVisible();

@@ -1,6 +1,27 @@
 import { ArrowDown, ArrowRight, ArrowUp, ArrowUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Field, RecordData } from "../types";
 import { fieldLabel, formatRecordValue } from "../utils/format";
+
+/** Shared sizing so header and body columns line up. */
+const headClass =
+  "h-auto bg-muted px-4 py-3 text-xs font-medium text-(--text-secondary)";
+const cellClass = "px-4 py-[13px] text-[13px] text-(--text-secondary)";
+const rowNumberClass =
+  "w-[42px] pr-2 text-right tabular-nums text-muted-foreground";
+const selectionClass = "w-7 pl-4 pr-1.5";
+const pillClass =
+  "inline-flex px-2 py-[5px] text-[11px] leading-none bg-(--tag-background) text-(--tag-text)";
 
 export const DataTable = ({
   records,
@@ -34,53 +55,57 @@ export const DataTable = ({
   const allSelected =
     records.length > 0 &&
     records.every((record) => selectedIds?.has(String(record[idField])));
+  const someSelected =
+    !allSelected &&
+    records.some((record) => selectedIds?.has(String(record[idField])));
+  const columnCount =
+    fields.length + 1 + (canEdit ? 1 : 0) + (selectable ? 1 : 0);
 
   return (
-    <div className="table-scroll">
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th className="row-number-header" scope="col">
-              <span className="sr-only">Row number</span>
-              <span aria-hidden>#</span>
-            </th>
-            {selectable && (
-              <th className="selection-cell">
-                <input
-                  aria-label="Select all records on this page"
-                  type="checkbox"
-                  checked={allSelected}
-                  ref={(input) => {
-                    if (input)
-                      input.indeterminate =
-                        !allSelected &&
-                        records.some((record) =>
-                          selectedIds?.has(String(record[idField])),
-                        );
-                  }}
-                  onChange={(event) => onToggleAll(event.target.checked)}
-                />
-              </th>
-            )}
-            {fields.map((field) => (
-              <th
+    <Table className="min-w-full">
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead className={cn(headClass, rowNumberClass)} scope="col">
+            <span className="sr-only">Row number</span>
+            <span aria-hidden>#</span>
+          </TableHead>
+          {selectable && (
+            <TableHead className={cn(headClass, selectionClass)}>
+              <Checkbox
+                aria-label="Select all records on this page"
+                checked={allSelected}
+                indeterminate={someSelected}
+                onCheckedChange={(checked) => onToggleAll(checked)}
+              />
+            </TableHead>
+          )}
+          {fields.map((field) => {
+            const sortable = field.type !== "relation";
+            const isSorted = sortable && sort === field.name;
+            return (
+              <TableHead
                 aria-sort={
-                  field.type !== "relation" && sort === field.name
+                  isSorted
                     ? dir === "asc"
                       ? "ascending"
                       : "descending"
                     : undefined
                 }
+                className={headClass}
                 key={field.name}
               >
-                {field.type !== "relation" ? (
+                {sortable ? (
                   <button
-                    className={`sort-button ${sort === field.name ? "is-sorted" : ""}`}
+                    className={cn(
+                      "inline-flex cursor-pointer items-center gap-1.5 [&_svg]:text-muted-foreground [&_svg]:opacity-75",
+                      isSorted &&
+                        "text-foreground [&_svg]:text-foreground [&_svg]:opacity-100",
+                    )}
                     type="button"
                     onClick={() => onSort(field.name)}
                   >
                     <span>{fieldLabel(field.name)}</span>
-                    {sort === field.name ? (
+                    {isSorted ? (
                       dir === "asc" ? (
                         <ArrowUp size={12} strokeWidth={2} aria-hidden />
                       ) : (
@@ -91,107 +116,120 @@ export const DataTable = ({
                     )}
                   </button>
                 ) : (
-                  <span className="column-label">{fieldLabel(field.name)}</span>
+                  <span className="inline-flex">{fieldLabel(field.name)}</span>
                 )}
-              </th>
-            ))}
-            {canEdit && <th aria-label="Edit record" />}
-          </tr>
-        </thead>
-        <tbody>
-          {records.length === 0 ? (
-            <tr>
-              <td
-                className="table-empty"
-                colSpan={
-                  fields.length + 1 + (canEdit ? 1 : 0) + (selectable ? 1 : 0)
-                }
+              </TableHead>
+            );
+          })}
+          {canEdit && (
+            <TableHead
+              className={cn(headClass, "w-9")}
+              aria-label="Edit record"
+            />
+          )}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {records.length === 0 ? (
+          <TableRow className="hover:bg-transparent">
+            <TableCell
+              className="px-4 py-10 text-center text-muted-foreground"
+              colSpan={columnCount}
+            >
+              No records match your current view.
+            </TableCell>
+          </TableRow>
+        ) : (
+          records.map((record, index) => {
+            const id = String(record[idField]);
+            const isSelected = selectedIds?.has(id) ?? false;
+            return (
+              <TableRow
+                className={cn(
+                  "hover:bg-(--table-row-hover) data-[state=selected]:bg-(--table-row-selected)",
+                  canEdit && "cursor-pointer",
+                )}
+                data-state={isSelected ? "selected" : undefined}
+                key={id}
+                onClick={() => canEdit && onOpen(id)}
               >
-                No records match your current view.
-              </td>
-            </tr>
-          ) : (
-            records.map((record, index) => {
-              const isSelected = selectedIds?.has(String(record[idField]));
-              return (
-                <tr
-                  className={[
-                    canEdit ? "clickable-row" : "",
-                    isSelected ? "is-selected" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  key={String(record[idField])}
-                  onClick={() => canEdit && onOpen(String(record[idField]))}
-                >
-                  <td className="row-number-cell">{rowStart + index + 1}</td>
-                  {selectable && (
-                    <td
-                      className="selection-cell"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <input
-                        aria-label={`Select ${String(record[idField])}`}
-                        type="checkbox"
-                        checked={selectedIds.has(String(record[idField]))}
-                        onChange={(event) =>
-                          onToggleSelected(
-                            String(record[idField]),
-                            event.target.checked,
-                          )
-                        }
-                      />
-                    </td>
-                  )}
-                  {fields.map((field, index) => (
-                    <td
-                      className={[
-                        index === 0 ? "table-primary-cell" : "",
-                        field.type === "boolean" ? "table-boolean-cell" : "",
-                        field.type === "enum" ? "table-enum-cell" : "",
-                        field.type === "datetime" ? "table-date-cell" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
+                <TableCell className={cn(cellClass, rowNumberClass)}>
+                  {rowStart + index + 1}
+                </TableCell>
+                {selectable && (
+                  <TableCell
+                    className={cn(cellClass, selectionClass)}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Checkbox
+                      aria-label={`Select ${id}`}
+                      checked={isSelected}
+                      onCheckedChange={(checked) =>
+                        onToggleSelected(id, checked)
+                      }
+                    />
+                  </TableCell>
+                )}
+                {fields.map((field, fieldIndex) => {
+                  const value = formatRecordValue(record[field.name], field);
+                  return (
+                    <TableCell
+                      className={cn(
+                        cellClass,
+                        fieldIndex === 0 && "font-medium text-foreground",
+                        field.type === "datetime" &&
+                          "tabular-nums text-muted-foreground",
+                      )}
                       key={field.name}
                     >
                       {field.type === "boolean" ? (
                         <span
-                          className="table-boolean"
-                          data-value={String(record[field.name])}
+                          className={cn(
+                            pillClass,
+                            "rounded-full",
+                            record[field.name] === true &&
+                              "bg-(--success-surface) text-(--success)",
+                          )}
                         >
-                          {formatRecordValue(record[field.name], field)}
+                          {value}
                         </span>
                       ) : field.type === "enum" ? (
-                        <span className="table-enum">
-                          {formatRecordValue(record[field.name], field)}
+                        <span
+                          className={cn(
+                            pillClass,
+                            "rounded-[5px] px-[7px] uppercase",
+                          )}
+                        >
+                          {value}
                         </span>
                       ) : (
-                        formatRecordValue(record[field.name], field)
+                        value
                       )}
-                    </td>
-                  ))}
-                  {canEdit && (
-                    <td className="row-arrow">
-                      <button
-                        type="button"
-                        className="row-open-button"
-                        aria-label={`Open record ${String(record[idField])}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onOpen(String(record[idField]));
-                        }}
-                      >
-                        <ArrowRight size={16} strokeWidth={1.75} aria-hidden />
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
-    </div>
+                    </TableCell>
+                  );
+                })}
+                {canEdit && (
+                  <TableCell className={cn(cellClass, "w-9 py-0 text-right")}>
+                    <Button
+                      aria-label={`Open record ${id}`}
+                      className="text-muted-foreground hover:text-foreground"
+                      size="icon-sm"
+                      type="button"
+                      variant="ghost"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onOpen(id);
+                      }}
+                    >
+                      <ArrowRight size={16} strokeWidth={1.75} aria-hidden />
+                    </Button>
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+          })
+        )}
+      </TableBody>
+    </Table>
   );
 };

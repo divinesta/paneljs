@@ -69,25 +69,6 @@
     grid-template-columns: 1fr;
     padding: 14px 16px;
   }
-  .list-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .search-box {
-    max-width: none;
-    width: 100%;
-  }
-  .list-toolbar > .secondary-button {
-    align-self: flex-start;
-  }
-  .filter-strip {
-    align-items: stretch;
-  }
-  .filter-controls {
-    flex: 1 1 100%;
-  }
-  .filter-control,
-  .filter-control:not(.date-range-control),
   .date-range-control {
     width: 100%;
   }
@@ -102,11 +83,6 @@
   .date-range-control input {
     flex: 1 1 120px;
     width: auto;
-  }
-  .table-footer {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
   }
   .detail-actions {
     align-self: stretch;
@@ -139,9 +115,6 @@
 }
 
 @media (max-width: 760px) {
-  .search-box {
-    flex: none;
-  }
   .sidebar {
     visibility: hidden;
   }
@@ -149,12 +122,8 @@
     visibility: visible;
   }
   .menu-button,
-  .breadcrumb-back,
-  .pagination button {
+  .breadcrumb-back {
     width: 44px;
-    height: 44px;
-  }
-  .search-box {
     height: 44px;
   }
   .filter-control {
@@ -165,7 +134,6 @@
   }
   .form-field input:not([type="checkbox"]),
   .form-field select,
-  .search-box input,
   .relation-search-box input {
     font-size: 16px;
   }

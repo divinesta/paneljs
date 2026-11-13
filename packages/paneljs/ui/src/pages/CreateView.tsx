@@ -115,7 +115,7 @@ export const CreateView = ({
   if (mode === "view" && !model.config.permissions.view) return <NotFound />;
   if (form.status === "loading")
     return (
-      <div className="table-card table-state">
+      <div className="flex min-h-[180px] w-full items-center justify-center gap-2.5 overflow-hidden rounded-lg border bg-card font-mono text-[10px] text-muted-foreground">
         <span className="spinner" /> Loading form…
       </div>
     );
