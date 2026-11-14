@@ -135,17 +135,34 @@ The Prisma adapter supports all of this. The TypeORM and MikroORM adapters curre
 
 ```ts
 admin.register("Post", {
-  defaultSort: { field: "createdAt", direction: "desc" },
+  // Drafts first, then by author name. A leading "-" means descending.
+  defaultSort: ["published", "author__name"],
   perPage: 25,
 });
 ```
+
+`defaultSort` takes one string (`"-createdAt"`), a list of up to 5, or the older `{ field: "createdAt", direction: "desc" }`. A path may cross relations that point at **one** record (`author__name`, `author__tenant__name`), up to 3 deep. It can't go through a list relation such as `tags__name`: a post has many tags, so there's no single value to sort by. Paths are checked at startup.
 
 | Option        | Default if omitted            |
 | ------------- | ----------------------------- |
 | `defaultSort` | `createdAt desc`, else the id |
 | `perPage`     | `50`                          |
 
-Operators can still change sort in the table. `?sort=` must be a visible scalar.
+### Sorting in the table
+
+- **Click** a column header to sort by that column. Click again to reverse it.
+- **Shift+click** another header to add it as the next sort column. Small numbers (1, 2, …) show the order.
+- A **relation column** such as Author sorts by what the cell shows: the related record's display field (`author__name`).
+
+In the URL this is `?sort=published,-createdAt`. The older `?sort=title&dir=desc` still works.
+
+A URL may sort by the model's own visible fields, by any column in the table, and by anything in `defaultSort`. Other relation paths return `400`, so a URL can't order rows by related data you didn't put on screen. Paths through a model the administrator can't list are refused too.
+
+### Stable order
+
+PanelJS always adds the id as the last sort column. Without it, rows that tie (say, 60 posts imported in the same second) could come back in a different order on each request, so page 2 might repeat a row from page 1 and skip another.
+
+Relation sorting is Prisma only for now. TypeORM and MikroORM sort by several of the model's own columns and return `400` for a relation path.
 
 ## `pluralName`
 

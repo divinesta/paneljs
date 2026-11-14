@@ -148,7 +148,7 @@ three referential actions.
 | `QUERY-003` | Invalid page                     | Zero, negative, decimal, non-number, repeated, or page over 10,000 is rejected       | Core         | `CU/HT` | Required         |
 | `QUERY-004` | Sort ascending                   | Visible scalar is sorted ascending                                                   | Core/Adapter | `AC/AB` | Required         |
 | `QUERY-005` | Sort descending                  | Visible scalar is sorted descending                                                  | Core/Adapter | `AC/AB` | Required         |
-| `QUERY-006` | Invalid sort field               | Hidden, relation, or unknown field is rejected                                       | Core         | `CU/HT` | Required         |
+| `QUERY-006` | Invalid sort field               | Hidden, unknown, list-relation, or unoffered relation path is rejected               | Core         | `CU/HT` | Required         |
 | `QUERY-007` | Invalid sort direction           | Any value other than `asc` or `desc` is rejected                                     | Core         | `CU/HT` | Required         |
 | `QUERY-008` | String equality filter           | Only exact matching rows are returned                                                | Core/Adapter | `AC/AB` | Required         |
 | `QUERY-009` | Number equality filter           | String query input is parsed to a finite number before adapter execution             | Core/Adapter | `CU/AB` | Required         |
@@ -168,6 +168,9 @@ three referential actions.
 | `QUERY-023` | Combine constraints              | Scope, filters, search, and selected ids are combined without one overriding another | Adapter      | `AC/AB` | Required         |
 | `QUERY-024` | Pagination totals                | `total`, `page`, `perPage`, and `totalPages` describe the complete filtered result   | Core/Adapter | `AB/HT` | Required         |
 | `QUERY-025` | Page beyond result set           | Records are empty while totals remain correct                                        | Core/Adapter | `AB/HT` | Required         |
+| `QUERY-026` | Multi-column sort                | Rows are ordered by each sort column in turn                                         | Core/Adapter | `CU/AC` | Required         |
+| `QUERY-027` | Id tiebreaker                    | The id is always the final sort column, so equal rows keep one order across pages    | Core         | `CU/AC` | Required         |
+| `QUERY-028` | Sort through a relation          | A single-record relation path (`author__name`) sorts by the related value            | Adapter      | `AC`    | Adapter-specific |
 
 ## 5. Schema, field visibility, and record selection
 

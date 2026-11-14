@@ -14,106 +14,106 @@ Django's admin works because `ModelAdmin` sits directly on the ORM. Everything b
 
 ### Registration and site
 
-| Feature | Django | PanelJS | Notes |
-| --- | --- | --- | --- |
-| Register a model with zero config | `admin.site.register(Post)` | **Have** | `admin.register("Post")`, defaults filled in `registry.ts` |
-| Site title, base URL | `site_header`, URLconf | **Have** | `siteName`, `basePath` |
-| Group models by app, order the index | app grouping | **Missing** | Dashboard is one flat list |
-| Custom admin pages / URLs | `get_urls()` | **Missing** | |
-| Several admin sites | `AdminSite()` | **Partial** | Possible with two `createAdmin` + two `basePath`s, not documented |
-| Template / UI overrides | template overrides | **Missing** | UI is a prebuilt React bundle; theme only |
-| Recent actions / history page | `LogEntry`, "History" button | **Partial** | `audit.write()` hook exists; no viewer in the UI |
-| i18n | built in | **Missing** | |
+| Feature                              | Django                       | PanelJS     | Notes                                                             |
+| ------------------------------------ | ---------------------------- | ----------- | ----------------------------------------------------------------- |
+| Register a model with zero config    | `admin.site.register(Post)`  | **Have**    | `admin.register("Post")`, defaults filled in `registry.ts`        |
+| Site title, base URL                 | `site_header`, URLconf       | **Have**    | `siteName`, `basePath`                                            |
+| Group models by app, order the index | app grouping                 | **Missing** | Dashboard is one flat list                                        |
+| Custom admin pages / URLs            | `get_urls()`                 | **Missing** |                                                                   |
+| Several admin sites                  | `AdminSite()`                | **Partial** | Possible with two `createAdmin` + two `basePath`s, not documented |
+| Template / UI overrides              | template overrides           | **Missing** | UI is a prebuilt React bundle; theme only                         |
+| Recent actions / history page        | `LogEntry`, "History" button | **Partial** | `audit.write()` hook exists; no viewer in the UI                  |
+| i18n                                 | built in                     | **Missing** |                                                                   |
 
 ### List page (changelist)
 
-| Feature | Django | PanelJS | Notes |
-| --- | --- | --- | --- |
-| Choose columns | `list_display` | **Have** | `listDisplay`, scalars only |
-| Computed / callable columns | methods in `list_display` | **Missing** | |
-| Column from a related model | `author__name` | **Partial** | Only the display field of a belongs-to / has-one |
-| Clickable column links | `list_display_links` | **Partial** | Fixed behaviour |
-| Edit cells inline in the list | `list_editable` | **Missing** | |
-| Filters | `list_filter` | **Have** | 11 operators via `field__op=value`, any filterable column. Sidebar shows one control per `listFilter` key |
-| Filter on a related field | `list_filter = ["author__country"]` | **Have** | Prisma only; up to 3 relations deep. TypeORM/MikroORM return 400 |
-| Custom filters | `SimpleListFilter` | **Missing** | The filter tree (`or`/`not`/`some`/`every`/`none`) is the building block; no config hook yet |
-| Date drill-down | `date_hierarchy` | **Missing** | |
-| Search | `search_fields` | **Have** | `^` (starts with), `=` (exact), related `author__email`. Prisma only for the last three |
-| Sort by several columns | `ordering = ["-a", "b"]` | **Missing** | One sort field |
-| Sort by related or computed column | `admin_order_field` | **Missing** | |
-| Pagination | `list_per_page` | **Partial** | Offset only, page ≤ 10,000. No cursor / keyset |
-| Bulk actions | `actions` | **Have** | Custom actions + delete selected, role-gated |
-| Action with a form / intermediate page | intermediate templates | **Missing** | Only delete has a confirm page |
-| Export (CSV etc.) | common add-on | **Missing** | |
-| `OR` / `NOT` filtering | `Q` objects in `get_queryset` | **Missing** | Contract is AND-only |
-| Aggregates / annotations in list | `annotate()` | **Missing** | |
+| Feature                                | Django                              | PanelJS     | Notes                                                                                                                       |
+| -------------------------------------- | ----------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Choose columns                         | `list_display`                      | **Have**    | `listDisplay`, scalars only                                                                                                 |
+| Computed / callable columns            | methods in `list_display`           | **Missing** |                                                                                                                             |
+| Column from a related model            | `author__name`                      | **Partial** | Only the display field of a belongs-to / has-one                                                                            |
+| Clickable column links                 | `list_display_links`                | **Partial** | Fixed behaviour                                                                                                             |
+| Edit cells inline in the list          | `list_editable`                     | **Missing** |                                                                                                                             |
+| Filters                                | `list_filter`                       | **Have**    | 11 operators via `field__op=value`, any filterable column. Sidebar shows one control per `listFilter` key                   |
+| Filter on a related field              | `list_filter = ["author__country"]` | **Have**    | Prisma only; up to 3 relations deep. TypeORM/MikroORM return 400                                                            |
+| Custom filters                         | `SimpleListFilter`                  | **Missing** | The filter tree (`or`/`not`/`some`/`every`/`none`) is the building block; no config hook yet                                |
+| Date drill-down                        | `date_hierarchy`                    | **Missing** |                                                                                                                             |
+| Search                                 | `search_fields`                     | **Have**    | `^` (starts with), `=` (exact), related `author__email`. Prisma only for the last three                                     |
+| Sort by several columns                | `ordering = ["-a", "b"]`            | **Have**    | `defaultSort: ["-a", "b"]`, `?sort=-a,b`, Shift+click in the table. Id is always the last tiebreaker                        |
+| Sort by related or computed column     | `admin_order_field`                 | **Partial** | Related: relation columns sort by their display field; `author__name` paths in `defaultSort`. Prisma only. Computed: step 9 |
+| Pagination                             | `list_per_page`                     | **Partial** | Offset only, page ≤ 10,000. No cursor / keyset                                                                              |
+| Bulk actions                           | `actions`                           | **Have**    | Custom actions + delete selected, role-gated                                                                                |
+| Action with a form / intermediate page | intermediate templates              | **Missing** | Only delete has a confirm page                                                                                              |
+| Export (CSV etc.)                      | common add-on                       | **Missing** |                                                                                                                             |
+| `OR` / `NOT` filtering                 | `Q` objects in `get_queryset`       | **Missing** | Contract is AND-only                                                                                                        |
+| Aggregates / annotations in list       | `annotate()`                        | **Missing** |                                                                                                                             |
 
 ### Add / change form
 
-| Feature | Django | PanelJS | Notes |
-| --- | --- | --- | --- |
-| Auto form from model | `ModelForm` | **Have** | Scalars + belongs-to FK |
-| Hide / read-only / role-gated fields | `exclude`, `readonly_fields` | **Have** | `fields: { x: { exclude, readOnly, writeRoles } }` |
-| Field order and sections | `fields`, `fieldsets` | **Missing** | |
-| Custom widgets | `formfield_overrides`, `radio_fields` | **Missing** | Widget picked from type in `fieldResolver.ts` |
-| Belongs-to picker with search | `autocomplete_fields`, `raw_id_fields` | **Have** | `RelationSelect.tsx` |
-| Many-to-many editor | `filter_horizontal` | **Missing** | Prisma now labels m2m as `manyToMany` (step 1 done); writes still rejected |
-| Inline child rows | `TabularInline`, `StackedInline` | **Missing** | |
-| Nested create / connect | inlines + formsets | **Missing** | |
-| Custom validation | `clean()` | **Partial** | `beforeCreate` / `beforeUpdate` hooks can throw |
-| Slug from title | `prepopulated_fields` | **Missing** | |
-| File / image upload | `FileField`, `ImageField` | **Missing** | `bytes` type exists, no widget, no storage |
-| Rich text / JSON editor | add-ons | **Missing** | JSON is a raw text box |
-| Save as new / save and continue | `save_as`, buttons | **Missing** | |
-| Lifecycle hooks | `save_model`, `delete_model` | **Have** | `before*` / `after*` in `ModelConfig` |
-| Atomic save (row + relations + hooks) | `transaction.atomic` | **Missing** | Each call is separate; no transaction |
+| Feature                               | Django                                 | PanelJS     | Notes                                                                      |
+| ------------------------------------- | -------------------------------------- | ----------- | -------------------------------------------------------------------------- |
+| Auto form from model                  | `ModelForm`                            | **Have**    | Scalars + belongs-to FK                                                    |
+| Hide / read-only / role-gated fields  | `exclude`, `readonly_fields`           | **Have**    | `fields: { x: { exclude, readOnly, writeRoles } }`                         |
+| Field order and sections              | `fields`, `fieldsets`                  | **Missing** |                                                                            |
+| Custom widgets                        | `formfield_overrides`, `radio_fields`  | **Missing** | Widget picked from type in `fieldResolver.ts`                              |
+| Belongs-to picker with search         | `autocomplete_fields`, `raw_id_fields` | **Have**    | `RelationSelect.tsx`                                                       |
+| Many-to-many editor                   | `filter_horizontal`                    | **Missing** | Prisma now labels m2m as `manyToMany` (step 1 done); writes still rejected |
+| Inline child rows                     | `TabularInline`, `StackedInline`       | **Missing** |                                                                            |
+| Nested create / connect               | inlines + formsets                     | **Missing** |                                                                            |
+| Custom validation                     | `clean()`                              | **Partial** | `beforeCreate` / `beforeUpdate` hooks can throw                            |
+| Slug from title                       | `prepopulated_fields`                  | **Missing** |                                                                            |
+| File / image upload                   | `FileField`, `ImageField`              | **Missing** | `bytes` type exists, no widget, no storage                                 |
+| Rich text / JSON editor               | add-ons                                | **Missing** | JSON is a raw text box                                                     |
+| Save as new / save and continue       | `save_as`, buttons                     | **Missing** |                                                                            |
+| Lifecycle hooks                       | `save_model`, `delete_model`           | **Have**    | `before*` / `after*` in `ModelConfig`                                      |
+| Atomic save (row + relations + hooks) | `transaction.atomic`                   | **Missing** | Each call is separate; no transaction                                      |
 
 ### Delete
 
-| Feature | Django | PanelJS | Notes |
-| --- | --- | --- | --- |
-| Confirm page listing related objects | yes | **Have** | `deleteRelations.ts`, one level deep |
-| Respect `PROTECT` / `RESTRICT` | yes | **Have** | `assertNoRestrictedRelations` |
-| Full nested tree of cascades | yes | **Partial** | Direct children only |
+| Feature                              | Django | PanelJS     | Notes                                |
+| ------------------------------------ | ------ | ----------- | ------------------------------------ |
+| Confirm page listing related objects | yes    | **Have**    | `deleteRelations.ts`, one level deep |
+| Respect `PROTECT` / `RESTRICT`       | yes    | **Have**    | `assertNoRestrictedRelations`        |
+| Full nested tree of cascades         | yes    | **Partial** | Direct children only                 |
 
 ### Models and data types
 
-| Feature | Django | PanelJS | Notes |
-| --- | --- | --- | --- |
-| Single primary key | yes | **Have** | |
-| Composite primary key | Django 5.2 `CompositePrimaryKey` | **Missing** | Skipped at introspection |
-| Models with no id | no (Django requires a pk) | **Missing** | Skipped |
-| Enums, booleans, dates, numbers, strings | yes | **Have** | |
-| JSON | yes | **Partial** | Editable as text; not filterable |
-| Bytes / files | yes | **Missing** | |
-| Decimal / BigInt precision | yes | **Partial** | Prisma `Decimal` and `BigInt` map to `number` in `introspector.ts`; large or exact values can lose precision |
-| Unmapped tables / views | `inspectdb`, unmanaged models | **Missing** | Only what's in `schema.prisma` |
+| Feature                                  | Django                           | PanelJS     | Notes                                                                                                        |
+| ---------------------------------------- | -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
+| Single primary key                       | yes                              | **Have**    |                                                                                                              |
+| Composite primary key                    | Django 5.2 `CompositePrimaryKey` | **Missing** | Skipped at introspection                                                                                     |
+| Models with no id                        | no (Django requires a pk)        | **Missing** | Skipped                                                                                                      |
+| Enums, booleans, dates, numbers, strings | yes                              | **Have**    |                                                                                                              |
+| JSON                                     | yes                              | **Partial** | Editable as text; not filterable                                                                             |
+| Bytes / files                            | yes                              | **Missing** |                                                                                                              |
+| Decimal / BigInt precision               | yes                              | **Partial** | Prisma `Decimal` and `BigInt` map to `number` in `introspector.ts`; large or exact values can lose precision |
+| Unmapped tables / views                  | `inspectdb`, unmanaged models    | **Missing** | Only what's in `schema.prisma`                                                                               |
 
 ### Auth and permissions
 
-| Feature | Django | PanelJS | Notes |
-| --- | --- | --- | --- |
-| Staff login, sessions | yes | **Have** | Built-in mode, scrypt, hashed session tokens |
-| Bring your own auth | custom backends | **Have** | External mode `getCurrentUser` |
-| Create superuser | `createsuperuser` | **Have** | `npx paneljs createsuperuser` |
-| Per-model permissions | `has_*_permission` | **Have** | Role allowlists in `permissions` |
-| Per-row permissions | `has_change_permission(request, obj)` | **Partial** | `scope()` filters rows; no per-object check |
-| Groups and permission records | `Group`, `Permission` | **Missing** | Roles are strings |
-| Manage staff users in the UI | `User` admin | **Missing** | Staff tables are blocked from registration on purpose |
-| Password change / reset | yes | **Missing** | |
-| Revoke all sessions on password change | yes | **Missing** | |
-| 2FA | add-on | **Missing** | |
+| Feature                                | Django                                | PanelJS     | Notes                                                 |
+| -------------------------------------- | ------------------------------------- | ----------- | ----------------------------------------------------- |
+| Staff login, sessions                  | yes                                   | **Have**    | Built-in mode, scrypt, hashed session tokens          |
+| Bring your own auth                    | custom backends                       | **Have**    | External mode `getCurrentUser`                        |
+| Create superuser                       | `createsuperuser`                     | **Have**    | `npx paneljs createsuperuser`                         |
+| Per-model permissions                  | `has_*_permission`                    | **Have**    | Role allowlists in `permissions`                      |
+| Per-row permissions                    | `has_change_permission(request, obj)` | **Partial** | `scope()` filters rows; no per-object check           |
+| Groups and permission records          | `Group`, `Permission`                 | **Missing** | Roles are strings                                     |
+| Manage staff users in the UI           | `User` admin                          | **Missing** | Staff tables are blocked from registration on purpose |
+| Password change / reset                | yes                                   | **Missing** |                                                       |
+| Revoke all sessions on password change | yes                                   | **Missing** |                                                       |
+| 2FA                                    | add-on                                | **Missing** |                                                       |
 
 ### Errors and safety
 
-| Feature | Django | PanelJS | Notes |
-| --- | --- | --- | --- |
-| Unique violation as a form error | yes | **Have** | Prisma `P2002` |
-| FK violation as a form error | yes | **Have** | `P2003`/`P2014`: "still referenced" on delete, "related record does not exist" on create/update |
-| Not-null / not-found mapping | yes | **Have** | Prisma `P2011` → 400, `P2025` → 404 |
-| Error tied to a field | yes | **Have** | `RequestValidationError.field` → `{ field }` in the API response → message under the input. Multi-field unique constraints still show as a form-level message |
-| CSRF / clickjacking | yes | **Have** | Same-origin check on mutations, `X-Frame-Options: DENY` |
-| Login rate limit | add-on | **Have** | `loginRateLimit.ts` |
+| Feature                          | Django | PanelJS  | Notes                                                                                                                                                         |
+| -------------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unique violation as a form error | yes    | **Have** | Prisma `P2002`                                                                                                                                                |
+| FK violation as a form error     | yes    | **Have** | `P2003`/`P2014`: "still referenced" on delete, "related record does not exist" on create/update                                                               |
+| Not-null / not-found mapping     | yes    | **Have** | Prisma `P2011` → 400, `P2025` → 404                                                                                                                           |
+| Error tied to a field            | yes    | **Have** | `RequestValidationError.field` → `{ field }` in the API response → message under the input. Multi-field unique constraints still show as a form-level message |
+| CSRF / clickjacking              | yes    | **Have** | Same-origin check on mutations, `X-Frame-Options: DENY`                                                                                                       |
+| Login rate limit                 | add-on | **Have** | `loginRateLimit.ts`                                                                                                                                           |
 
 ---
 
@@ -159,12 +159,27 @@ The rule for every step: change `query.ts` (core types) first, then the Prisma a
 - TypeORM / MikroORM: `simpleFieldFilters` / `simpleSearchFields` (in core) accept what the old flat shape could express and return a 400 otherwise. Porting is step 15.
 - UI: path labels ("Author › Role"), text filters use `__contains`, dates send `__gte` / `__lte`.
 
-**Known limits:** `ne` and `notIn` exclude rows where the field is null (SQL semantics). `in` values can't contain commas from the URL. No relation sorting yet (step 4).
+**Known limits:** `ne` and `notIn` exclude rows where the field is null (SQL semantics). `in` values can't contain commas from the URL. Relation sorting came in step 4.
 
-### Step 4. Multi-sort and related sort (small)
+### Step 4. Multi-sort and related sort (small) ✅ Done
 
 - `sort` becomes a list. Allow a relation path for belongs-to (`author__name`).
 - Always add the id as a final tiebreaker (needed for step 8).
+
+**What was built:**
+
+- `query.ts`: callers write `SortKey[]` (`{ field: "author__name", direction }`); adapters receive `ResolvedSort[]` (`{ relations, field, direction }`), like search fields.
+- `sorting.ts` (new): `resolveSort` reuses `resolvePath` (visible fields, registered models, depth ≤ 3, `list` permission) and also requires single-record hops and a plain end value; at most 5 keys, no duplicates. `withIdTiebreaker` appends the id in the last key's direction unless the id is already there.
+- `AdminService.list({ sort })` resolves the sort and always adds the id. The default sort drops columns this administrator can't use instead of failing.
+- URL: `?sort=published,-createdAt`; `?sort=x&dir=desc` still works. Allowlist (`allowedSortKeys`): own visible fields, table columns (a relation column sorts by its display field), and `defaultSort` paths.
+- Config: `defaultSort` accepts `"-createdAt"`, `["published", "author__name"]` or the old object. Paths are checked at startup, including visibility.
+- Schema: `config.defaultSort` is a list; `config.sortKeys` maps each sortable column to its key, per administrator.
+- Prisma: `orderBy` list, relations nested without `is` (`{ author: { name: "asc" } }`).
+- TypeORM / MikroORM: several own columns plus the tiebreaker via `simpleSort`; relation paths return 400.
+- UI: click sorts by one column, Shift+click adds a column, numbered badges, relation columns are clickable.
+- Tests: contract `QUERY-026` (multi-column) on all adapters; Prisma integration sorts through `author` and pages 60 tied rows with no repeats or gaps.
+
+**Known limits:** no `nulls first/last` control (each database's default applies). No sorting by computed values (step 9).
 
 ### Step 5. Many-to-many and nested writes (medium to large)
 
@@ -227,22 +242,22 @@ Only features that have been stable on Prisma for a release.
 
 ## 3. Order at a glance
 
-| Order | Step | Size |
-| --- | --- | --- |
-| 1 | m2m label | S |
-| 2 | Errors + search test | S |
-| 3 | Filter tree + field paths | M |
-| 4 | Multi-sort | S |
-| 5 | m2m / nested writes | M–L |
-| 6 | Transactions | M |
-| 7 | Form layout + widgets | M |
-| 8 | Keyset pagination | S–M |
-| 9 | Computed columns + aggregates | M |
-| 10 | Action forms + export | M |
-| 11 | History viewer | S–M |
-| 12 | Files | M |
-| 13 | Staff management | M |
-| 14 | Composite keys | L |
-| 15 | Port to other ORMs | — |
+| Order | Step                          | Size |
+| ----- | ----------------------------- | ---- |
+| 1     | m2m label                     | S    |
+| 2     | Errors + search test          | S    |
+| 3     | Filter tree + field paths     | M    |
+| 4     | Multi-sort                    | S    |
+| 5     | m2m / nested writes           | M–L  |
+| 6     | Transactions                  | M    |
+| 7     | Form layout + widgets         | M    |
+| 8     | Keyset pagination             | S–M  |
+| 9     | Computed columns + aggregates | M    |
+| 10    | Action forms + export         | M    |
+| 11    | History viewer                | S–M  |
+| 12    | Files                         | M    |
+| 13    | Staff management              | M    |
+| 14    | Composite keys                | L    |
+| 15    | Port to other ORMs            | —    |
 
 Update the status columns in section 1 whenever a step lands.

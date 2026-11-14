@@ -11,15 +11,15 @@ Chainable. Call only before `mount()`.
 
 ## List
 
-| Key            | Type                   | Default                                       |
-| -------------- | ---------------------- | --------------------------------------------- |
-| `listDisplay`  | `string[]`             | Display field + scalars (max 6) + `createdAt` |
-| `listFilter`   | `string[]`             | `[]` (opt-in)                                 |
-| `searchFields` | `string[]`             | Non-id string scalars                         |
-| `defaultSort`  | `{ field, direction }` | `createdAt desc` or id desc                   |
-| `perPage`      | `number`               | `50`                                          |
-| `pluralName`   | `string`               | Lowercase English plural                      |
-| `displayField` | `string`               | Auto-detected label field                     |
+| Key            | Type                                         | Default                                                                      |
+| -------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
+| `listDisplay`  | `string[]`                                   | Display field + scalars (max 6) + `createdAt`                                |
+| `listFilter`   | `string[]`                                   | `[]` (opt-in)                                                                |
+| `searchFields` | `string[]`                                   | Non-id string scalars                                                        |
+| `defaultSort`  | `string \| string[] \| { field, direction }` | `createdAt desc` or id desc. `"-createdAt"`, `["published", "author__name"]` |
+| `perPage`      | `number`                                     | `50`                                                                         |
+| `pluralName`   | `string`                                     | Lowercase English plural                                                     |
+| `displayField` | `string`                                     | Auto-detected label field                                                    |
 
 ## Fields
 

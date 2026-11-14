@@ -36,13 +36,14 @@ Core is the brain. It has no HTTP and no ORM inside it.
 
 ### The types everyone shares
 
-| File | What it holds |
-| --- | --- |
-| [`src/types.ts`](../packages/paneljs/src/types.ts) | `AdminFieldMeta` / `AdminModelMeta` (the model description), `ModelConfig` (what you pass to `register`), `AdminUser`, `AdminConfig`, `AuthConfig`, `SchemaResponse` |
-| [`src/adapter.ts`](../packages/paneljs/src/adapter.ts) | `DataAdapter` (`introspect`, `resource`, optional `createAuthStore`, `dispose`) and `ModelResource` (the six CRUD calls) |
-| [`src/query.ts`](../packages/paneljs/src/query.ts) | The query language: `FindManyQuery`, `CreateQuery`, `FieldSelect`, the filter tree (`FilterNode` from callers, `ResolvedFilter` to adapters) and `SearchQuery`. This is the file that has to grow for most roadmap work |
-| [`src/filterPaths.ts`](../packages/paneljs/src/filterPaths.ts) | Checks filter and search paths (`author__country`): registered models, visible fields, depth ≤ 3, `list` permission per model crossed, operator vs type. Turns a `FilterNode` into a `ResolvedFilter` |
-| [`src/filterCompat.ts`](../packages/paneljs/src/filterCompat.ts) | `simpleFieldFilters` / `simpleSearchFields`: the old flat shape, for adapters that haven't adopted the tree (TypeORM, MikroORM) |
+| File                                                             | What it holds                                                                                                                                                                                                           |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/types.ts`](../packages/paneljs/src/types.ts)               | `AdminFieldMeta` / `AdminModelMeta` (the model description), `ModelConfig` (what you pass to `register`), `AdminUser`, `AdminConfig`, `AuthConfig`, `SchemaResponse`                                                    |
+| [`src/adapter.ts`](../packages/paneljs/src/adapter.ts)           | `DataAdapter` (`introspect`, `resource`, optional `createAuthStore`, `dispose`) and `ModelResource` (the six CRUD calls)                                                                                                |
+| [`src/query.ts`](../packages/paneljs/src/query.ts)               | The query language: `FindManyQuery`, `CreateQuery`, `FieldSelect`, the filter tree (`FilterNode` from callers, `ResolvedFilter` to adapters) and `SearchQuery`. This is the file that has to grow for most roadmap work |
+| [`src/filterPaths.ts`](../packages/paneljs/src/filterPaths.ts)   | Checks filter and search paths (`author__country`): registered models, visible fields, depth ≤ 3, `list` permission per model crossed, operator vs type. Turns a `FilterNode` into a `ResolvedFilter`                   |
+| [`src/filterCompat.ts`](../packages/paneljs/src/filterCompat.ts) | `simpleFieldFilters` / `simpleSearchFields` / `simpleSort`: the old flat shapes, for adapters that haven't adopted relation paths (TypeORM, MikroORM)                                                                   |
+| [`src/sorting.ts`](../packages/paneljs/src/sorting.ts)           | Sort keys: parse `"-createdAt"`, check paths (single-record hops only), the URL allowlist (`allowedSortKeys`, `columnSortKeys`), and `withIdTiebreaker`                                                                 |
 
 Think of `AdminModelMeta` as Django's `Model._meta`, and `ModelConfig` as a `ModelAdmin` class.
 
@@ -58,14 +59,14 @@ Think of `AdminModelMeta` as Django's `Model._meta`, and `ModelConfig` as a `Mod
 
 [`src/adminService.ts`](../packages/paneljs/src/adminService.ts) is the one place where admin operations happen. Express only calls this.
 
-| Method | Line | What it does |
-| --- | --- | --- |
-| `list` | ~81 | permission → pagination check → `scope` → `findMany` + `count` in parallel |
-| `get` | ~116 | permission → `scope` → `findFirst` |
-| `create` | ~132 | permission → validate body → force scope values into data → `beforeCreate` (re-validated) → `create` → `afterCreate` → audit |
-| `update` | ~179 | permission → check row exists in scope → validate → `beforeUpdate` → `updateMany` by id + scope → reload → `afterUpdate` → audit |
-| `delete` | ~228 | permission → load in scope → `beforeDelete` → refuse if `Restrict` children exist → `deleteMany` → `afterDelete` → audit |
-| `deletePreview`, `deleteSelected`, `runAction` | ~264+ | bulk actions and the delete confirm page |
+| Method                                         | Line  | What it does                                                                                                                     |
+| ---------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `list`                                         | ~81   | permission → pagination check → `scope` → `findMany` + `count` in parallel                                                       |
+| `get`                                          | ~116  | permission → `scope` → `findFirst`                                                                                               |
+| `create`                                       | ~132  | permission → validate body → force scope values into data → `beforeCreate` (re-validated) → `create` → `afterCreate` → audit     |
+| `update`                                       | ~179  | permission → check row exists in scope → validate → `beforeUpdate` → `updateMany` by id + scope → reload → `afterUpdate` → audit |
+| `delete`                                       | ~228  | permission → load in scope → `beforeDelete` → refuse if `Restrict` children exist → `deleteMany` → `afterDelete` → audit         |
+| `deletePreview`, `deleteSelected`, `runAction` | ~264+ | bulk actions and the delete confirm page                                                                                         |
 
 Notice the pattern: **every** call resolves `scope` and passes it down. The adapter ANDs it into the query. That is how tenant isolation works.
 
@@ -73,26 +74,26 @@ Note: these steps are not wrapped in a transaction. If `afterCreate` fails, the 
 
 ### The helpers AdminService leans on
 
-| File | Job |
-| --- | --- |
-| [`src/permissions.ts`](../packages/paneljs/src/permissions.ts) | `hasModelPermission(user, permissions, op)`: role allowlists; super admin passes |
-| [`src/scope.ts`](../packages/paneljs/src/scope.ts) | `resolveScope` runs your `scope(adminUser)` and rejects `undefined` values. `applyCreateScope` writes scope values into create data so nobody can create rows in another tenant. `buildScopedRecordWhere` is a Prisma-shaped leftover (uses `AND`) |
-| [`src/validation.ts`](../packages/paneljs/src/validation.ts) | `isFieldVisible` (hides `exclude`d fields and names matching password/token/secret/api key unless `expose: true`), `validateWritePayload` (~215): only writable, known, correctly typed fields; relation fields rejected |
-| [`src/listQuery.ts`](../packages/paneljs/src/listQuery.ts) | Turns `?page=2&sort=title&search=x&author__country__in=NG,GH&createdAt__gte=…` into a `ParsedListQuery` (an AND `FilterNode` plus search text). Only `listFilter` keys are accepted. Value and permission checks happen in `AdminService.list` |
-| [`src/recordSelection.ts`](../packages/paneljs/src/recordSelection.ts) | Builds `FieldSelect`: which columns to load, plus the display field of each belongs-to |
-| [`src/deleteRelations.ts`](../packages/paneljs/src/deleteRelations.ts) | Finds child models pointing at this one, previews what `Cascade` / `SetNull` / `Restrict` will do, and blocks `Restrict` |
-| [`src/schema.ts`](../packages/paneljs/src/schema.ts) | `buildSchemaResponse`: what the UI receives. Only models the user may list, only visible fields, permissions turned into booleans |
-| [`src/errors.ts`](../packages/paneljs/src/errors.ts) | `AdminApiError` and subclasses, each with an HTTP status and code |
-| [`src/audit.ts`](../packages/paneljs/src/audit.ts) | Calls your `audit.write(event)` if configured |
-| [`src/ids.ts`](../packages/paneljs/src/ids.ts) | Parses a URL id into string or number based on the id field type |
+| File                                                                   | Job                                                                                                                                                                                                                                                       |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/permissions.ts`](../packages/paneljs/src/permissions.ts)         | `hasModelPermission(user, permissions, op)`: role allowlists; super admin passes                                                                                                                                                                          |
+| [`src/scope.ts`](../packages/paneljs/src/scope.ts)                     | `resolveScope` runs your `scope(adminUser)` and rejects `undefined` values. `applyCreateScope` writes scope values into create data so nobody can create rows in another tenant. `buildScopedRecordWhere` is a Prisma-shaped leftover (uses `AND`)        |
+| [`src/validation.ts`](../packages/paneljs/src/validation.ts)           | `isFieldVisible` (hides `exclude`d fields and names matching password/token/secret/api key unless `expose: true`), `validateWritePayload` (~215): only writable, known, correctly typed fields; relation fields rejected                                  |
+| [`src/listQuery.ts`](../packages/paneljs/src/listQuery.ts)             | Turns `?page=2&sort=-createdAt,title&search=x&author__country__in=NG,GH&createdAt__gte=…` into a `ParsedListQuery` (an AND `FilterNode` plus search text). Only `listFilter` keys are accepted. Value and permission checks happen in `AdminService.list` |
+| [`src/recordSelection.ts`](../packages/paneljs/src/recordSelection.ts) | Builds `FieldSelect`: which columns to load, plus the display field of each belongs-to                                                                                                                                                                    |
+| [`src/deleteRelations.ts`](../packages/paneljs/src/deleteRelations.ts) | Finds child models pointing at this one, previews what `Cascade` / `SetNull` / `Restrict` will do, and blocks `Restrict`                                                                                                                                  |
+| [`src/schema.ts`](../packages/paneljs/src/schema.ts)                   | `buildSchemaResponse`: what the UI receives. Only models the user may list, only visible fields, permissions turned into booleans                                                                                                                         |
+| [`src/errors.ts`](../packages/paneljs/src/errors.ts)                   | `AdminApiError` and subclasses, each with an HTTP status and code                                                                                                                                                                                         |
+| [`src/audit.ts`](../packages/paneljs/src/audit.ts)                     | Calls your `audit.write(event)` if configured                                                                                                                                                                                                             |
+| [`src/ids.ts`](../packages/paneljs/src/ids.ts)                         | Parses a URL id into string or number based on the id field type                                                                                                                                                                                          |
 
 ### Auth (framework-neutral half)
 
-| File | Job |
-| --- | --- |
-| [`src/authStore.ts`](../packages/paneljs/src/authStore.ts) | `AdminAuthStore` interface: find user, create/find/delete session, create user |
+| File                                                           | Job                                                                                                 |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`src/authStore.ts`](../packages/paneljs/src/authStore.ts)     | `AdminAuthStore` interface: find user, create/find/delete session, create user                      |
 | [`src/builtInAuth.ts`](../packages/paneljs/src/builtInAuth.ts) | `loginWithPassword` (~153), `authenticateSession` (~129), `resolveAuthStore` (~118), cookie helpers |
-| [`src/passwords.ts`](../packages/paneljs/src/passwords.ts) | scrypt hash + timing-safe verify |
+| [`src/passwords.ts`](../packages/paneljs/src/passwords.ts)     | scrypt hash + timing-safe verify                                                                    |
 
 ### CLI
 
@@ -117,15 +118,15 @@ Three files, three jobs. Everything Prisma-specific lives here.
 
 `introspect()` (~481) reads `schema.prisma`, compiles it with `getDMMF` from `@prisma/internals`, and builds one `AdminModelMeta` per model. Results are cached per schema path.
 
-| Function | Line | Decides |
-| --- | --- | --- |
-| `mapPrismaTypeToAdminType` | ~41 | `String`→string, `Int/Float/Decimal/BigInt`→number, `DateTime`→datetime, `Json`, `Bytes`, enum, relation |
-| `determineRelationKind` | ~84 | belongsTo / hasOne / hasMany / manyToMany. A list is `manyToMany` when its opposite field (same `relationName` on the other model) is also a list |
-| `isReadOnly` | ~115 | ids with defaults, `@updatedAt`, generated fields |
-| `isSearchable` / `isFilterable` | ~137 / ~155 | non-id, non-FK strings / enums, booleans, dates, FK scalars |
-| `detectDisplayField` | ~176 | `name`, `title`, `label`, `username`, `slug`, `email`, then fallbacks |
-| `introspectModel` | ~312 | puts a model together; skips composite or missing ids |
-| `patchRelationDisplayFields` | ~413 | second pass: copies the target model's display field onto each relation |
+| Function                        | Line        | Decides                                                                                                                                           |
+| ------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mapPrismaTypeToAdminType`      | ~41         | `String`→string, `Int/Float/Decimal/BigInt`→number, `DateTime`→datetime, `Json`, `Bytes`, enum, relation                                          |
+| `determineRelationKind`         | ~84         | belongsTo / hasOne / hasMany / manyToMany. A list is `manyToMany` when its opposite field (same `relationName` on the other model) is also a list |
+| `isReadOnly`                    | ~115        | ids with defaults, `@updatedAt`, generated fields                                                                                                 |
+| `isSearchable` / `isFilterable` | ~137 / ~155 | non-id, non-FK strings / enums, booleans, dates, FK scalars                                                                                       |
+| `detectDisplayField`            | ~176        | `name`, `title`, `label`, `username`, `slug`, `email`, then fallbacks                                                                             |
+| `introspectModel`               | ~312        | puts a model together; skips composite or missing ids                                                                                             |
+| `patchRelationDisplayFields`    | ~413        | second pass: copies the target model's display field onto each relation                                                                           |
 
 `getSchemaProvider` / `usesInsensitiveSearch` read the datasource provider so Postgres gets `mode: "insensitive"` search.
 
@@ -138,6 +139,7 @@ Three files, three jobs. Everything Prisma-specific lives here.
 - `toPrismaSearch`: `{ OR: [{ title: { contains, mode } }, …] }`
 - `toPrismaWhere`: ANDs scope + filter + search + id(s) with `combineAnd`, so keys never overwrite each other
 - `toPrismaFilter` / `underRelations`: turn a `ResolvedFilter` into nested Prisma `where` (`{ author: { is: … } }`, `{ tags: { some: … } }`, `AND`/`OR`/`NOT`)
+- `toPrismaOrderBy`: `ResolvedSort[]` → `orderBy` list (`[{ published: "asc" }, { author: { name: "asc" } }, { id: "asc" }]`)
 - `rethrowWriteError` (~100): turns Prisma errors into safe 400/404 errors, by operation. `P2002` → unique (with `field`), `P2003`/`P2014` → "still referenced" on delete or "related record does not exist" on create/update (with the FK `field`), `P2011` → null, `P2025` → not found. Reads both the classic `meta.target` and the driver-adapter `meta.driverAdapterError` shapes
 - `escapeLikePattern` / `toPrismaSearch`: escapes `%`, `_`, `\` in search text where the provider supports it
 
@@ -168,22 +170,22 @@ Express is a thin shell. It translates HTTP into `AdminService` calls and errors
 
 ### Routes
 
-| File | Routes |
-| --- | --- |
-| [`src/crudRouter.ts`](../packages/express/src/crudRouter.ts) | `GET /:model` (list, via `parseListQuery`), `GET /:model/:id`, `POST /:model`, `PUT /:model/:id`, `DELETE /:model/:id`. `:model` is the plural name, e.g. `posts` |
-| [`src/actionRouter.ts`](../packages/express/src/actionRouter.ts) | `GET /:model/actions/delete-preview?ids=…`, `POST /:model/actions/:action` |
-| [`src/schemaEndpoint.ts`](../packages/express/src/schemaEndpoint.ts) | `GET /schema` → `buildSchemaResponse` |
-| [`src/builtIn.ts`](../packages/express/src/builtIn.ts) | `/auth/config`, `/auth/login`, `/auth/logout`; session middleware; page redirect |
+| File                                                                 | Routes                                                                                                                                                            |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/crudRouter.ts`](../packages/express/src/crudRouter.ts)         | `GET /:model` (list, via `parseListQuery`), `GET /:model/:id`, `POST /:model`, `PUT /:model/:id`, `DELETE /:model/:id`. `:model` is the plural name, e.g. `posts` |
+| [`src/actionRouter.ts`](../packages/express/src/actionRouter.ts)     | `GET /:model/actions/delete-preview?ids=…`, `POST /:model/actions/:action`                                                                                        |
+| [`src/schemaEndpoint.ts`](../packages/express/src/schemaEndpoint.ts) | `GET /schema` → `buildSchemaResponse`                                                                                                                             |
+| [`src/builtIn.ts`](../packages/express/src/builtIn.ts)               | `/auth/config`, `/auth/login`, `/auth/logout`; session middleware; page redirect                                                                                  |
 
 ### Support
 
-| File | Job |
-| --- | --- |
-| [`src/routeSupport.ts`](../packages/express/src/routeSupport.ts) | `route()` async wrapper, `getRegisteredModel`, `getAdminUser`, `getRecordId` |
-| [`src/httpErrors.ts`](../packages/express/src/httpErrors.ts) | `AdminApiError` → `{ error, code }` with the right status; unknown errors → 500 |
-| [`src/middleware.ts`](../packages/express/src/middleware.ts) | External-mode auth middleware |
-| [`src/loginRateLimit.ts`](../packages/express/src/loginRateLimit.ts) | In-memory login limiter (per IP + identifier) |
-| [`src/express.d.ts`](../packages/express/src/express.d.ts) | Adds `req.adminUser` to Express types |
+| File                                                                 | Job                                                                             |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [`src/routeSupport.ts`](../packages/express/src/routeSupport.ts)     | `route()` async wrapper, `getRegisteredModel`, `getAdminUser`, `getRecordId`    |
+| [`src/httpErrors.ts`](../packages/express/src/httpErrors.ts)         | `AdminApiError` → `{ error, code }` with the right status; unknown errors → 500 |
+| [`src/middleware.ts`](../packages/express/src/middleware.ts)         | External-mode auth middleware                                                   |
+| [`src/loginRateLimit.ts`](../packages/express/src/loginRateLimit.ts) | In-memory login limiter (per IP + identifier)                                   |
+| [`src/express.d.ts`](../packages/express/src/express.d.ts)           | Adds `req.adminUser` to Express types                                           |
 
 A second framework (Fastify, Hono) would be a sibling of this package that calls the same `AdminService` methods.
 
@@ -199,12 +201,12 @@ A Vite + React app, built into `ui/dist` and shipped inside the `paneljs` packag
 - [`ui/src/config.ts`](../packages/paneljs/ui/src/config.ts) reads `window.__PANELJS_BASE_PATH__`.
 - [`ui/src/App.tsx`](../packages/paneljs/ui/src/App.tsx): on `/login` shows `LoginPage`; otherwise loads the schema with `useSchema` and, if ready, renders the shell + routes (~246):
 
-| Route | Page |
-| --- | --- |
-| `/` | [`pages/Dashboard.tsx`](../packages/paneljs/ui/src/pages/Dashboard.tsx) |
-| `/:model` | [`pages/ListView.tsx`](../packages/paneljs/ui/src/pages/ListView.tsx) |
+| Route                                            | Page                                                                                                        |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `/`                                              | [`pages/Dashboard.tsx`](../packages/paneljs/ui/src/pages/Dashboard.tsx)                                     |
+| `/:model`                                        | [`pages/ListView.tsx`](../packages/paneljs/ui/src/pages/ListView.tsx)                                       |
 | `/:model/new`, `/:model/:id/edit`, `/:model/:id` | [`pages/CreateView.tsx`](../packages/paneljs/ui/src/pages/CreateView.tsx) (one form for create, edit, view) |
-| `/:model/delete` | [`pages/DeleteConfirmationPage.tsx`](../packages/paneljs/ui/src/pages/DeleteConfirmationPage.tsx) |
+| `/:model/delete`                                 | [`pages/DeleteConfirmationPage.tsx`](../packages/paneljs/ui/src/pages/DeleteConfirmationPage.tsx)           |
 
 ### Data
 
@@ -214,16 +216,16 @@ A Vite + React app, built into `ui/dist` and shipped inside the `paneljs` packag
 
 ### Components
 
-| File | Job |
-| --- | --- |
-| [`components/DataTable.tsx`](../packages/paneljs/ui/src/components/DataTable.tsx) | List table, sorting headers, row selection |
-| [`components/ModelFilters.tsx`](../packages/paneljs/ui/src/components/ModelFilters.tsx) | Filter and date-range controls (re-exported by `FilterSidebar.tsx`) |
-| [`components/ActionBar.tsx`](../packages/paneljs/ui/src/components/ActionBar.tsx) | Bulk action picker |
-| [`components/AutoForm.tsx`](../packages/paneljs/ui/src/components/AutoForm.tsx) + [`FieldInput.tsx`](../packages/paneljs/ui/src/components/FieldInput.tsx) | One input per field |
-| [`utils/fieldResolver.ts`](../packages/paneljs/ui/src/utils/fieldResolver.ts) | `writableFields` (no relations, read-only, or lists) and `resolveWidget` (type → text/number/boolean/enum/datetime). New widgets start here |
-| [`components/RelationSelect.tsx`](../packages/paneljs/ui/src/components/RelationSelect.tsx) | Searchable picker for a belongs-to FK; queries the related model's list endpoint |
-| [`components/ThemeProvider.tsx`](../packages/paneljs/ui/src/components/ThemeProvider.tsx) | Light/dark theme |
-| [`components/Feedback.tsx`](../packages/paneljs/ui/src/components/Feedback.tsx) | Notices, not-found |
+| File                                                                                                                                                       | Job                                                                                                                                         |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`components/DataTable.tsx`](../packages/paneljs/ui/src/components/DataTable.tsx)                                                                          | List table, sorting headers, row selection                                                                                                  |
+| [`components/ModelFilters.tsx`](../packages/paneljs/ui/src/components/ModelFilters.tsx)                                                                    | Filter and date-range controls (re-exported by `FilterSidebar.tsx`)                                                                         |
+| [`components/ActionBar.tsx`](../packages/paneljs/ui/src/components/ActionBar.tsx)                                                                          | Bulk action picker                                                                                                                          |
+| [`components/AutoForm.tsx`](../packages/paneljs/ui/src/components/AutoForm.tsx) + [`FieldInput.tsx`](../packages/paneljs/ui/src/components/FieldInput.tsx) | One input per field                                                                                                                         |
+| [`utils/fieldResolver.ts`](../packages/paneljs/ui/src/utils/fieldResolver.ts)                                                                              | `writableFields` (no relations, read-only, or lists) and `resolveWidget` (type → text/number/boolean/enum/datetime). New widgets start here |
+| [`components/RelationSelect.tsx`](../packages/paneljs/ui/src/components/RelationSelect.tsx)                                                                | Searchable picker for a belongs-to FK; queries the related model's list endpoint                                                            |
+| [`components/ThemeProvider.tsx`](../packages/paneljs/ui/src/components/ThemeProvider.tsx)                                                                  | Light/dark theme                                                                                                                            |
+| [`components/Feedback.tsx`](../packages/paneljs/ui/src/components/Feedback.tsx)                                                                            | Notices, not-found                                                                                                                          |
 
 Styles live in [`ui/src/styles/`](../packages/paneljs/ui/src/styles), split by area (`tokens.css`, `table.css`, `forms.css`, …).
 
@@ -248,14 +250,14 @@ A create follows the same path, with `validateWritePayload` → `applyCreateScop
 
 ## 6. Where to look when you…
 
-| Want to… | Start in |
-| --- | --- |
-| Add a `ModelConfig` option | `types.ts` → `registry.ts` (`resolveConfig`, validation) → `schema.ts` if the UI needs it |
-| Add a filter operator or query feature | `query.ts` → `listQuery.ts` → `prisma/src/resource.ts` → UI hooks |
-| Change how Prisma models are read | `prisma/src/introspector.ts` |
-| Change a write rule | `validation.ts`, `adminService.ts` |
-| Add an HTTP route | `express/src/*Router.ts`, wired in `mount.ts` |
-| Add a widget | `ui/src/utils/fieldResolver.ts`, `components/FieldInput.tsx` |
-| Change login | `paneljs/src/builtInAuth.ts`, `express/src/builtIn.ts`, `prisma/src/authStore.ts` |
+| Want to…                               | Start in                                                                                  |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Add a `ModelConfig` option             | `types.ts` → `registry.ts` (`resolveConfig`, validation) → `schema.ts` if the UI needs it |
+| Add a filter operator or query feature | `query.ts` → `listQuery.ts` → `prisma/src/resource.ts` → UI hooks                         |
+| Change how Prisma models are read      | `prisma/src/introspector.ts`                                                              |
+| Change a write rule                    | `validation.ts`, `adminService.ts`                                                        |
+| Add an HTTP route                      | `express/src/*Router.ts`, wired in `mount.ts`                                             |
+| Add a widget                           | `ui/src/utils/fieldResolver.ts`, `components/FieldInput.tsx`                              |
+| Change login                           | `paneljs/src/builtInAuth.ts`, `express/src/builtIn.ts`, `prisma/src/authStore.ts`         |
 
 Tests: core in [`packages/paneljs/test`](../packages/paneljs/test) (one file per module). Runnable example: [`apps/example/prisma-test/index.ts`](../apps/example/prisma-test/index.ts).
