@@ -12,6 +12,7 @@ import {
   type ModelLookup,
 } from "./filterPaths.js";
 import type { FullRegisteredModel } from "./registry.js";
+import { columnSortKeys, resolveSort } from "./sorting.js";
 import {
   isFieldVisible,
   isFieldWritable,
@@ -84,6 +85,24 @@ export function buildSchemaResponse(
               adminUser,
             ) !== null,
         );
+        // Header clicks: only columns whose sort key this administrator
+        // could actually use (a relation column may cross a hidden model).
+        const sortKeys = Object.fromEntries(
+          [...columnSortKeys(model)].filter(([, key]) => {
+            try {
+              resolveSort([{ field: key, direction: "asc" }], model, models, {
+                adminUser,
+              });
+              return true;
+            } catch (error) {
+              if (error instanceof RequestValidationError) return false;
+              throw error;
+            }
+          }),
+        );
+        const defaultSort = resolved.defaultSort.filter((key) =>
+          usablePath(model, splitPath(key.field), models, adminUser),
+        );
         const visibleFields = meta.fields
           .filter((field) => isFieldVisible(field, raw))
           .map((field) => ({
@@ -130,7 +149,8 @@ export function buildSchemaResponse(
             listFilter: filterFields.map(({ key }) => key),
             filterFields,
             searchFields,
-            defaultSort: resolved.defaultSort,
+            defaultSort,
+            sortKeys,
             perPage: resolved.perPage,
             permissions: {
               list: hasModelPermission(adminUser, resolved.permissions, "list"),

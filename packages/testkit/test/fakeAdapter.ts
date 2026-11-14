@@ -2,6 +2,7 @@ import {
   RequestValidationError,
   simpleFieldFilters,
   simpleSearchFields,
+  simpleSort,
   type AdminFieldMeta,
   type AdminModelMeta,
   type CountQuery,
@@ -446,13 +447,19 @@ export class FakeAdapterEnvironment implements AdapterContractEnvironment {
         let rows = this.table(meta.name).filter((row) =>
           this.matches(row, query),
         );
-        if (query.sort) {
-          const { field: sortField, direction } = query.sort;
+        const sort = simpleSort(query.sort, "fake");
+        if (sort.length > 0) {
           rows = [...rows].sort((left, right) => {
-            const result = String(left[sortField]).localeCompare(
-              String(right[sortField]),
-            );
-            return direction === "asc" ? result : -result;
+            for (const { field: sortField, direction } of sort) {
+              const a = left[sortField];
+              const b = right[sortField];
+              const result =
+                a instanceof Date && b instanceof Date
+                  ? a.getTime() - b.getTime()
+                  : String(a).localeCompare(String(b));
+              if (result !== 0) return direction === "asc" ? result : -result;
+            }
+            return 0;
           });
         }
         if (query.skip !== undefined) rows = rows.slice(query.skip);

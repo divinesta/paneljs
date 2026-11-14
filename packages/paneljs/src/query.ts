@@ -123,6 +123,22 @@ export type SearchQuery = {
   fields: SearchField[];
 };
 
+export type SortDirection = "asc" | "desc";
+
+/**
+ * One sort column as callers and config write it. `field` may be a `__` path
+ * through single-record relations: `{ field: "author__name", direction: "asc" }`.
+ */
+export type SortKey = { field: string; direction: SortDirection };
+
+/** A checked sort column, as adapters receive it (like `SearchField`). */
+export type ResolvedSort = {
+  /** Relations crossed to reach `field`. Always single-record (`many: false`). */
+  relations: RelationStep[];
+  field: string;
+  direction: SortDirection;
+};
+
 export type RelationSelect = {
   field: string;
   displayField: string;
@@ -138,7 +154,11 @@ export type FindManyQuery = {
   filter?: ResolvedFilter;
   search?: SearchQuery;
   ids?: Array<string | number>;
-  sort?: { field: string; direction: "asc" | "desc" };
+  /**
+   * Sort columns in priority order. When it comes from `AdminService.list`,
+   * the last entry is always the id, so the order is total and stable.
+   */
+  sort?: ResolvedSort[];
   skip?: number;
   take?: number;
   select: FieldSelect;

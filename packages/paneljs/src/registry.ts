@@ -6,6 +6,8 @@ import {
   resolvePath,
   splitPath,
 } from "./filterPaths.js";
+import type { SortKey } from "./query.js";
+import { normalizeSortConfig, resolveSort } from "./sorting.js";
 
 // ============================================================
 // DEFAULT RESOLUTION
@@ -115,15 +117,13 @@ function resolveConfig(
   const searchFields = userConfig.searchFields ?? meta.searchableFields;
 
   // ── defaultSort ────────────────────────────────────────────
-  let defaultSort: { field: string; direction: "asc" | "desc" };
-  if (userConfig.defaultSort) {
-    defaultSort = userConfig.defaultSort;
-  } else if (meta.timestamps.createdAt) {
+  // Already checked by the caller, so this can't throw here.
+  const defaultSort: SortKey[] = normalizeSortConfig(
+    userConfig.defaultSort,
+  ) ?? [
     // Most useful default: newest records first
-    defaultSort = { field: meta.timestamps.createdAt, direction: "desc" };
-  } else {
-    defaultSort = { field: meta.idField, direction: "desc" };
-  }
+    { field: meta.timestamps.createdAt ?? meta.idField, direction: "desc" },
+  ];
 
   // ── perPage ────────────────────────────────────────────────
   const perPage = userConfig.perPage ?? DEFAULT_PER_PAGE;
@@ -142,7 +142,7 @@ function resolveConfig(
 }
 
 /**
- * Check `searchFields` and `listFilter` at startup. Each entry is a field or
+ * Check `searchFields`, `listFilter` and `defaultSort` at startup. Each entry is a field or
  * a `__` path through registered relations (`author__email`); search entries
  * may start with `^` (starts with) or `=` (exact).
  */
@@ -172,6 +172,17 @@ function validateQueryPaths(
       );
   }
 
+  if (model.raw.defaultSort !== undefined) {
+    try {
+      // Unlike search and filters, a hidden default sort would break every
+      // list request, so visibility is checked here too.
+      resolveSort(model.resolved.defaultSort, model, models);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new Error(`${prefix} config.defaultSort is invalid. ${reason}`);
+    }
+  }
+
   for (const entry of model.raw.listFilter ?? []) {
     const { field } = resolve(splitPath(entry), "listFilter", entry);
     if (field.type === "relation" || operatorsForField(field).length === 0)
@@ -198,7 +209,8 @@ export interface ResolvedModelConfig {
   listDisplay: string[];
   listFilter: string[];
   searchFields: string[];
-  defaultSort: { field: string; direction: "asc" | "desc" };
+  /** Sort columns in priority order. Paths like "author__name" are allowed. */
+  defaultSort: SortKey[];
   perPage: number;
   permissions: ModelPermissions;
 }
@@ -384,21 +396,14 @@ export class AdminRegistry {
         );
       }
 
-      if (rawConfig.defaultSort) {
-        const sortField = meta.fields.find(
-          (field) => field.name === rawConfig.defaultSort?.field,
+      // defaultSort's shape is checked here; its paths in the second pass.
+      try {
+        normalizeSortConfig(rawConfig.defaultSort);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `[paneljs] admin.register("${modelName}") config.defaultSort ${reason}`,
         );
-        if (!sortField || sortField.type === "relation")
-          throw new Error(
-            `[paneljs] admin.register("${modelName}") config.defaultSort.field must be a scalar field on the model.`,
-          );
-        if (
-          rawConfig.defaultSort.direction !== "asc" &&
-          rawConfig.defaultSort.direction !== "desc"
-        )
-          throw new Error(
-            `[paneljs] admin.register("${modelName}") config.defaultSort.direction must be "asc" or "desc".`,
-          );
       }
 
       if (

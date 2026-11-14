@@ -383,3 +383,31 @@ describe("Prisma filter translation", () => {
     });
   });
 });
+
+describe("Prisma sort translation", () => {
+  it("turns the sort list into an orderBy list, nesting relation paths", () => {
+    const findMany = vi.fn().mockResolvedValue([]);
+    const delegate = { findMany } as unknown as PrismaDelegate;
+    void prismaResource(delegate, postMeta).findMany({
+      scope: {},
+      select,
+      sort: [
+        { relations: [], field: "published", direction: "asc" },
+        {
+          relations: [
+            { field: "author", many: false },
+            { field: "tenant", many: false },
+          ],
+          field: "name",
+          direction: "desc",
+        },
+        { relations: [], field: "id", direction: "desc" },
+      ],
+    });
+    expect(findMany.mock.calls[0]?.[0].orderBy).toEqual([
+      { published: "asc" },
+      { author: { tenant: { name: "desc" } } },
+      { id: "desc" },
+    ]);
+  });
+});

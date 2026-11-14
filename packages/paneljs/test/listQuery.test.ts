@@ -31,19 +31,53 @@ async function parse(query: QueryMap, config: ModelConfig = {}) {
 
 describe("list query defaults", () => {
   it("uses page one and the resolved model sort", async () => {
+    // No sort parameter: AdminService.list uses the model's defaultSort.
     await expect(parse({})).resolves.toEqual({
       page: 1,
-      sort: "createdAt",
-      dir: "desc",
+      sort: undefined,
       filter: undefined,
       search: undefined,
     });
   });
 
-  it("accepts a valid page and visible scalar sort", async () => {
+  it("accepts a valid page and the old sort + dir form", async () => {
     await expect(
       parse({ page: "3", sort: "email", dir: "asc" }),
-    ).resolves.toMatchObject({ page: 3, sort: "email", dir: "asc" });
+    ).resolves.toMatchObject({
+      page: 3,
+      sort: [{ field: "email", direction: "asc" }],
+    });
+  });
+
+  it("parses a comma list where a leading - means descending", async () => {
+    await expect(parse({ sort: "isActive,-createdAt" })).resolves.toMatchObject(
+      {
+        sort: [
+          { field: "isActive", direction: "asc" },
+          { field: "createdAt", direction: "desc" },
+        ],
+      },
+    );
+  });
+
+  it("applies dir alone to the default sort", async () => {
+    await expect(parse({ dir: "asc" })).resolves.toMatchObject({
+      sort: [{ field: "createdAt", direction: "asc" }],
+    });
+  });
+
+  it("allows a relation column's sort key and defaultSort paths only", async () => {
+    // "tenant" is a column, so its display-field path is offered.
+    await expect(
+      parse({ sort: "tenant__name" }, { listDisplay: ["email", "tenant"] }),
+    ).resolves.toMatchObject({ sort: [{ field: "tenant__name" }] });
+    // Not a column: a URL can't order by it.
+    await expect(parse({ sort: "tenant__name" })).rejects.toThrow(
+      'Field "tenant__name" cannot be used for sorting',
+    );
+    await expect(parse({ sort: "email,," })).rejects.toThrow(
+      "comma-separated list",
+    );
   });
 
   it.each(["0", "-1", "1.5", "nope", "10001"])(

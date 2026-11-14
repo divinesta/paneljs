@@ -2,6 +2,7 @@ import {
   fieldCondition,
   type AdminModelMeta,
   type DataAdapter,
+  type ResolvedSort,
   type SearchField,
 } from "paneljs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -15,6 +16,11 @@ import {
 /** A plain `contains` search on one of the model's own fields. */
 function searchField(field: string): SearchField {
   return { relations: [], field, mode: "contains" };
+}
+
+/** Sort on one of the model's own fields. */
+function sortBy(field: string, direction: "asc" | "desc"): ResolvedSort {
+  return { relations: [], field, direction };
 }
 
 export interface AdapterContractEnvironment {
@@ -125,7 +131,7 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         const user = metadata.get(CONTRACT_MODELS.user)!;
         const records = await environment.adapter.resource(user).findMany({
           scope: { tenantId: seed.tenantA },
-          sort: { field: "email", direction: "asc" },
+          sort: [sortBy("email", "asc")],
           select: {
             fields: ["id", "email", "tenantId"],
             relations: [{ field: "tenant", displayField: "name" }],
@@ -170,7 +176,7 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         const post = metadata.get(CONTRACT_MODELS.post)!;
         const records = await environment.adapter.resource(post).findMany({
           scope: { tenantId: seed.tenantA },
-          sort: { field: "title", direction: "asc" },
+          sort: [sortBy("title", "asc")],
           skip: 1,
           take: 1,
           select: { fields: ["id", "title"], relations: [] },
@@ -178,6 +184,26 @@ export function defineAdapterContract(harness: AdapterContractHarness): void {
         expect(records).toEqual([
           { id: seed.postA1, title: "Quarterly Report" },
         ]);
+      });
+
+      it("QUERY-026 sorts by several columns in priority order", async () => {
+        const post = metadata.get(CONTRACT_MODELS.post)!;
+        const list = (sort: ResolvedSort[]) =>
+          environment.adapter.resource(post).findMany({
+            scope: { tenantId: seed.tenantA },
+            sort,
+            select: { fields: ["id"], relations: [] },
+          });
+        // Both posts are in tenant A, so the id breaks the tie.
+        await expect(
+          list([sortBy("tenantId", "desc"), sortBy("id", "asc")]),
+        ).resolves.toEqual([{ id: seed.postA1 }, { id: seed.postA2 }]);
+        await expect(
+          list([sortBy("tenantId", "desc"), sortBy("id", "desc")]),
+        ).resolves.toEqual([{ id: seed.postA2 }, { id: seed.postA1 }]);
+        await expect(
+          list([sortBy("published", "asc"), sortBy("id", "desc")]),
+        ).resolves.toEqual([{ id: seed.postA2 }, { id: seed.postA1 }]);
       });
 
       it("DATA-005 counts with the same constraints", async () => {

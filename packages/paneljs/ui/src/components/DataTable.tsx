@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Field, RecordData } from "../types";
+import type { Field, RecordData, SortKey } from "../types";
 import { fieldLabel, formatRecordValue } from "../utils/format";
 
 /** Shared sizing so header and body columns line up. */
@@ -31,7 +31,7 @@ export const DataTable = ({
   rowStart = 0,
   selectedIds,
   sort,
-  dir,
+  sortKeys,
   onSort,
   onToggleAll,
   onToggleSelected,
@@ -43,9 +43,12 @@ export const DataTable = ({
   canEdit: boolean;
   rowStart?: number;
   selectedIds?: Set<string>;
-  sort: string;
-  dir: "asc" | "desc";
-  onSort: (field: string) => void;
+  /** Current sort columns, in priority order. */
+  sort: SortKey[];
+  /** Column → sort key; columns missing here can't be sorted. */
+  sortKeys: Record<string, string>;
+  /** `additive` is true for Shift+click: add a column instead of replacing. */
+  onSort: (key: string, additive: boolean) => void;
   onToggleAll?: (selected: boolean) => void;
   onToggleSelected?: (id: string, selected: boolean) => void;
   onOpen: (id: string) => void;
@@ -80,12 +83,16 @@ export const DataTable = ({
             </TableHead>
           )}
           {fields.map((field) => {
-            const sortable = field.type !== "relation";
-            const isSorted = sortable && sort === field.name;
+            const sortKey = sortKeys[field.name];
+            const position = sortKey
+              ? sort.findIndex((key) => key.field === sortKey)
+              : -1;
+            const isSorted = position !== -1;
+            const dir = sort[position]?.direction;
             return (
               <TableHead
                 aria-sort={
-                  isSorted
+                  position === 0
                     ? dir === "asc"
                       ? "ascending"
                       : "descending"
@@ -94,15 +101,16 @@ export const DataTable = ({
                 className={headClass}
                 key={field.name}
               >
-                {sortable ? (
+                {sortKey ? (
                   <button
                     className={cn(
                       "inline-flex cursor-pointer items-center gap-1.5 [&_svg]:text-muted-foreground [&_svg]:opacity-75",
                       isSorted &&
                         "text-foreground [&_svg]:text-foreground [&_svg]:opacity-100",
                     )}
+                    title="Click to sort. Shift+click to add as another sort column."
                     type="button"
-                    onClick={() => onSort(field.name)}
+                    onClick={(event) => onSort(sortKey, event.shiftKey)}
                   >
                     <span>{fieldLabel(field.name)}</span>
                     {isSorted ? (
@@ -113,6 +121,14 @@ export const DataTable = ({
                       )
                     ) : (
                       <ArrowUpDown size={12} strokeWidth={1.75} aria-hidden />
+                    )}
+                    {isSorted && sort.length > 1 && (
+                      <span
+                        className="inline-flex size-4 items-center justify-center rounded-full bg-muted-foreground/15 text-[10px] tabular-nums"
+                        aria-label={`sort priority ${position + 1}`}
+                      >
+                        {position + 1}
+                      </span>
                     )}
                   </button>
                 ) : (

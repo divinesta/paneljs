@@ -9,6 +9,8 @@ import {
   type FilterNode,
   type FullRegisteredModel,
   type ModelConfig,
+  resolveSort,
+  withIdTiebreaker,
 } from "../src/index.js";
 import { adminUser, field, tenantMeta, userMeta } from "./fixtures.js";
 
@@ -293,5 +295,137 @@ describe("schema for path filters", () => {
       },
     ]);
     expect(post.config.searchFields).toEqual(["title"]);
+  });
+});
+
+describe("sorting through relations", () => {
+  it("resolves own fields and single-record relation paths", async () => {
+    const { models, post } = await setup();
+    expect(
+      resolveSort(
+        [
+          { field: "views", direction: "desc" },
+          { field: "author__tenant__name", direction: "asc" },
+        ],
+        post,
+        models,
+      ),
+    ).toEqual([
+      { relations: [], field: "views", direction: "desc" },
+      {
+        relations: [
+          { field: "author", many: false },
+          { field: "tenant", many: false },
+        ],
+        field: "name",
+        direction: "asc",
+      },
+    ]);
+  });
+
+  it.each([
+    ["author__tenant__users__email", "list relation"],
+    ["author", "cannot be used for sorting"],
+    ["author__passwordHash", "is not a field on User"],
+    ["author__missing", "is not a field on User"],
+  ])("rejects %s", async (field, message) => {
+    const { models, post } = await setup();
+    expect(() =>
+      resolveSort([{ field, direction: "asc" }], post, models),
+    ).toThrow(message);
+  });
+
+  it("rejects duplicates, too many keys and forbidden models", async () => {
+    const { models, post } = await setup({
+      User: { permissions: { list: ["SUPER_ADMIN"] } },
+    });
+    expect(() =>
+      resolveSort(
+        [
+          { field: "title", direction: "asc" },
+          { field: "title", direction: "desc" },
+        ],
+        post,
+        models,
+      ),
+    ).toThrow("more than once");
+    expect(() =>
+      resolveSort(
+        [
+          "id",
+          "title",
+          "views",
+          "authorId",
+          "author__email",
+          "author__role",
+        ].map((field) => ({ field, direction: "asc" as const })),
+        post,
+        models,
+      ),
+    ).toThrow("at most 5");
+    expect(() =>
+      resolveSort(
+        [{ field: "author__email", direction: "asc" }],
+        post,
+        models,
+        {
+          adminUser,
+        },
+      ),
+    ).toThrow("is not available");
+  });
+
+  it("adds the id last, in the last column's direction, unless present", () => {
+    const title = { relations: [], field: "title", direction: "asc" as const };
+    expect(withIdTiebreaker([title], "id")).toEqual([
+      title,
+      { relations: [], field: "id", direction: "asc" },
+    ]);
+    expect(withIdTiebreaker([], "id")).toEqual([
+      { relations: [], field: "id", direction: "desc" },
+    ]);
+    const byId = { relations: [], field: "id", direction: "desc" as const };
+    expect(withIdTiebreaker([byId, title], "id")).toEqual([byId, title]);
+  });
+});
+
+describe("schema for sorting", () => {
+  it("offers each column's sort key the administrator can use", async () => {
+    const { registry } = await setup({
+      Post: {
+        listDisplay: ["title", "author", "views"],
+        defaultSort: ["-views", "author__email"],
+      },
+    });
+    const schemaFor = (user: typeof adminUser) =>
+      buildSchemaResponse(registry, {
+        adminUser: user,
+        siteName: "PanelJS",
+        basePath: "/admin",
+        authMode: "external",
+      }).models.find((model) => model.meta.name === "Post")!.config;
+
+    expect(schemaFor(adminUser)).toMatchObject({
+      sortKeys: { title: "title", author: "author__email", views: "views" },
+      defaultSort: [
+        { field: "views", direction: "desc" },
+        { field: "author__email", direction: "asc" },
+      ],
+    });
+  });
+
+  it("drops relation columns through a model the administrator can't list", async () => {
+    const { registry } = await setup({
+      Post: { listDisplay: ["title", "author"], defaultSort: "author__email" },
+      User: { permissions: { list: ["SUPER_ADMIN"] } },
+    });
+    const config = buildSchemaResponse(registry, {
+      adminUser,
+      siteName: "PanelJS",
+      basePath: "/admin",
+      authMode: "external",
+    }).models.find((model) => model.meta.name === "Post")!.config;
+    expect(config.sortKeys).toEqual({ title: "title" });
+    expect(config.defaultSort).toEqual([]);
   });
 });

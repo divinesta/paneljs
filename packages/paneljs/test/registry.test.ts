@@ -76,7 +76,7 @@ describe("registry defaults and lifecycle", () => {
       ],
       listFilter: [],
       searchFields: ["email", "fullName"],
-      defaultSort: { field: "createdAt", direction: "desc" },
+      defaultSort: [{ field: "createdAt", direction: "desc" }],
       perPage: 50,
       permissions: {},
     });
@@ -86,10 +86,9 @@ describe("registry defaults and lifecycle", () => {
     const registry = new AdminRegistry();
     registry.register("Tenant");
     await registry.initialize(modelMeta);
-    expect(registry.get("Tenant")?.resolved.defaultSort).toEqual({
-      field: "id",
-      direction: "desc",
-    });
+    expect(registry.get("Tenant")?.resolved.defaultSort).toEqual([
+      { field: "id", direction: "desc" },
+    ]);
   });
 
   it("applies valid overrides", async () => {
@@ -110,10 +109,21 @@ describe("registry defaults and lifecycle", () => {
       listDisplay: ["fullName", "email"],
       listFilter: ["role"],
       searchFields: ["fullName"],
-      defaultSort: { field: "email", direction: "asc" },
+      defaultSort: [{ field: "email", direction: "asc" }],
       perPage: 25,
       permissions: { update: ["ADMIN"] },
     });
+  });
+
+  it("accepts Django-style sort strings, including relation paths", async () => {
+    const registry = new AdminRegistry();
+    registry.register("User", { defaultSort: ["-isActive", "tenant__name"] });
+    registry.register("Tenant");
+    await registry.initialize(modelMeta);
+    expect(registry.get("User")?.resolved.defaultSort).toEqual([
+      { field: "isActive", direction: "desc" },
+      { field: "tenant__name", direction: "asc" },
+    ]);
   });
 
   it("warns and lets a later registration replace the earlier one", async () => {
@@ -169,13 +179,20 @@ describe("registry configuration validation", () => {
     [
       "relation sort",
       { defaultSort: { field: "tenant", direction: "asc" } },
-      "scalar field",
+      "cannot be used for sorting",
     ],
     [
       "sort direction",
       { defaultSort: { field: "email", direction: "up" } },
       'must be "asc" or "desc"',
     ],
+    ["hidden sort", { defaultSort: "-passwordHash" }, "is invalid"],
+    [
+      "unregistered relation sort",
+      { defaultSort: ["posts__title"] },
+      "is invalid",
+    ],
+    ["empty sort list", { defaultSort: [] }, "at least one field"],
     [
       "plural name",
       { pluralName: "bad path" },

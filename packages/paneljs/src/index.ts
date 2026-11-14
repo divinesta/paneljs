@@ -95,9 +95,12 @@ export type {
   ResolvedCondition,
   ResolvedFilter,
   ResolvedRelationFilter,
+  ResolvedSort,
   SearchField,
   SearchMode,
   SearchQuery,
+  SortDirection,
+  SortKey,
   UpdateManyQuery,
 } from "./query.js";
 export {
@@ -114,7 +117,23 @@ export {
   resolvePath,
   resolveSearchFields,
 } from "./filterPaths.js";
-export { simpleFieldFilters, simpleSearchFields } from "./filterCompat.js";
+export {
+  simpleFieldFilters,
+  simpleSearchFields,
+  simpleSort,
+} from "./filterCompat.js";
+export {
+  MAX_SORT_KEYS,
+  allowedSortKeys,
+  columnSortKeys,
+  formatSortKey,
+  isSortableField,
+  normalizeSortConfig,
+  parseSortKey,
+  parseSortList,
+  resolveSort,
+  withIdTiebreaker,
+} from "./sorting.js";
 export type { SimpleFieldFilter, SimpleFieldFilters } from "./filterCompat.js";
 export type {
   ModelLookup,

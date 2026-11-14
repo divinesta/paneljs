@@ -23,7 +23,36 @@ import { DateRangeControl, FilterControl } from "../components/FilterSidebar";
 import { useFilters } from "../hooks/useFilters";
 import { useModelData } from "../hooks/useModelData";
 import { useBulkActions } from "../hooks/useBulkActions";
-import type { Field, ListAction, Schema } from "../types";
+import type { Field, ListAction, Schema, SortKey } from "../types";
+
+/** Most sort columns the server accepts. */
+const MAX_SORT_KEYS = 5;
+
+/**
+ * Plain click: sort by this column only, flipping direction if it already
+ * leads. Shift+click: add it as the next column, or flip it if present.
+ */
+const nextSort = (
+  sort: SortKey[],
+  field: string,
+  additive: boolean,
+): SortKey[] => {
+  const flip = (key: SortKey): SortKey => ({
+    field: key.field,
+    direction: key.direction === "asc" ? "desc" : "asc",
+  });
+  const existing = sort.find((key) => key.field === field);
+  if (!additive)
+    return [
+      existing && sort[0]?.field === field
+        ? flip(existing)
+        : { field, direction: "asc" },
+    ];
+  if (existing)
+    return sort.map((key) => (key.field === field ? flip(key) : key));
+  if (sort.length >= MAX_SORT_KEYS) return sort;
+  return [...sort, { field, direction: "asc" }];
+};
 
 const tableCardClass =
   "w-full overflow-hidden rounded-lg border bg-card text-card-foreground";
@@ -51,14 +80,9 @@ export const ListView = ({ schema }: { schema: Schema }) => {
   const [searchDraft, setSearchDraft] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [sort, setSort] = useState(
-    model?.config.defaultSort.field ?? "createdAt",
-  );
-  const [dir, setDir] = useState<"asc" | "desc">(
-    model?.config.defaultSort.direction ?? "desc",
-  );
+  const [sort, setSort] = useState<SortKey[]>(model?.config.defaultSort ?? []);
   const { filters, updateFilter, resetFilters } = useFilters();
-  const data = useModelData(model, page, search, filters, sort, dir);
+  const data = useModelData(model, page, search, filters, sort);
   const bulkActions = useBulkActions(model);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const totalPages = Math.max(data.totalPages, 1);
@@ -66,8 +90,7 @@ export const ListView = ({ schema }: { schema: Schema }) => {
     setSearchDraft("");
     setSearch("");
     setPage(1);
-    setSort(model?.config.defaultSort.field ?? "createdAt");
-    setDir(model?.config.defaultSort.direction ?? "desc");
+    setSort(model?.config.defaultSort ?? []);
     resetFilters();
     setSelectedIds(new Set());
   }, [modelPath]);
@@ -90,14 +113,9 @@ export const ListView = ({ schema }: { schema: Schema }) => {
     resetFilters();
     setPage(1);
   };
-  const toggleSort = (field: string) => {
+  const toggleSort = (field: string, additive: boolean) => {
     setPage(1);
-    if (sort === field)
-      setDir((current) => (current === "asc" ? "desc" : "asc"));
-    else {
-      setSort(field);
-      setDir("asc");
-    }
+    setSort((current) => nextSort(current, field, additive));
   };
   const changeFilter = (name: string, value: string) => {
     setPage(1);
@@ -274,7 +292,7 @@ export const ListView = ({ schema }: { schema: Schema }) => {
               model.config.actions.length > 0 ? selectedIds : undefined
             }
             sort={sort}
-            dir={dir}
+            sortKeys={model.config.sortKeys}
             onSort={toggleSort}
             onToggleAll={(selected) =>
               setSelectedIds((current) => {

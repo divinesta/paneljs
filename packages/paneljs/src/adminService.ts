@@ -17,9 +17,11 @@ import { idSelect } from "./query.js";
 import type {
   FieldSelect,
   FilterNode,
-  FindManyQuery,
+  ResolvedSort,
   SearchQuery,
+  SortKey,
 } from "./query.js";
+import { resolveSort, withIdTiebreaker } from "./sorting.js";
 import {
   assertSelectedRelationsAreVisible,
   buildListRecordSelect,
@@ -52,7 +54,12 @@ export type AdminListInput = {
   filter?: FilterNode;
   /** Search text, matched against the model's configured `searchFields`. */
   search?: string;
-  sort?: FindManyQuery["sort"];
+  /**
+   * Sort columns in priority order; paths like "author__name" may cross
+   * single-record relations. Checked like `filter`. Defaults to the model's
+   * `defaultSort`. The id is always added last as a tiebreaker.
+   */
+  sort?: SortKey[];
 };
 
 const MAX_SEARCH_LENGTH = 200;
@@ -101,7 +108,7 @@ export class AdminService {
       ? resolveFilter(input.filter, model, this.models, adminUser)
       : undefined;
     const search = this.resolveSearch(model, adminUser, input.search);
-    const sort = input.sort ?? model.resolved.defaultSort;
+    const sort = this.resolveSort(model, adminUser, input.sort);
     const [records, total] = await Promise.all([
       delegate.findMany({
         scope,
@@ -122,6 +129,29 @@ export class AdminService {
       perPage,
       totalPages: Math.ceil(total / perPage),
     };
+  }
+
+  private resolveSort(
+    model: FullRegisteredModel,
+    adminUser: AdminUser,
+    keys: SortKey[] | undefined,
+  ): ResolvedSort[] {
+    if (keys && keys.length > 0)
+      return withIdTiebreaker(
+        resolveSort(keys, model, this.models, { adminUser }),
+        model.meta.idField,
+      );
+    // The default sort was checked at startup, but it may cross a model this
+    // administrator can't list. Drop those columns instead of failing.
+    const usable = model.resolved.defaultSort.flatMap((key) => {
+      try {
+        return resolveSort([key], model, this.models, { adminUser });
+      } catch (error) {
+        if (error instanceof RequestValidationError) return [];
+        throw error;
+      }
+    });
+    return withIdTiebreaker(usable, model.meta.idField);
   }
 
   private resolveSearch(

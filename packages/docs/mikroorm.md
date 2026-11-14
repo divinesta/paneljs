@@ -137,7 +137,7 @@ Express sends a PanelJS query:
   scope: { tenantId: "northwind" },
   filters: { published: { equals: true } },
   search: { text: "ada", fields: ["email", "name"] },
-  sort: { field: "createdAt", direction: "desc" },
+  sort: [{ relations: [], field: "createdAt", direction: "desc" }],
   skip: 0,
   take: 50,
   select: { fields: ["id", "email", "name"], relations: [{ field: "author", displayField: "name" }] }

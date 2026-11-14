@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { apiBase, readApiError } from "../api";
-import type { Model, RecordData } from "../types";
+import type { Model, RecordData, SortKey } from "../types";
+
+/** `[{ published, asc }, { createdAt, desc }]` → `"published,-createdAt"`. */
+const sortParam = (sort: SortKey[]): string =>
+  sort
+    .map(({ field, direction }) => (direction === "desc" ? `-${field}` : field))
+    .join(",");
 
 export const useModelData = (
   model: Model | undefined,
   page: number,
   search: string,
   filters: Record<string, string>,
-  sort: string,
-  dir: "asc" | "desc",
+  sort: SortKey[],
 ) => {
   const [records, setRecords] = useState<RecordData[]>([]);
   const [total, setTotal] = useState(0);
@@ -22,7 +27,9 @@ export const useModelData = (
     if (!model) return;
 
     const controller = new AbortController();
-    const params = new URLSearchParams({ page: String(page), sort, dir });
+    const params = new URLSearchParams({ page: String(page) });
+    // Empty means "the server's default order".
+    if (sort.length > 0) params.set("sort", sortParam(sort));
 
     if (search) params.set("search", search);
 
@@ -61,7 +68,7 @@ export const useModelData = (
       });
 
     return () => controller.abort();
-  }, [filters, model, page, reloadVersion, search, sort, dir]);
+  }, [filters, model, page, reloadVersion, search, sort]);
 
   return {
     records,

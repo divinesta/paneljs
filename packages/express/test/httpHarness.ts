@@ -3,6 +3,7 @@ import {
   createAdmin,
   simpleFieldFilters,
   simpleSearchFields,
+  simpleSort,
   hashAdminPassword,
   type AdminAuthStore,
   type AdminModelMeta,
@@ -166,14 +167,17 @@ export class TransportMemoryAdapter implements DataAdapter {
                   .includes(query.search!.text.toLowerCase()),
               )),
         );
-        if (query.sort) {
-          const { field, direction } = query.sort;
+        const sort = simpleSort(query.sort, "test harness");
+        if (sort.length > 0) {
           rows = [...rows].sort((left, right) => {
-            const a = left[field];
-            const b = right[field];
-            if (a === b) return 0;
-            const order = String(a) < String(b) ? -1 : 1;
-            return direction === "asc" ? order : -order;
+            for (const { field, direction } of sort) {
+              const a = left[field];
+              const b = right[field];
+              if (a === b) continue;
+              const order = String(a) < String(b) ? -1 : 1;
+              return direction === "asc" ? order : -order;
+            }
+            return 0;
           });
         }
         return rows

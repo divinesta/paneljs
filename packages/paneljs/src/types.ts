@@ -97,7 +97,15 @@ export interface ModelConfig {
   listDisplay?: string[];
   listFilter?: string[];
   searchFields?: string[];
-  defaultSort?: { field: string; direction: "asc" | "desc" };
+  /**
+   * Default order. Either `{ field, direction }`, or Django-style strings
+   * where a leading `-` means descending: `"-createdAt"` or
+   * `["-published", "author__name"]`. Paths may cross single-record relations.
+   */
+  defaultSort?:
+    | { field: string; direction: "asc" | "desc" }
+    | string
+    | string[];
   perPage?: number;
   fields?: Record<string, AdminFieldOverride>;
   actions?: AdminAction[];
@@ -199,7 +207,13 @@ export interface SchemaResponse {
        */
       filterFields: Array<{ key: string; field: AdminFieldMeta }>;
       searchFields: string[];
-      defaultSort: { field: string; direction: "asc" | "desc" };
+      defaultSort: Array<{ field: string; direction: "asc" | "desc" }>;
+      /**
+       * `listDisplay` column → the sort key a header click uses, only for
+       * columns this administrator can sort. A relation column sorts by the
+       * related record's display field: `author` → `"author__name"`.
+       */
+      sortKeys: Record<string, string>;
       perPage: number;
       permissions: {
         list: boolean;

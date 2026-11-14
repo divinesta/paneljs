@@ -31,6 +31,9 @@ export type ListAction = {
   label: string;
 };
 
+/** One sort column; `field` may be a path such as "author__name". */
+export type SortKey = { field: string; direction: "asc" | "desc" };
+
 export type Model = {
   meta: {
     name: string;
@@ -45,7 +48,9 @@ export type Model = {
     /** `field` is where the key ends: for "author__role", the author's role. */
     filterFields: Array<{ key: string; field: Field }>;
     searchFields: string[];
-    defaultSort: { field: string; direction: "asc" | "desc" };
+    defaultSort: SortKey[];
+    /** Column → sort key for header clicks ("author" → "author__name"). */
+    sortKeys: Record<string, string>;
     perPage: number;
     permissions: ModelPermissions;
     actions: ListAction[];

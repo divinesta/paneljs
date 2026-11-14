@@ -16,6 +16,7 @@ import {
   type UpdateManyQuery,
   simpleFieldFilters,
   simpleSearchFields,
+  simpleSort,
 } from "paneljs";
 import {
   And,
@@ -277,10 +278,13 @@ export function typeormResource(
       const records = await repo.find({
         where: toTypeormWhere(meta, query, caseInsensitive),
         relations: relationNames(query.select),
-        order: query.sort
-          ? ({
-              [query.sort.field]: query.sort.direction.toUpperCase(),
-            } as FindOptionsOrder<ObjectLiteral>)
+        order: query.sort?.length
+          ? (Object.fromEntries(
+              simpleSort(query.sort, "TypeORM").map(({ field, direction }) => [
+                field,
+                direction.toUpperCase(),
+              ]),
+            ) as FindOptionsOrder<ObjectLiteral>)
           : undefined,
         skip: query.skip,
         take: query.take,

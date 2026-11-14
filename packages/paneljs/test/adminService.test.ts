@@ -94,6 +94,34 @@ describe("AdminService list filters and search", () => {
     });
   });
 
+  it("adds the id as the final sort column", async () => {
+    const query = await listWith({
+      sort: [{ field: "tenant__name", direction: "asc" }],
+    });
+    expect(query.sort).toEqual([
+      {
+        relations: [{ field: "tenant", many: false }],
+        field: "name",
+        direction: "asc",
+      },
+      { relations: [], field: "id", direction: "asc" },
+    ]);
+  });
+
+  it("uses the default sort, with the id tiebreaker, when none is given", async () => {
+    const query = await listWith({});
+    expect(query.sort).toEqual([
+      { relations: [], field: "createdAt", direction: "desc" },
+      { relations: [], field: "id", direction: "desc" },
+    ]);
+  });
+
+  it("rejects a sort path that does not resolve", async () => {
+    await expect(
+      listWith({ sort: [{ field: "posts__title", direction: "asc" }] }),
+    ).rejects.toThrow();
+  });
+
   it("rejects over-long search and models with nothing to search", async () => {
     await expect(listWith({ search: "x".repeat(201) })).rejects.toThrow(
       "200 characters or fewer",

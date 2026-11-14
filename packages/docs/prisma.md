@@ -167,7 +167,7 @@ await resource.findMany({
   scope,
   filters,
   search: { text: "ada", fields: ["email", "name"] },
-  sort: { field: "createdAt", direction: "desc" },
+  sort: [{ relations: [], field: "createdAt", direction: "desc" }],
   skip: 0,
   take: 50,
   select,

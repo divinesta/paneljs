@@ -88,7 +88,7 @@ describe.sequential("Prisma PostgreSQL integration", () => {
           text,
           fields: [{ relations: [], field: "title", mode: "contains" }],
         },
-        sort: { field: "title", direction: "asc" },
+        sort: [{ relations: [], field: "title", direction: "asc" }],
         select,
       });
       return rows.map((row) => row.title);
@@ -180,7 +180,7 @@ describe.sequential("Prisma PostgreSQL integration", () => {
       const posts = await resource("Post");
       const rows = await posts.findMany({
         scope: {},
-        sort: { field: "title", direction: "asc" },
+        sort: [{ relations: [], field: "title", direction: "asc" }],
         select,
         ...query,
       });
@@ -191,6 +191,52 @@ describe.sequential("Prisma PostgreSQL integration", () => {
       expect(
         await postTitles({ filter: authorEmail("equals", ada.email) }),
       ).toEqual(["Ada 50% two", "Ada one"]);
+    });
+
+    // Step 4: sorting through a relation, and the id tiebreaker.
+    it("sorts by several columns, one through a to-one relation", async () => {
+      expect(
+        await postTitles({
+          sort: [
+            {
+              relations: [{ field: "author", many: false }],
+              field: "email",
+              direction: "desc",
+            },
+            { relations: [], field: "title", direction: "asc" },
+          ],
+        }),
+      ).toEqual(["Grace one", "Ada 50% two", "Ada one"]);
+    });
+
+    it("pages through tied rows without repeats or gaps", async () => {
+      await database.prisma.post.deleteMany();
+      const createdAt = new Date("2026-01-01T00:00:00Z");
+      await database.prisma.post.createMany({
+        data: Array.from({ length: 60 }, (_, index) => ({
+          title: `Tied ${index}`,
+          authorId: ada.id,
+          tenantId: ada.tenantId,
+          createdAt,
+        })),
+      });
+      const posts = await resource("Post");
+      const seen: unknown[] = [];
+      for (let page = 0; page < 3; page += 1) {
+        const rows = await posts.findMany({
+          scope: {},
+          sort: [
+            { relations: [], field: "createdAt", direction: "desc" },
+            { relations: [], field: "id", direction: "desc" },
+          ],
+          skip: page * 25,
+          take: 25,
+          select,
+        });
+        seen.push(...rows.map((row) => row.id));
+      }
+      expect(seen).toHaveLength(60);
+      expect(new Set(seen).size).toBe(60);
     });
 
     it("combines or and not", async () => {
@@ -234,7 +280,7 @@ describe.sequential("Prisma PostgreSQL integration", () => {
                 value: "ada",
               },
             },
-            sort: { field: "email", direction: "asc" },
+            sort: [{ relations: [], field: "email", direction: "asc" }],
             select: { fields: ["email"], relations: [] },
           })
         ).map((row) => row.email);

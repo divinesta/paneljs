@@ -13,6 +13,7 @@ import {
   type RelationStep,
   type ResolvedCondition,
   type ResolvedFilter,
+  type ResolvedSort,
   type ModelResource,
   type SearchQuery,
   type UpdateManyQuery,
@@ -305,6 +306,19 @@ function combineAnd(
   return { AND: conditions };
 }
 
+/**
+ * Sort columns → Prisma `orderBy` list. A path through single-record
+ * relations nests without `is`: `author__name` → `{ author: { name: "asc" } }`.
+ */
+function toPrismaOrderBy(sort: ResolvedSort[]): Record<string, unknown>[] {
+  return sort.map(({ relations, field, direction }) =>
+    relations.reduceRight<Record<string, unknown>>(
+      (inner, step) => ({ [step.field]: inner }),
+      { [field]: direction },
+    ),
+  );
+}
+
 function toPrismaWhere(
   meta: AdminModelMeta,
   query: {
@@ -351,8 +365,8 @@ export function prismaResource(
         where: toPrismaWhere(meta, query, search),
         select: toPrismaSelect(query.select),
       };
-      if (query.sort)
-        args.orderBy = { [query.sort.field]: query.sort.direction };
+      if (query.sort && query.sort.length > 0)
+        args.orderBy = toPrismaOrderBy(query.sort);
       if (query.skip !== undefined) args.skip = query.skip;
       if (query.take !== undefined) args.take = query.take;
       return delegate.findMany(args);

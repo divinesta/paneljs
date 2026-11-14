@@ -23,6 +23,7 @@ import {
   type UpdateManyQuery,
   simpleFieldFilters,
   simpleSearchFields,
+  simpleSort,
 } from "paneljs";
 import { usesInsensitiveSearch } from "./introspector.js";
 
@@ -296,11 +297,15 @@ export function mikroormResource(
         toMikroormWhere(meta, query, caseInsensitive),
         {
           populate: relationNames(query.select) as never,
-          orderBy: query.sort
-            ? {
-                [rewriteFieldName(fkMap, query.sort.field)]:
-                  query.sort.direction,
-              }
+          orderBy: query.sort?.length
+            ? Object.fromEntries(
+                simpleSort(query.sort, "MikroORM").map(
+                  ({ field, direction }) => [
+                    rewriteFieldName(fkMap, field),
+                    direction,
+                  ],
+                ),
+              )
             : undefined,
           offset: query.skip,
           limit: query.take,

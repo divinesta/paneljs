@@ -1,4 +1,10 @@
-import type { FilterScalar, ResolvedFilter, SearchQuery } from "./query.js";
+import type {
+  FilterScalar,
+  ResolvedFilter,
+  ResolvedSort,
+  SearchQuery,
+  SortDirection,
+} from "./query.js";
 import { RequestValidationError } from "./validation.js";
 
 /** The flat filter shape adapters used before the filter tree. */
@@ -78,5 +84,20 @@ export function simpleSearchFields(
     if (field.mode !== "contains")
       throw unsupported(adapterName, `"${field.mode}" search`);
     return field.field;
+  });
+}
+
+/**
+ * For adapters that haven't adopted relation sorting: the model's own sort
+ * columns in order, or a 400 if one goes through a relation.
+ */
+export function simpleSort(
+  sort: ResolvedSort[] | undefined,
+  adapterName: string,
+): Array<{ field: string; direction: SortDirection }> {
+  return (sort ?? []).map((key) => {
+    if (key.relations.length > 0)
+      throw unsupported(adapterName, "sorting across relations");
+    return { field: key.field, direction: key.direction };
   });
 }
